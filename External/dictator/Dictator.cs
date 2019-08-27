@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace ArangoDriver.dictator
+namespace ArangoDriver.External.dictator
 {
     public static class Dictator
     {

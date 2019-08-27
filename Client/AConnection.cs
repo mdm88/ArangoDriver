@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
-using ArangoDriver.dictator;
+using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 using fastJSON;
 

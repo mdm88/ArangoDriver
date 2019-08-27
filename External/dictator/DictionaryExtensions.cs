@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 
-namespace ArangoDriver.dictator
+namespace ArangoDriver.External.dictator
 {
     public static partial class DictionaryExtensions
     {

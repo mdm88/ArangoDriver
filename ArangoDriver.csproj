@@ -8,4 +8,8 @@
       <PackageReference Include="fastJSON" Version="2.2.4" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="External" />
+    </ItemGroup>
+
 </Project>

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using System.Text;
-using ArangoDriver.dictator;
+using ArangoDriver.External.dictator;
 
 namespace ArangoDriver.Protocol
 {

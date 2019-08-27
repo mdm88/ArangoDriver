@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ArangoDriver.dictator
+namespace ArangoDriver.External.dictator
 {
     /// <summary>
     /// Ignores property if it contains null value when converting object to or from document format.

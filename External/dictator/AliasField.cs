@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ArangoDriver.dictator
+namespace ArangoDriver.External.dictator
 {
     /// <summary>
     /// Specified alias will be used as field name to convert property to or from document format.

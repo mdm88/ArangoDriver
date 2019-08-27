@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ArangoDriver.dictator
+namespace ArangoDriver.External.dictator
 {
 	public class InvalidFieldTypeException : Exception
 	{

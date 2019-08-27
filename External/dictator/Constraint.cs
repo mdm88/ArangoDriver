@@ -1,6 +1,6 @@
 ﻿
 
-namespace ArangoDriver.dictator
+namespace ArangoDriver.External.dictator
 {
     public enum Constraint
     {

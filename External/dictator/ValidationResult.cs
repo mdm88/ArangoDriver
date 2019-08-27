@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ArangoDriver.dictator
+namespace ArangoDriver.External.dictator
 {
     public class ValidationResult
     {
