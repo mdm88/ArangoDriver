@@ -174,7 +174,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Deletes specified database.
         /// </summary>
-        public AResult<bool> Drop(string databaseName)
+        public AResult<bool> DropDatabase(string databaseName)
         {
             var request = new Request(HttpMethod.DELETE, ApiBaseUri.Database, "/" + databaseName);
             

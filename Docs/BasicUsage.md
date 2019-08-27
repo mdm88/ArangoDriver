@@ -1,7 +1,6 @@
 # Basic usage
 
 - [Connection management](#connection-management)
-- [Checking and removing existing connections](#checking-and-removing-existing-connections)
 - [Database context](#database-context)
 - [AResult object](#aresult-object)
 - [AError object](#aerror-object)
