@@ -182,8 +182,8 @@ Retrieves basic information, revision ID and checksum of specified collection.
 
 Applicable optional parameters available through fluent API:
 
-- `~~WithRevisions(bool value)~~` - ~~Determines whether to include document revision ids in the checksum calculation. Default value: false.~~
-- `~~WithData(bool value)~~` - ~~Determines whether to include document body data in the checksum calculation. Default value: false.~~
+- `WithRevisions(bool value)` - ~~Determines whether to include document revision ids in the checksum calculation. Default value: false.~~
+- `WithData(bool value)` - ~~Determines whether to include document body data in the checksum calculation. Default value: false.~~
 
 ```csharp
 var db = connection.GetDatabase("myDatabase");
@@ -312,7 +312,7 @@ Applicable optional parameters available through fluent API:
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var deleteCollectionResult = db.GetCollection("MyDocumentCollection").Delete();
+var deleteCollectionResult = db.DropCollection("MyDocumentCollection");
 
 if (deleteCollectionResult.Success)
 {

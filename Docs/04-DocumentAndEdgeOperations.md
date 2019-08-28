@@ -23,37 +23,20 @@ Applicable optional parameters available through fluent API:
 - `WaitForSync(bool value)` - Determines whether to wait until data are synchronised to disk. Default value: false.
 - `ReturnNew()` - Determines whether to return additionally the complete new document under the attribute 'new' in the result.
 
-```csharp
-var db = new ArangoDatabase("myDatabaseAlias");
-
-var document = new Dictionary<string, object>()
-    .String("foo", "foo string value")
-    .Int("bar", 12345);
-
-var createDocumentResult = db.Document
-    .WaitForSync(true)
-    .Create("MyDocumentCollection", document);
-    
-if (createDocumentResult.Success)
-{
-    var id = createDocumentResult.Value.String("_id");
-    var key = createDocumentResult.Value.String("_key");
-    var revision = createDocumentResult.Value.String("_rev");
-}
-```
-
-Generic version:
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
+
+var collection = db.GetCollection("MyDocumentCollection");
 
 var dummy = new Dummy();
 dummy.Foo = "foo string value";
 dummy.Bar = 12345;
 
-var createDocumentResult = db.Document
+var createDocumentResult = collection
+    .Insert()
     .WaitForSync(true)
-    .Create("MyDocumentCollection", dummy);
+    .Document(dummy);
     
 if (createDocumentResult.Success)
 {
@@ -68,16 +51,19 @@ if (createDocumentResult.Success)
 Documents can be created with custom `_key` field value within the collection which is set to allow user defined keys. Key value must have [valid format](https://docs.arangodb.com/NamingConventions/DocumentKeys.html).
 
 ```csharp
-var db = new ArangoDatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
+
+var collection = db.GetCollection("MyDocumentCollection");
 
 var document = new Dictionary<string, object>()
     .String("_key", "1234-5678")
     .String("foo", "foo string value")
     .Int("bar", 12345);
 
-var createDocumentResult = db.Document
+var createDocumentResult = collection
+    .Insert()
     .WaitForSync(true)
-    .Create("MyDocumentCollection", document);
+    .Document(document);
     
 if (createDocumentResult.Success)
 {
@@ -94,37 +80,19 @@ if (createDocumentResult.Success)
 Creates new edge within specified collection between two document vertices in current database context.
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
-var edgeData = new Dictionary<string, object>()
-    .String("foo", "foo string value")
-    .Int("bar", 12345);
-
-var createEdgeResult = db.Document
-    .WaitForSync(true)
-    .CreateEdge("MyEdgeCollection", "MyDocumentCollection/123", "MyDocumentCollection/456", edgeData);
-    
-if (createEdgeResult.Success)
-{
-    var id = createEdgeResult.Value.String("_id");
-    var key = createEdgeResult.Value.String("_key");
-    var revision = createEdgeResult.Value.String("_rev");
-}
-```
-
-Generic version:
-
-```csharp
-var db = new ADatabase("myDatabaseAlias");
+var collection = db.GetCollection("MyDocumentCollection");
 
 var dummy = new Dummy();
 dummy.Foo = "foo string value";
 dummy.Bar = 12345;
 
 // creates new edge
-var createEdgeResult = db.Document
+var createEdgeResult = collection
+    .Insert()
     .WaitForSync(true)
-    .CreateEdge("MyEdgeCollection", "MyDocumentCollection/123", "MyDocumentCollection/456", dummy);
+    .Edge("MyDocumentCollection/123", "MyDocumentCollection/456", dummy);
     
 if (createEdgeResult.Success)
 {
@@ -140,13 +108,15 @@ Checks for existence of specified document.
 
 Applicable optional parameters available through fluent API:
 
-- `IfMatch(string revision)` - Conditionally operate on document with specified revision.
-- `IfNoneMatch(string revision)` - Conditionally operate on document which current revision does not match specified revision.
+- `IfMatch(string revision)` - ~~Conditionally operate on document with specified revision.~~
+- `IfNoneMatch(string revision)` - ~~Conditionally operate on document which current revision does not match specified revision.~~
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
-var checkDocumentResult = db.Document
+var collection = db.GetCollection("MyDocumentCollection");
+
+var checkDocumentResult = collection
     .Check("MyDocumentCollection/123");
     
 if (checkDocumentResult.Success)
@@ -161,33 +131,15 @@ Retrieves specified document.
 
 Applicable optional parameters available through fluent API:
 
-- `IfMatch(string revision)` - Conditionally operate on document with specified revision.
-- `IfNoneMatch(string revision)` - Conditionally operate on document which current revision does not match specified revision.
+- `IfMatch(string revision)` - ~~Conditionally operate on document with specified revision.~~
+- `IfNoneMatch(string revision)` - ~~Conditionally operate on document which current revision does not match specified revision.~~
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
-var getDocumentResult = db.Document
-    .Get("MyDocumentCollection/123");
-    
-if (getDocumentResult.Success)
-{
-    // standard document descriptors
-    var id = getDocumentResult.Value.String("_id");
-    var key = getDocumentResult.Value.String("_key");
-    var revision = getDocumentResult.Value.String("_rev");
-    // document data
-    var foo = getDocumentResult.Value.String("foo");
-    var bar = getDocumentResult.Value.Int("bar");
-}
-```
+var collection = db.GetCollection("MyDocumentCollection");
 
-Generic version:
-
-```csharp
-var db = new ADatabase("myDatabaseAlias");
-
-var getDocumentResult = db.Document
+var getDocumentResult = collection
     .Get<Dummy>("MyDocumentCollection/123");
     
 if (getDocumentResult.Success)
@@ -202,10 +154,12 @@ if (getDocumentResult.Success)
 Retrieves list of edges from specified edge type collection to specified document vertex with given direction.
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
-var getEdgesResult = db.Document
-    .GetEdges("MyEdgeCollection", "MyDocumentCollection/123", ADirection.In);
+var collection = db.GetCollection("MyDocumentCollection");
+
+var getEdgesResult = collection
+    .GetEdges("MyDocumentCollection/123", ADirection.In);
     
 if (getEdgesResult.Success)
 {
@@ -234,33 +188,16 @@ Applicable optional parameters available through fluent API:
 - `ReturnOld()` - Determines whether to return additionally the complete previous revision of the changed document under the attribute 'old' in the result.
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
-var document = new Dictionary<string, object>()
-    .String("foo", "new foo string value")
-    .Int("baz", 123);
-
-var updateDocumentResult = db.Document
-    .Update("MyDocumentCollection/123", document);
-    
-if (updateDocumentResult.Success)
-{
-    var id = updateDocumentResult.Value.String("_id");
-    var key = updateDocumentResult.Value.String("_key");
-    var revision = updateDocumentResult.Value.String("_rev");
-}
-```
-
-Generic version:
-
-```csharp
-var db = new ADatabase("myDatabaseAlias");
+var collection = db.GetCollection("MyDocumentCollection");
 
 var dummy = new Dummy();
 dummy.Foo = "some other new string";
 dummy.Baz = 123;
 
-var updateDocumentResult = db.Document
+var updateDocumentResult = collection
+    .Update()
     .Update("MyDocumentCollection/123", dummy);
     
 if (updateDocumentResult.Success)
@@ -284,34 +221,17 @@ Applicable optional parameters available through fluent API:
 - `ReturnOld()` - Determines whether to return additionally the complete previous revision of the changed document under the attribute 'old' in the result.
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
-var document = new Dictionary<string, object>()
-    .String("foo", "other foo string value")
-    .Int("baz", 123);
-
-var replaceDocumentResult = db.Document
-    .Replace("MyDocumentCollection/123", document);
-    
-if (replaceDocumentResult.Success)
-{
-    var id = replaceDocumentResult.Value.String("_id");
-    var key = replaceDocumentResult.Value.String("_key");
-    var revision = replaceDocumentResult.Value.String("_rev");
-}
-```
-
-Generic version:
-
-```csharp
-var db = new ADatabase("myDatabaseAlias");
+var collection = db.GetCollection("MyDocumentCollection");
 
 var dummy = new Dummy();
 dummy.Foo = "some other new string";
 dummy.Baz = 123;
 
-var replaceDocumentResult = db.Document
-    .Replace("MyDocumentCollection/123", dummy);
+var replaceDocumentResult = collection
+    .Replace()
+    .Document("MyDocumentCollection/123", dummy);
     
 if (replaceDocumentResult.Success)
 {
@@ -326,34 +246,17 @@ if (replaceDocumentResult.Success)
 Completely replaces existing edge identified by its handle with new edge data. This helper method injects 'fromID' and 'toID' fields into given document to construct valid edge document. 
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
-var edgeData = new Dictionary<string, object>()
-    .String("foo", "other foo string value")
-    .Int("baz", 123);
-
-var replaceEdgeResult = db.Document
-    .ReplaceEdge("MyEdgeCollection/123", "MyDocumentCollection/456", "MyDocumentCollection/789", edgeData);
-    
-if (replaceEdgeResult.Success)
-{
-    var id = replaceEdgeResult.Value.String("_id");
-    var key = replaceEdgeResult.Value.String("_key");
-    var revision = replaceEdgeResult.Value.String("_rev");
-}
-```
-
-Generic version:
-
-```csharp
-var db = new ADatabase("myDatabaseAlias");
+var collection = db.GetCollection("MyDocumentCollection");
 
 var dummy = new Dummy();
 dummy.Foo = "some other new string";
 dummy.Baz = 123;
 
-var replaceEdgeResult = db.Edge
-    .ReplaceEdge("MyEdgeCollection/123", "MyDocumentCollection/456", "MyDocumentCollection/789", dummy);
+var replaceEdgeResult = collection
+    .Replace()
+    .Edge("MyEdgeCollection/123", "MyDocumentCollection/456", "MyDocumentCollection/789", dummy);
     
 if (replaceEdgeResult.Success)
 {
@@ -372,9 +275,12 @@ Deletes specified document.
 - `ReturnOld()` - Determines whether to return additionally the complete previous revision of the changed document under the attribute 'old' in the result.
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
-var deleteDocumentResult = db.Document
+var collection = db.GetCollection("MyDocumentCollection");
+
+var deleteDocumentResult = collection
+    .Delete()
     .Delete("MyDocumentCollection/123");
     
 if (deleteDocumentResult.Success)
@@ -384,7 +290,3 @@ if (deleteDocumentResult.Success)
     var revision = deleteDocumentResult.Value.String("_rev");
 }
 ```
-
-## More examples
-
-More examples regarding document operations can be found in [unit tests](../src/Arango/Arango.Tests/DocumentOperations/DocumentOperationsTests.cs).

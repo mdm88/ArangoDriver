@@ -8,17 +8,6 @@ namespace ArangoDriver.Client
     {
         private readonly AConnection _connection;
         private readonly string _databaseName;
-        
-        /// <summary>
-        /// Provides access to document operations in current database context.
-        /// </summary>
-        public ADocument Document
-        {
-            get
-            {
-                return new ADocument(this);
-            }
-        }
 
         /// <summary>
         /// Provides access to AQL user function management operations in current database context.
@@ -156,6 +145,37 @@ namespace ArangoDriver.Client
             return result;
         }
         
+        /// <summary>
+        /// Deletes specified collection.
+        /// </summary>
+        public AResult<Dictionary<string, object>> DropCollection(string collectionName)
+        {
+            var request = new Request(HttpMethod.DELETE, ApiBaseUri.Collection, "/" + collectionName);
+
+            // optional
+            //request.TrySetQueryStringParameter(ParameterName.IsSystem, _parameters);
+
+            var response = _connection.Send(request);
+            var result = new AResult<Dictionary<string, object>>(response);
+            
+            switch (response.StatusCode)
+            {
+                case 200:
+                    var body = response.ParseBody<Dictionary<string, object>>();
+                    
+                    result.Success = (body != null);
+                    result.Value = body;
+                    break;
+                case 400:
+                case 404:
+                default:
+                    // Arango error
+                    break;
+            }
+            
+            return result;
+        }
+
         #endregion
         
         internal Response Send(Request request)

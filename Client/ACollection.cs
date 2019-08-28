@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 using fastJSON;
@@ -9,14 +10,16 @@ namespace ArangoDriver.Client
     {
         private readonly ADatabase _connection;
         private readonly string _collectionName;
-        
+
+        public string Name => _collectionName;
+
         internal ACollection(ADatabase connection, string collectionName)
         {
             _connection = connection;
             _collectionName = collectionName;
         }
         
-        #region Get collection (GET)
+        #region Collection
         
         /// <summary>
         /// Retrieves basic information about specified collection.
@@ -44,10 +47,6 @@ namespace ArangoDriver.Client
             
             return result;
         }
-        
-        #endregion
-        
-        #region Get collection properties (GET)
         
         /// <summary>
         /// Retrieves basic information with additional properties about specified collection.
@@ -77,10 +76,6 @@ namespace ArangoDriver.Client
             return result;
         }
         
-        #endregion
-        
-        #region Get collection documents count (GET)
-        
         /// <summary>
         /// Retrieves basic information with additional properties and document count in specified collection.
         /// </summary>
@@ -108,10 +103,6 @@ namespace ArangoDriver.Client
             
             return result;
         }
-        
-        #endregion
-        
-        #region Get collection figures (GET)
         
         /// <summary>
         /// Retrieves basic information with additional properties, document count and figures in specified collection.
@@ -141,10 +132,6 @@ namespace ArangoDriver.Client
             return result;
         }
         
-        #endregion
-        
-        #region Get collection revision (GET)
-        
         /// <summary>
         /// Retrieves basic information and revision ID of specified collection.
         /// </summary>
@@ -172,10 +159,6 @@ namespace ArangoDriver.Client
             
             return result;
         }
-        
-        #endregion
-        
-        #region Get collection checksum (GET)
         
         /// <summary>
         /// Retrieves basic information, revision ID and checksum of specified collection.
@@ -210,10 +193,6 @@ namespace ArangoDriver.Client
             return result;
         }
         
-        #endregion
-        
-        #region Get all indexes (GET)
-        
         /// <summary>
         /// Retrieves list of indexes in specified collection.
         /// </summary>
@@ -244,10 +223,6 @@ namespace ArangoDriver.Client
             return result;
         }
         
-        #endregion
-        
-        #region Truncate collection (PUT)
-        
         /// <summary>
         /// Removes all documents from specified collection.
         /// </summary>
@@ -273,10 +248,6 @@ namespace ArangoDriver.Client
             
             return result;
         }
-        
-        #endregion
-        
-        #region Change collection properties (PUT)
         
         /*/// <summary>
         /// Changes properties of specified collection.
@@ -312,10 +283,6 @@ namespace ArangoDriver.Client
             return result;
         }*/
         
-        #endregion
-        
-        #region Rename collection (PUT)
-        
         /// <summary>
         /// Renames specified collection.
         /// </summary>
@@ -346,10 +313,6 @@ namespace ArangoDriver.Client
             return result;
         }
         
-        #endregion
-        
-        #region Rotate journal of a collection (PUT)
-        
         /// <summary>
         /// Rotates the journal of specified collection to make the data in the file available for compaction. Current journal of the collection will be closed and turned into read-only datafile. This operation is not available in cluster environment.
         /// </summary>
@@ -366,7 +329,7 @@ namespace ArangoDriver.Client
                     var body = response.ParseBody<Body<bool>>();
                     
                     result.Success = (body != null);
-                    result.Value = body.Result;
+                    result.Value = body?.Result ?? false;
                     break;
                 case 400:
                 case 404:
@@ -380,30 +343,55 @@ namespace ArangoDriver.Client
         
         #endregion
         
-        #region Delete collection (DELETE)
+        #region Documents and Edges
+
+        /// <summary>
+        /// Creates new document or edge within specified collection in current database context.
+        /// Must call Document() or Edge() to confirm
+        /// </summary>
+        /// <returns>DocumentCreate</returns>
+        public DocumentCreate Insert()
+        {
+            return new DocumentCreate(this);
+        }
         
         /// <summary>
-        /// Deletes specified collection.
+        /// Checks for existence of specified document.
         /// </summary>
-        public AResult<Dictionary<string, object>> Delete()
+        /// <exception cref="ArgumentException">Specified 'id' value has invalid format.</exception>
+        public AResult<string> Check(string id)
         {
-            var request = new Request(HttpMethod.DELETE, ApiBaseUri.Collection, "/" + _collectionName);
-
+            if (!ADocument.IsID(id))
+            {
+                throw new ArgumentException("Specified 'id' value (" + id + ") has invalid format.");
+            }
+            
+            var request = new Request(HttpMethod.HEAD, ApiBaseUri.Document, "/" + id);
+            
             // optional
-            //request.TrySetQueryStringParameter(ParameterName.IsSystem, _parameters);
-
+            //request.TrySetHeaderParameter(ParameterName.IfMatch, _parameters);
+            // optional: If revision is different -> HTTP 200. If revision is identical -> HTTP 304.
+            //request.TrySetHeaderParameter(ParameterName.IfNoneMatch, _parameters);
+            
             var response = _connection.Send(request);
-            var result = new AResult<Dictionary<string, object>>(response);
+            var result = new AResult<string>(response);
             
             switch (response.StatusCode)
             {
                 case 200:
-                    var body = response.ParseBody<Dictionary<string, object>>();
-                    
-                    result.Success = (body != null);
-                    result.Value = body;
+                    if ((response.Headers["ETag"] ?? "").Trim().Length > 0)
+                    {
+                        result.Value = response.Headers["ETag"].Replace("\"", "");
+                        result.Success = (result.Value != null);
+                    }
                     break;
-                case 400:
+                case 304:
+                case 412:
+                    if ((response.Headers["ETag"] ?? "").Trim().Length > 0)
+                    {
+                        result.Value = response.Headers["ETag"].Replace("\"", "");
+                    }
+                    break;
                 case 404:
                 default:
                     // Arango error
@@ -412,7 +400,137 @@ namespace ArangoDriver.Client
             
             return result;
         }
+
+        /// <summary>
+        /// Retrieves specified document.
+        /// </summary>
+        /// <exception cref="ArgumentException">Specified 'id' value has invalid format.</exception>
+        public AResult<T> Get<T>(string id)
+        {
+            if (!ADocument.IsID(id))
+            {
+                throw new ArgumentException("Specified 'id' value (" + id + ") has invalid format.");
+            }
+            
+            var request = new Request(HttpMethod.GET, ApiBaseUri.Document, "/" + id);
+            
+            // optional
+            //request.TrySetHeaderParameter(ParameterName.IfMatch, _parameters);
+            // optional: If revision is different -> HTTP 200. If revision is identical -> HTTP 304.
+            //request.TrySetHeaderParameter(ParameterName.IfNoneMatch, _parameters);
+            
+            var response = _connection.Send(request);
+            var result = new AResult<T>(response);
+            
+            switch (response.StatusCode)
+            {
+                case 200:
+                    var body = response.ParseBody<T>();
+                    
+                    result.Success = (body != null);
+                    result.Value = body;
+                    break;
+                case 412:
+                    body = response.ParseBody<T>();
+                    
+                    result.Value = body;
+                    break;
+                case 304:
+                case 404:
+                default:
+                    // Arango error
+                    break;
+            }
+            
+            return result;
+        }
+
+        /// <summary>
+        /// Retrieves specified document.
+        /// </summary>
+        public AResult<Dictionary<string, object>> Get(string id)
+        {
+            return Get<Dictionary<string, object>>(id);
+        }
+
+        /// <summary>
+        /// Retrieves list of edges from specified edge type collection to specified document vertex with given direction.
+        /// </summary>
+        /// <exception cref="ArgumentException">Specified 'startVertexID' value has invalid format.</exception>
+        public AResult<List<Dictionary<string, object>>> GetEdges(string startVertexID, ADirection direction)
+        {
+            if (!ADocument.IsID(startVertexID))
+            {
+                throw new ArgumentException("Specified 'startVertexID' value (" + startVertexID + ") has invalid format.");
+            }
+
+            var request = new Request(HttpMethod.GET, ApiBaseUri.Edges, "/" + Name);
+
+            // required
+            request.QueryString.Add(ParameterName.Vertex, startVertexID);
+            // required
+            request.QueryString.Add(ParameterName.Direction, direction.ToString().ToLower());
+
+            var response = _connection.Send(request);
+            var result = new AResult<List<Dictionary<string, object>>>(response);
+
+            switch (response.StatusCode)
+            {
+                case 200:
+                    var body = response.ParseBody<Dictionary<string, object>>();
+
+                    result.Success = (body != null);
+
+                    if (result.Success)
+                    {
+                        result.Value = body.List<Dictionary<string, object>>("edges");
+                    }
+                    break;
+                case 400:
+                case 404:
+                default:
+                    // Arango error
+                    break;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Updates existing document identified by its handle with new document data.
+        /// Must call Update() method to confirm
+        /// </summary>
+        /// <returns>DocumentUpdate</returns>
+        public DocumentUpdate Update()
+        {
+            return new DocumentUpdate(this);
+        }
+
+        /// <summary>
+        /// Completely replaces existing document identified by its handle with new document data.
+        /// Must call Document() or Edge() to confirm
+        /// </summary>
+        /// <returns>DocumentReplace</returns>
+        public DocumentReplace Replace()
+        {
+            return new DocumentReplace(this);
+        }
+        
+        /// <summary>
+        /// Deletes specified document.
+        /// Must call Delete() method to confirm
+        /// </summary>
+        /// <returns>DocumentDelete</returns>
+        public DocumentDelete Delete()
+        {
+            return new DocumentDelete(this);
+        }
         
         #endregion
+        
+        internal Response Send(Request request)
+        {
+            return _connection.Send(request);
+        }
     }
 }
