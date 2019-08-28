@@ -1,26 +1,13 @@
 ﻿using System.Collections.Generic;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
-using fastJSON;
 
 namespace ArangoDriver.Client
 {
     public class ADatabase
     {
-        private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
         private readonly AConnection _connection;
         private readonly string _databaseName;
-        
-        /// <summary>
-        /// Provides access to collection operations in current database context.
-        /// </summary>
-        public ACollection Collection
-        {
-            get
-            {
-                return new ACollection(this);
-            }
-        }
         
         /// <summary>
         /// Provides access to document operations in current database context.
@@ -97,7 +84,7 @@ namespace ArangoDriver.Client
             _databaseName = database;
         }
         
-        #region Get current database (GET)
+        #region Database
         
         /// <summary>
         /// Retrieves information about currently connected database.
@@ -129,7 +116,17 @@ namespace ArangoDriver.Client
         
         #endregion
         
-        #region Get list of all collections (GET)
+        #region Collections
+
+        public CollectionBuilder CreateCollection(string name)
+        {
+            return new CollectionBuilder(this, name);
+        }
+
+        public ACollection GetCollection(string name)
+        {
+            return new ACollection(this, name);
+        }
         
         /// <summary>
         /// Retrieves information about collections in current database connection.

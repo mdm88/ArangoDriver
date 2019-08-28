@@ -15,10 +15,8 @@ Most operations which are focused on management of database instances can only b
 Creates new database with given name and optional user list.
 
 ```csharp
-var db = new ADatabase("systemDatabaseAlias");
-
 // creates new database
-var createDatabaseResult1 = db.Create("myDatabase1");
+var createDatabaseResult1 = connection.Create("myDatabase1");
 
 // creates another new database with specified users
 var users = new List<AUser>()
@@ -27,7 +25,7 @@ var users = new List<AUser>()
     new AUser { Username = "tester001", Password = "test001", Active = false } 
 };
 
-var createDatabaseResult2 = db.Create("myDatabase2", users), 
+var createDatabaseResult2 = connection.Create("myDatabase2", users), 
 ```
 
 ## Retrieve current database
@@ -35,7 +33,7 @@ var createDatabaseResult2 = db.Create("myDatabase2", users),
 Retrieves information about currently connected database.
 
 ```csharp
-var db = new ADatabase("systemDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
 var currentDatabaseResult = db.GetCurrent();
 
@@ -53,9 +51,7 @@ if (currentDatabaseResult.Success)
 Retrieves list of accessible databases which current user can access without specifying a different username or password.
 
 ```csharp
-var db = new ADatabase("systemDatabaseAlias");
-
-var accessibleDatabasesResult = db.GetAccessibleDatabases();
+var accessibleDatabasesResult = connection.GetAccessibleDatabases();
 
 if (accessibleDatabasesResult.Success)
 {
@@ -71,9 +67,7 @@ if (accessibleDatabasesResult.Success)
 Retrieves the list of all existing databases.
 
 ```csharp
-var db = new ADatabase("systemDatabaseAlias");
-
-var allDatabasesResult = db.GetAllDatabases();
+var allDatabasesResult = connection.GetAllDatabases();
 
 if (allDatabasesResult.Success)
 {
@@ -88,15 +82,10 @@ if (allDatabasesResult.Success)
 
 Retrieves information about collections in current database connection.
 
-Applicable optional parameters available through fluent API:
-
-- `ExcludeSystem(bool value)` - Determines whether system collections should be excluded from the result.
-
 ```csharp
-var db = new ADatabase("systemDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
 var databaseCollectionsResult = db
-    .ExcludeSystem(true)
     .GetAllCollections();
     
 if (databaseCollectionsResult.Success)
@@ -113,16 +102,10 @@ if (databaseCollectionsResult.Success)
 Deletes specified database.
 
 ```csharp
-var db = new ADatabase("systemDatabaseAlias");
-
-var deleteDatabaseResult = db.Drop("myDatabase1");
+var deleteDatabaseResult = connection.DropDatabase("myDatabase");
 
 if (deleteDatabaseResult.Success)
 {
     var isDeleted = deleteDatabaseResult.Value;
 }
 ```
-
-## More examples
-
-More examples regarding database operations can be found in [unit tests](../src/Arango/Arango.Tests/DatabaseOperations/DatabaseOperationsTests.cs).

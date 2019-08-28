@@ -39,13 +39,13 @@ Applicable optional parameters available through fluent API:
 - `ShardKeys(List<string> value)` - Determines which document attributes are used to specify the target shard for documents in cluster environment. Default value: ["_key"].
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
 // creates new document type collection
-var createCollectionResult = db.Collection
+var createCollectionResult = db.CreateCollection("MyDocumentCollection")
     .KeyGeneratorType(AKeyGeneratorType.Autoincrement)
     .WaitForSync(true)
-    .Create("MyDocumentCollection");
+    .Create();
     
 if (createCollectionResult.Success)
 {
@@ -64,10 +64,9 @@ if (createCollectionResult.Success)
 Retrieves basic information about specified collection.
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = db.Collection
-    .Get("MyDocumentCollection");
+var getCollectionResult = db.GetCollection("MyDocumentCollection").Get();
 
 if (getCollectionResult.Success)
 {
@@ -84,10 +83,9 @@ if (getCollectionResult.Success)
 Retrieves basic information with additional properties about specified collection.
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = db.Collection
-    .GetProperties("MyDocumentCollection");
+var getCollectionResult = db.GetCollection("MyDocumentCollection").GetProperties();
 
 if (getCollectionResult.Success)
 {
@@ -110,10 +108,9 @@ if (getCollectionResult.Success)
 Retrieves basic information with additional properties and document count in specified collection.
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = db.Collection
-    .GetCount("MyDocumentCollection");
+var getCollectionResult = db.GetCollection("MyDocumentCollection").GetCount();
 
 if (getCollectionResult.Success)
 {
@@ -137,10 +134,9 @@ if (getCollectionResult.Success)
 Retrieves basic information with additional properties, document count and figures in specified collection.
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = db.Collection
-    .GetFigures("MyDocumentCollection");
+var getCollectionResult = db.GetCollection("MyDocumentCollection").GetFigures();
 
 if (getCollectionResult.Success)
 {
@@ -165,10 +161,9 @@ if (getCollectionResult.Success)
 Retrieves basic information and revision ID of specified collection.
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = db.Collection
-    .GetRevision("MyDocumentCollection");
+var getCollectionResult = db.GetCollection("MyDocumentCollection").GetRevision();
 
 if (getCollectionResult.Success)
 {
@@ -187,14 +182,13 @@ Retrieves basic information, revision ID and checksum of specified collection.
 
 Applicable optional parameters available through fluent API:
 
-- `WithRevisions(bool value)` - Determines whether to include document revision ids in the checksum calculation. Default value: false.
-- `WithData(bool value)` - Determines whether to include document body data in the checksum calculation. Default value: false.
+- `~~WithRevisions(bool value)~~` - ~~Determines whether to include document revision ids in the checksum calculation. Default value: false.~~
+- `~~WithData(bool value)~~` - ~~Determines whether to include document body data in the checksum calculation. Default value: false.~~
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = db.Collection
-    .GetChecksum("MyDocumentCollection");
+var getCollectionResult = db.GetCollection("MyDocumentCollection").GetChecksum();
 
 if (getCollectionResult.Success)
 {
@@ -213,10 +207,9 @@ if (getCollectionResult.Success)
 Retrieves indexes in specified collection.
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
-var getIndexesResult = db.Collection
-    .GetAllIndexes("MyEdgeCollection");
+var getCollectionResult = db.GetCollection("MyDocumentCollection").GetAllIndexes();
 
 if (getIndexesResult.Success)
 {
@@ -232,10 +225,9 @@ if (getIndexesResult.Success)
 Removes all documents from specified collection.
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
-var truncateCollectionResult = db.Collection
-    .Truncate("MyDocumentCollection");
+var getCollectionResult = db.GetCollection("MyDocumentCollection").Truncate();
 
 if (truncateCollectionResult.Success)
 {
@@ -247,52 +239,7 @@ if (truncateCollectionResult.Success)
 }
 ```
 
-## Load collection
-
-Loads specified collection into memory.
-
-Applicable optional parameters available through fluent API:
-
-- `Count(bool value)` - Determines whether the return value should include the number of documents in collection. Default value: true.
-
-```csharp
-var db = new ADatabase("myDatabaseAlias");
-
-var loadCollectionResult = db.Collection
-    .Count(false)
-    .Load("MyDocumentCollection");
-
-if (loadCollectionResult.Success)
-{
-    var id = loadCollectionResult.Value.String("id");
-    var name = loadCollectionResult.Value.String("name");
-    var isSystem = loadCollectionResult.Value.Bool("isSystem");
-    var status = loadCollectionResult.Value.Enum<ACollectionStatus>("status");
-    var type = loadCollectionResult.Value.Enum<ACollectionType>("type");
-}
-```
-
-## Unload collection
-
-Unloads specified collection from memory.
-
-```csharp
-var db = new ADatabase("myDatabaseAlias");
-
-var unloadCollectionResult = db.Collection
-    .Unload("MyDocumentCollection");
-
-if (unloadCollectionResult.Success)
-{
-    var id = unloadCollectionResult.Value.String("id");
-    var name = unloadCollectionResult.Value.String("name");
-    var isSystem = unloadCollectionResult.Value.Bool("isSystem");
-    var status = unloadCollectionResult.Value.Enum<ACollectionStatus>("status");
-    var type = unloadCollectionResult.Value.Enum<ACollectionType>("type");
-}
-```
-
-## Change collection properties
+## ~~Change collection properties~~
 
 Changes properties of specified collection.
 
@@ -330,10 +277,9 @@ if (changeCollectionResult.Success)
 Renames specified collection.
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
-var renameCollectionResult = db.Collection
-    .Rename("MyDocumentCollection", "MyFooCollection");
+var getCollectionResult = db.GetCollection("MyDocumentCollection").Rename("MyNewCollection");
 
 if (renameCollectionResult.Success)
 {
@@ -350,10 +296,9 @@ if (renameCollectionResult.Success)
 Rotates the journal of specified collection to make the data in the file available for compaction. Current journal of the collection will be closed and turned into read-only datafile. This operation is not available in cluster environment.
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
-var rotateJournalResult = db.Collection
-    .RotateJournal("MyDocumentCollection");
+var getCollectionResult = db.GetCollection("MyDocumentCollection").RotateJournal();
 ```
 
 ## Delete collection
@@ -365,17 +310,12 @@ Applicable optional parameters available through fluent API:
 - `IsSystem(bool value)` - Determines whether the collection is a system collection. Default value: false.
 
 ```csharp
-var db = new ADatabase("myDatabaseAlias");
+var db = connection.GetDatabase("myDatabase");
 
-var deleteCollectionResult = db.Collection
-    .Delete("MyDocumentCollection");
+var deleteCollectionResult = db.GetCollection("MyDocumentCollection").Delete();
 
 if (deleteCollectionResult.Success)
 {
     var id = deleteCollectionResult.Value.String("id");
 }
 ```
-
-## More examples
-
-More examples regarding collection operations can be found in [unit tests](../src/Arango/Arango.Tests/CollectionOperations/CollectionOperationsTests.cs).
