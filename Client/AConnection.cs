@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 using fastJSON;
@@ -14,6 +15,8 @@ namespace ArangoDriver.Client
     /// </summary>
     public class AConnection
     {
+        private readonly HttpClient _httpClient;
+        
         private readonly string _username;
         private readonly string _password;
         private readonly Uri _baseUri;
@@ -27,6 +30,8 @@ namespace ArangoDriver.Client
             _useWebProxy = useWebProxy;
 
             _baseUri = new Uri((isSecured ? "https" : "http") + "://" + hostname + ":" + port + "/");
+            
+            _httpClient = new HttpClient();
         }
         
         #region Databases
@@ -44,7 +49,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Creates new database with given name.
         /// </summary>
-        public AResult<bool> Create(string databaseName)
+        public Task<AResult<bool>> Create(string databaseName)
         {
             return Create(databaseName, null);
         }
@@ -52,9 +57,9 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Creates new database with given name and user list.
         /// </summary>
-        public AResult<bool> Create(string databaseName, List<AUser> users)
+        public async Task<AResult<bool>> Create(string databaseName, List<AUser> users)
         {
-            var request = new Request(HttpMethod.POST, ApiBaseUri.Database, "");
+            var request = new Request(HttpMethod.Post, ApiBaseUri.Database, "");
             var bodyDocument = new Dictionary<string, object>();
             
             // required: database name
@@ -94,7 +99,7 @@ namespace ArangoDriver.Client
             
             request.Body = JSON.ToJSON(bodyDocument, ASettings.JsonParameters);
             
-            var response = Send(request);
+            var response = await Send(request);
             var result = new AResult<bool>(response);
             
             switch (response.StatusCode)
@@ -119,11 +124,11 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves list of accessible databases which current user can access without specifying a different username or password.
         /// </summary>
-        public AResult<List<string>> GetAccessibleDatabases()
+        public async Task<AResult<List<string>>> GetAccessibleDatabases()
         {
-            var request = new Request(HttpMethod.GET, ApiBaseUri.Database, "/user");
+            var request = new Request(HttpMethod.Get, ApiBaseUri.Database, "/user");
             
-            var response = Send(request);
+            var response = await Send(request);
             var result = new AResult<List<string>>(response);
             
             switch (response.StatusCode)
@@ -146,11 +151,11 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves the list of all existing databases.
         /// </summary>
-        public AResult<List<string>> GetAllDatabases()
+        public async Task<AResult<List<string>>> GetAllDatabases()
         {
-            var request = new Request(HttpMethod.GET, ApiBaseUri.Database, "");
+            var request = new Request(HttpMethod.Get, ApiBaseUri.Database, "");
             
-            var response = Send(request);
+            var response = await Send(request);
             var result = new AResult<List<string>>(response);
             
             switch (response.StatusCode)
@@ -174,11 +179,11 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Deletes specified database.
         /// </summary>
-        public AResult<bool> DropDatabase(string databaseName)
+        public async Task<AResult<bool>> DropDatabase(string databaseName)
         {
-            var request = new Request(HttpMethod.DELETE, ApiBaseUri.Database, "/" + databaseName);
+            var request = new Request(HttpMethod.Delete, ApiBaseUri.Database, "/" + databaseName);
             
-            var response = Send(request);
+            var response = await Send(request);
             var result = new AResult<bool>(response);
             
             switch (response.StatusCode)
@@ -202,134 +207,56 @@ namespace ArangoDriver.Client
 
         #endregion
         
-        internal Response Send(Request request)
+        internal Task<Response> Send(Request request)
         {
             return Send(_baseUri, request);
         }
         
-        internal Response Send(string databaseName, Request request)
+        internal Task<Response> Send(string databaseName, Request request)
         {
             return Send(new Uri(_baseUri + "_db/" + databaseName + "/"), request);
         }
-        
-        private Response Send(Uri uri, Request request)
+
+        private async Task<Response> Send(Uri uri, Request request)
         {
-            var httpRequest = WebRequest.CreateHttp(uri + request.GetRelativeUri());
-
-            if (request.Headers.Count > 0)
+            HttpRequestMessage httpRequestMessage =
+                new HttpRequestMessage(request.HttpMethod, uri + request.GetRelativeUri());
+            foreach (KeyValuePair<string, string> header in request.Headers)
             {
-                httpRequest.Headers = request.Headers;
+                httpRequestMessage.Headers.Add(header.Key, header.Value);
             }
 
-            httpRequest.KeepAlive = true;
-            if (!_useWebProxy)
-            {
-                httpRequest.Proxy = null;
-            }
-            httpRequest.SendChunked = false;
-            httpRequest.Method = request.HttpMethod.ToString();
-            httpRequest.UserAgent = ASettings.DriverName + "/" + ASettings.DriverVersion;
+            httpRequestMessage.Headers.Add(HttpRequestHeader.KeepAlive.ToString(), "true");
+            httpRequestMessage.Headers.Add(HttpRequestHeader.UserAgent.ToString(),
+                ASettings.DriverName + "/" + ASettings.DriverVersion);
 
             if (!string.IsNullOrEmpty(_username) && !string.IsNullOrEmpty(_password))
             {
-                httpRequest.Headers.Add(
-                    "Authorization", 
+                httpRequestMessage.Headers.Add(
+                    HttpRequestHeader.Authorization.ToString(),
                     "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes(_username + ":" + _password))
                 );
             }
 
             if (!string.IsNullOrEmpty(request.Body))
             {
-                httpRequest.ContentType = "application/json; charset=utf-8";
-
-                var data = Encoding.UTF8.GetBytes(request.Body);
-
-                using (var stream = httpRequest.GetRequestStream())
-                {
-                    stream.Write(data, 0, data.Length);
-                    stream.Flush();
-                    stream.Close();
-                }
+                httpRequestMessage.Content = new StringContent(request.Body, Encoding.UTF8, "application/json");
+                //httpRequestMessage.Headers.Add(HttpRequestHeader.ContentLength.ToString(), "0");
             }
             else
             {
-                httpRequest.ContentLength = 0;
+                httpRequestMessage.Headers.Add(HttpRequestHeader.ContentLength.ToString(), "0");
             }
 
-            var response = new Response();
 
-            try
+            HttpResponseMessage httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage);
+
+            var response = new Response
             {
-                using (var httpResponse = (HttpWebResponse)httpRequest.GetResponse())
-                using (var responseStream = httpResponse.GetResponseStream())
-                using (var reader = new StreamReader(responseStream))
-                {
-                    response.StatusCode = (int)httpResponse.StatusCode;
-                    response.Headers = httpResponse.Headers;
-                    response.Body = reader.ReadToEnd();
-
-                    reader.Close();
-                    responseStream.Close();
-                }
-
-                response.GetBodyDataType();
-            }
-            catch (WebException webException)
-            {
-                if ((webException.Status == WebExceptionStatus.ProtocolError) && 
-                    (webException.Response != null))
-                {
-                    using (var exceptionHttpResponse = (HttpWebResponse)webException.Response)
-                    {
-                        response.StatusCode = (int)exceptionHttpResponse.StatusCode;
-
-                        if (exceptionHttpResponse.Headers.Count > 0)
-                        {
-                            response.Headers = exceptionHttpResponse.Headers;
-                        }
-
-                        if (exceptionHttpResponse.ContentLength > 0)
-                        {
-                            using (var exceptionResponseStream = exceptionHttpResponse.GetResponseStream())
-                            using (var exceptionReader = new StreamReader(exceptionResponseStream))
-                            {
-                                response.Body = exceptionReader.ReadToEnd();
-
-                                exceptionReader.Close();
-                                exceptionResponseStream.Close();
-                            }
-                            
-                            response.GetBodyDataType();
-                        }
-                    }
-
-                    response.Error = new AEerror();
-                    response.Error.Exception = webException;
-
-                    if (response.BodyType == BodyType.Document)
-                    {
-                        var body = response.ParseBody<Body<object>>();
-                        
-                        if ((body != null) && body.Error)
-                        {
-                            response.Error.StatusCode = body.Code;
-                            response.Error.Number = body.ErrorNum;
-                            response.Error.Message = "ArangoDB error: " + body.ErrorMessage;
-                        }
-                    }
-                    
-                    if (string.IsNullOrEmpty(response.Error.Message))
-                    {
-                        response.Error.StatusCode = response.StatusCode;
-                        response.Error.Number = 0;
-                        response.Error.Message = "Protocol error: " + webException.Message;
-                    }
-                }
-                else
-                {
-                    throw;
-                }
-            }
+                StatusCode = (int) httpResponseMessage.StatusCode,
+                Headers = httpResponseMessage.Headers,
+                Body = await httpResponseMessage.Content.ReadAsStringAsync()
+            };
 
             return response;
         }

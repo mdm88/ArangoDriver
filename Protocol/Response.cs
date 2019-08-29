@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Net.Http.Headers;
 using ArangoDriver.Client;
 using fastJSON;
 
@@ -8,11 +9,11 @@ namespace ArangoDriver.Protocol
     internal class Response
     {
         internal int StatusCode { get; set; }
-        internal WebHeaderCollection Headers { get; set; }
+        internal HttpResponseHeaders Headers { get; set; }
         internal string Body { get; set; }
         internal BodyType BodyType { get; set; }
-        internal Exception Exception { get; set; }
-        internal AEerror Error { get; set; }
+        //internal Exception Exception { get; set; }
+        //internal AEerror Error { get; set; }
         
         internal void GetBodyDataType()
         {            

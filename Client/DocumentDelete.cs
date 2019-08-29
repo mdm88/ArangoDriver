@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 
@@ -57,14 +59,14 @@ namespace ArangoDriver.Client
         /// Deletes specified document.
         /// </summary>
         /// <exception cref="ArgumentException">Specified 'id' value has invalid format.</exception>
-        public AResult<Dictionary<string, object>> Delete(string id)
+        public async Task<AResult<Dictionary<string, object>>> Delete(string id)
         {
             if (!ADocument.IsID(id))
             {
                 throw new ArgumentException("Specified 'id' value (" + id + ") has invalid format.");
             }
             
-            var request = new Request(HttpMethod.DELETE, ApiBaseUri.Document, "/" + id);
+            var request = new Request(HttpMethod.Delete, ApiBaseUri.Document, "/" + id);
             
             // optional
             request.TrySetQueryStringParameter(ParameterName.WaitForSync, _parameters);
@@ -73,7 +75,7 @@ namespace ArangoDriver.Client
             // optional
             request.TrySetHeaderParameter(ParameterName.IfMatch, _parameters);
             
-            var response = _collection.Send(request);
+            var response = await _collection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
             
             switch (response.StatusCode)

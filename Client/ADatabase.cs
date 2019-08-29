@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 
@@ -78,11 +80,11 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves information about currently connected database.
         /// </summary>
-        public AResult<Dictionary<string, object>> GetCurrent()
+        public async Task<AResult<Dictionary<string, object>>> GetCurrent()
         {
-            var request = new Request(HttpMethod.GET, ApiBaseUri.Database, "/current");
+            var request = new Request(HttpMethod.Get, ApiBaseUri.Database, "/current");
             
-            var response = Send(request);
+            var response = await Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
             
             switch (response.StatusCode)
@@ -120,11 +122,11 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves information about collections in current database connection.
         /// </summary>
-        public AResult<List<Dictionary<string, object>>> GetAllCollections()
+        public async Task<AResult<List<Dictionary<string, object>>>> GetAllCollections()
         {
-            var request = new Request(HttpMethod.GET, ApiBaseUri.Collection, "");
+            var request = new Request(HttpMethod.Get, ApiBaseUri.Collection, "");
             
-            var response = Send(request);
+            var response = await Send(request);
             var result = new AResult<List<Dictionary<string, object>>>(response);
             
             switch (response.StatusCode)
@@ -148,14 +150,14 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Deletes specified collection.
         /// </summary>
-        public AResult<Dictionary<string, object>> DropCollection(string collectionName)
+        public async Task<AResult<Dictionary<string, object>>> DropCollection(string collectionName)
         {
-            var request = new Request(HttpMethod.DELETE, ApiBaseUri.Collection, "/" + collectionName);
+            var request = new Request(HttpMethod.Delete, ApiBaseUri.Collection, "/" + collectionName);
 
             // optional
             //request.TrySetQueryStringParameter(ParameterName.IsSystem, _parameters);
 
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
             
             switch (response.StatusCode)
@@ -178,7 +180,7 @@ namespace ArangoDriver.Client
 
         #endregion
         
-        internal Response Send(Request request)
+        internal Task<Response> Send(Request request)
         {
             return _connection.Send(_databaseName, request);
         }

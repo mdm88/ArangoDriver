@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 using fastJSON;
@@ -80,14 +82,14 @@ namespace ArangoDriver.Client
         /// Completely replaces existing document identified by its handle with new document data.
         /// </summary>
         /// <exception cref="ArgumentException">Specified 'id' value has invalid format.</exception>
-        public AResult<Dictionary<string, object>> Document(string id, string json)
+        public async Task<AResult<Dictionary<string, object>>> Document(string id, string json)
         {
             if (!ADocument.IsID(id))
             {
                 throw new ArgumentException("Specified 'id' value (" + id + ") has invalid format.");
             }
             
-            var request = new Request(HttpMethod.PUT, ApiBaseUri.Document, "/" + id);
+            var request = new Request(HttpMethod.Put, ApiBaseUri.Document, "/" + id);
             
             // optional
             request.TrySetQueryStringParameter(ParameterName.WaitForSync, _parameters);
@@ -102,7 +104,7 @@ namespace ArangoDriver.Client
             
             request.Body = json;
             
-            var response = _collection.Send(request);
+            var response = await _collection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
             
             switch (response.StatusCode)
@@ -135,7 +137,7 @@ namespace ArangoDriver.Client
         /// Completely replaces existing document identified by its handle with new document data.
         /// </summary>
         /// <exception cref="ArgumentException">Specified id value has invalid format.</exception>
-        public AResult<Dictionary<string, object>> Document(string id, Dictionary<string, object> document)
+        public Task<AResult<Dictionary<string, object>>> Document(string id, Dictionary<string, object> document)
         {
             return Document(id, JSON.ToJSON(document, ASettings.JsonParameters));
         }
@@ -144,7 +146,7 @@ namespace ArangoDriver.Client
         /// Completely replaces existing document identified by its handle with new document data.
         /// </summary>
         /// <exception cref="ArgumentException">Specified id value has invalid format.</exception>
-        public AResult<Dictionary<string, object>> Document<T>(string id, T obj)
+        public Task<AResult<Dictionary<string, object>>> Document<T>(string id, T obj)
         {
             return Document(id, Dictator.ToDocument(obj));
         }
@@ -157,7 +159,7 @@ namespace ArangoDriver.Client
         /// Completely replaces existing edge identified by its handle with new edge data.
         /// </summary>
         /// <exception cref="ArgumentException">Specified document does not contain '_from' and '_to' fields.</exception>
-        public AResult<Dictionary<string, object>> Edge(string id, Dictionary<string, object> document)
+        public Task<AResult<Dictionary<string, object>>> Edge(string id, Dictionary<string, object> document)
         {
             if (!document.Has("_from") && !document.Has("_to"))
             {
@@ -171,7 +173,7 @@ namespace ArangoDriver.Client
         /// Completely replaces existing edge identified by its handle with new edge data. This helper method injects 'fromID' and 'toID' fields into given document to construct valid edge document.
         /// </summary>
         /// <exception cref="ArgumentException">Specified 'from' or 'to' ID values have invalid format.</exception>
-        public AResult<Dictionary<string, object>> Edge(string id, string fromId, string toId, Dictionary<string, object> document)
+        public Task<AResult<Dictionary<string, object>>> Edge(string id, string fromId, string toId, Dictionary<string, object> document)
         {
             if (!ADocument.IsID(fromId))
             {
@@ -192,7 +194,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Completely replaces existing edge identified by its handle with new edge data. This helper method injects 'fromID' and 'toID' fields into given document to construct valid edge document.
         /// </summary>
-        public AResult<Dictionary<string, object>> Edge<T>(string id, string fromId, string toId, T obj)
+        public Task<AResult<Dictionary<string, object>>> Edge<T>(string id, string fromId, string toId, T obj)
         {
             return Edge(id, fromId, toId, Dictator.ToDocument(obj));
         }

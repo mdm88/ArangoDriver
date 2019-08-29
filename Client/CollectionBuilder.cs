@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 using fastJSON;
@@ -197,9 +199,9 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Creates new collection in current database context.
         /// </summary>
-        public AResult<Dictionary<string, object>> Create()
+        public async Task<AResult<Dictionary<string, object>>> Create()
         {
-            var request = new Request(HttpMethod.POST, ApiBaseUri.Collection, "");
+            var request = new Request(HttpMethod.Post, ApiBaseUri.Collection, "");
             var bodyDocument = new Dictionary<string, object>();
             
             // required
@@ -231,7 +233,7 @@ namespace ArangoDriver.Client
             
             request.Body = JSON.ToJSON(bodyDocument, ASettings.JsonParameters);
             
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
             
             switch (response.StatusCode)

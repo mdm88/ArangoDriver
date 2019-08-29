@@ -46,7 +46,7 @@ namespace ArangoDriver.Client
         internal AResult(Response response)
         {
             StatusCode = response.StatusCode;
-            Error = response.Error;
+            //Error = response.Error;
         }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 using fastJSON;
@@ -24,11 +26,11 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves basic information about specified collection.
         /// </summary>
-        public AResult<Dictionary<string, object>> Get()
+        public async Task<AResult<Dictionary<string, object>>> Get()
         {
-            var request = new Request(HttpMethod.GET, ApiBaseUri.Collection, "/" + _collectionName);
+            var request = new Request(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName);
 
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
             
             switch (response.StatusCode)
@@ -51,11 +53,11 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves basic information with additional properties about specified collection.
         /// </summary>
-        public AResult<Dictionary<string, object>> GetProperties()
+        public async Task<AResult<Dictionary<string, object>>> GetProperties()
         {
-            var request = new Request(HttpMethod.GET, ApiBaseUri.Collection, "/" + _collectionName + "/properties");
+            var request = new Request(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/properties");
 
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
             
             switch (response.StatusCode)
@@ -79,11 +81,11 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves basic information with additional properties and document count in specified collection.
         /// </summary>
-        public AResult<Dictionary<string, object>> GetCount()
+        public async Task<AResult<Dictionary<string, object>>> GetCount()
         {
-            var request = new Request(HttpMethod.GET, ApiBaseUri.Collection, "/" + _collectionName + "/count");
+            var request = new Request(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/count");
 
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
             
             switch (response.StatusCode)
@@ -107,11 +109,11 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves basic information with additional properties, document count and figures in specified collection.
         /// </summary>
-        public AResult<Dictionary<string, object>> GetFigures()
+        public async Task<AResult<Dictionary<string, object>>> GetFigures()
         {
-            var request = new Request(HttpMethod.GET, ApiBaseUri.Collection, "/" + _collectionName + "/figures");
+            var request = new Request(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/figures");
 
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
             
             switch (response.StatusCode)
@@ -135,11 +137,11 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves basic information and revision ID of specified collection.
         /// </summary>
-        public AResult<Dictionary<string, object>> GetRevision()
+        public async Task<AResult<Dictionary<string, object>>> GetRevision()
         {
-            var request = new Request(HttpMethod.GET, ApiBaseUri.Collection, "/" + _collectionName + "/revision");
+            var request = new Request(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/revision");
 
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
             
             switch (response.StatusCode)
@@ -163,16 +165,16 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves basic information, revision ID and checksum of specified collection.
         /// </summary>
-        public AResult<Dictionary<string, object>> GetChecksum()
+        public async Task<AResult<Dictionary<string, object>>> GetChecksum()
         {
-            var request = new Request(HttpMethod.GET, ApiBaseUri.Collection, "/" + _collectionName + "/checksum");
+            var request = new Request(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/checksum");
 
             // optional
             //request.TrySetQueryStringParameter(ParameterName.WithRevisions, _parameters);
             // optional
             //request.TrySetQueryStringParameter(ParameterName.WithData, _parameters);
             
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
             
             switch (response.StatusCode)
@@ -196,14 +198,14 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves list of indexes in specified collection.
         /// </summary>
-        public AResult<Dictionary<string, object>> GetAllIndexes()
+        public async Task<AResult<Dictionary<string, object>>> GetAllIndexes()
         {
-            var request = new Request(HttpMethod.GET, ApiBaseUri.Index, "");
+            var request = new Request(HttpMethod.Get, ApiBaseUri.Index, "");
 
             // required
             request.QueryString.Add(ParameterName.Collection, _collectionName);
             
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
             
             switch (response.StatusCode)
@@ -226,11 +228,11 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Removes all documents from specified collection.
         /// </summary>
-        public AResult<Dictionary<string, object>> Truncate()
+        public async Task<AResult<Dictionary<string, object>>> Truncate()
         {
-            var request = new Request(HttpMethod.PUT, ApiBaseUri.Collection, "/" + _collectionName + "/truncate");
+            var request = new Request(HttpMethod.Put, ApiBaseUri.Collection, "/" + _collectionName + "/truncate");
             
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
             
             switch (response.StatusCode)
@@ -264,7 +266,7 @@ namespace ArangoDriver.Client
             
             request.Body = JSON.ToJSON(bodyDocument, ASettings.JsonParameters);
             
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
             
             switch (response.StatusCode)
@@ -286,15 +288,15 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Renames specified collection.
         /// </summary>
-        public AResult<Dictionary<string, object>> Rename(string newCollectionName)
+        public async Task<AResult<Dictionary<string, object>>> Rename(string newCollectionName)
         {
-            var request = new Request(HttpMethod.PUT, ApiBaseUri.Collection, "/" + _collectionName + "/rename");
+            var request = new Request(HttpMethod.Put, ApiBaseUri.Collection, "/" + _collectionName + "/rename");
             var bodyDocument = new Dictionary<string, object>()
                 .String(ParameterName.Name, newCollectionName);
             
             request.Body = JSON.ToJSON(bodyDocument, ASettings.JsonParameters);
             
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
             
             switch (response.StatusCode)
@@ -316,11 +318,11 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Rotates the journal of specified collection to make the data in the file available for compaction. Current journal of the collection will be closed and turned into read-only datafile. This operation is not available in cluster environment.
         /// </summary>
-        public AResult<bool> RotateJournal()
+        public async Task<AResult<bool>> RotateJournal()
         {
-            var request = new Request(HttpMethod.PUT, ApiBaseUri.Collection, "/" + _collectionName + "/rotate");
+            var request = new Request(HttpMethod.Put, ApiBaseUri.Collection, "/" + _collectionName + "/rotate");
             
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<bool>(response);
             
             switch (response.StatusCode)
@@ -359,37 +361,37 @@ namespace ArangoDriver.Client
         /// Checks for existence of specified document.
         /// </summary>
         /// <exception cref="ArgumentException">Specified 'id' value has invalid format.</exception>
-        public AResult<string> Check(string id)
+        public async Task<AResult<string>> Check(string id)
         {
             if (!ADocument.IsID(id))
             {
                 throw new ArgumentException("Specified 'id' value (" + id + ") has invalid format.");
             }
             
-            var request = new Request(HttpMethod.HEAD, ApiBaseUri.Document, "/" + id);
+            var request = new Request(HttpMethod.Head, ApiBaseUri.Document, "/" + id);
             
             // optional
             //request.TrySetHeaderParameter(ParameterName.IfMatch, _parameters);
             // optional: If revision is different -> HTTP 200. If revision is identical -> HTTP 304.
             //request.TrySetHeaderParameter(ParameterName.IfNoneMatch, _parameters);
             
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<string>(response);
             
             switch (response.StatusCode)
             {
                 case 200:
-                    if ((response.Headers["ETag"] ?? "").Trim().Length > 0)
+                    if ((response.Headers.ETag.Tag ?? "").Trim().Length > 0)
                     {
-                        result.Value = response.Headers["ETag"].Replace("\"", "");
+                        result.Value = response.Headers.ETag.Tag?.Replace("\"", "");
                         result.Success = (result.Value != null);
                     }
                     break;
                 case 304:
                 case 412:
-                    if ((response.Headers["ETag"] ?? "").Trim().Length > 0)
+                    if ((response.Headers.ETag.Tag ?? "").Trim().Length > 0)
                     {
-                        result.Value = response.Headers["ETag"].Replace("\"", "");
+                        result.Value = response.Headers.ETag.Tag?.Replace("\"", "");
                     }
                     break;
                 case 404:
@@ -405,21 +407,21 @@ namespace ArangoDriver.Client
         /// Retrieves specified document.
         /// </summary>
         /// <exception cref="ArgumentException">Specified 'id' value has invalid format.</exception>
-        public AResult<T> Get<T>(string id)
+        public async Task<AResult<T>> Get<T>(string id)
         {
             if (!ADocument.IsID(id))
             {
                 throw new ArgumentException("Specified 'id' value (" + id + ") has invalid format.");
             }
             
-            var request = new Request(HttpMethod.GET, ApiBaseUri.Document, "/" + id);
+            var request = new Request(HttpMethod.Get, ApiBaseUri.Document, "/" + id);
             
             // optional
             //request.TrySetHeaderParameter(ParameterName.IfMatch, _parameters);
             // optional: If revision is different -> HTTP 200. If revision is identical -> HTTP 304.
             //request.TrySetHeaderParameter(ParameterName.IfNoneMatch, _parameters);
             
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<T>(response);
             
             switch (response.StatusCode)
@@ -448,7 +450,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves specified document.
         /// </summary>
-        public AResult<Dictionary<string, object>> Get(string id)
+        public Task<AResult<Dictionary<string, object>>> Get(string id)
         {
             return Get<Dictionary<string, object>>(id);
         }
@@ -457,21 +459,21 @@ namespace ArangoDriver.Client
         /// Retrieves list of edges from specified edge type collection to specified document vertex with given direction.
         /// </summary>
         /// <exception cref="ArgumentException">Specified 'startVertexID' value has invalid format.</exception>
-        public AResult<List<Dictionary<string, object>>> GetEdges(string startVertexID, ADirection direction)
+        public async Task<AResult<List<Dictionary<string, object>>>> GetEdges(string startVertexID, ADirection direction)
         {
             if (!ADocument.IsID(startVertexID))
             {
                 throw new ArgumentException("Specified 'startVertexID' value (" + startVertexID + ") has invalid format.");
             }
 
-            var request = new Request(HttpMethod.GET, ApiBaseUri.Edges, "/" + Name);
+            var request = new Request(HttpMethod.Get, ApiBaseUri.Edges, "/" + Name);
 
             // required
             request.QueryString.Add(ParameterName.Vertex, startVertexID);
             // required
             request.QueryString.Add(ParameterName.Direction, direction.ToString().ToLower());
 
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<List<Dictionary<string, object>>>(response);
 
             switch (response.StatusCode)
@@ -528,7 +530,7 @@ namespace ArangoDriver.Client
         
         #endregion
         
-        internal Response Send(Request request)
+        internal Task<Response> Send(Request request)
         {
             return _connection.Send(request);
         }

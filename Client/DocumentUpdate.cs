@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 using fastJSON;
@@ -102,14 +104,14 @@ namespace ArangoDriver.Client
         /// Updates existing document identified by its handle with new document data.
         /// </summary>
         /// <exception cref="ArgumentException">Specified 'id' value has invalid format.</exception>
-        public AResult<Dictionary<string, object>> Update(string id, string json)
+        public async Task<AResult<Dictionary<string, object>>> Update(string id, string json)
         {
             if (!ADocument.IsID(id))
             {
                 throw new ArgumentException("Specified 'id' value (" + id + ") has invalid format.");
             }
             
-            var request = new Request(HttpMethod.PATCH, ApiBaseUri.Document, "/" + id);
+            var request = new Request(HttpMethod.Patch, ApiBaseUri.Document, "/" + id);
             
             // optional
             request.TrySetQueryStringParameter(ParameterName.WaitForSync, _parameters);
@@ -128,7 +130,7 @@ namespace ArangoDriver.Client
 
             request.Body = json;
             
-            var response = _collection.Send(request);
+            var response = await _collection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
 
             switch (response.StatusCode)
@@ -160,7 +162,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Updates existing document identified by its handle with new document data.
         /// </summary>
-        public AResult<Dictionary<string, object>> Update(string id, Dictionary<string, object> document)
+        public Task<AResult<Dictionary<string, object>>> Update(string id, Dictionary<string, object> document)
         {
             return Update(id, JSON.ToJSON(document, ASettings.JsonParameters));
         }
@@ -168,7 +170,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Updates existing document identified by its handle with new document data.
         /// </summary>
-        public AResult<Dictionary<string, object>> Update<T>(string id, T obj)
+        public Task<AResult<Dictionary<string, object>>> Update<T>(string id, T obj)
         {
             return Update(id, Dictator.ToDocument(obj));
         }

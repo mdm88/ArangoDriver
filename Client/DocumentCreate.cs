@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 using fastJSON;
@@ -47,9 +49,9 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Creates new document within specified collection in current database context.
         /// </summary>
-        public AResult<Dictionary<string, object>> Document(string json)
+        public async Task<AResult<Dictionary<string, object>>> Document(string json)
         {
-            var request = new Request(HttpMethod.POST, ApiBaseUri.Document, "/" + _collection.Name);
+            var request = new Request(HttpMethod.Post, ApiBaseUri.Document, "/" + _collection.Name);
             
             // optional
             request.TrySetQueryStringParameter(ParameterName.WaitForSync, _parameters);
@@ -58,7 +60,7 @@ namespace ArangoDriver.Client
 
             request.Body = json;
             
-            var response = _collection.Send(request);
+            var response = await _collection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
             
             switch (response.StatusCode)
@@ -85,7 +87,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Creates new document within specified collection in current database context.
         /// </summary>
-        public AResult<Dictionary<string, object>> Document(Dictionary<string, object> document)
+        public Task<AResult<Dictionary<string, object>>> Document(Dictionary<string, object> document)
         {
             return Document(JSON.ToJSON(document, ASettings.JsonParameters));
         }
@@ -93,7 +95,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Creates new document within specified collection in current database context.
         /// </summary>
-        public AResult<Dictionary<string, object>> Document<T>(T obj)
+        public Task<AResult<Dictionary<string, object>>> Document<T>(T obj)
         {
             return Document(Dictator.ToDocument(obj));
         }
@@ -106,7 +108,7 @@ namespace ArangoDriver.Client
         /// Creates new edge document with document data in current database context.
         /// </summary>
         /// <exception cref="ArgumentException">Specified document does not contain '_from' and '_to' fields.</exception>
-        public AResult<Dictionary<string, object>> Edge(Dictionary<string, object> document)
+        public Task<AResult<Dictionary<string, object>>> Edge(Dictionary<string, object> document)
         {
             if (!document.Has("_from") && !document.Has("_to"))
             {
@@ -120,7 +122,7 @@ namespace ArangoDriver.Client
         /// Creates new edge document within specified collection between two document vertices in current database context.
         /// </summary>
         /// <exception cref="ArgumentException">Specified 'from' and 'to' ID values have invalid format.</exception>
-        public AResult<Dictionary<string, object>> Edge(string fromId, string toId)
+        public Task<AResult<Dictionary<string, object>>> Edge(string fromId, string toId)
         {
             if (!ADocument.IsID(fromId))
             {
@@ -145,7 +147,7 @@ namespace ArangoDriver.Client
         /// Creates new edge with document data within specified collection between two document vertices in current database context.
         /// </summary>
         /// <exception cref="ArgumentException">Specified 'from' and 'to' ID values have invalid format.</exception>
-        public AResult<Dictionary<string, object>> Edge(string fromId, string toId, Dictionary<string, object> document)
+        public Task<AResult<Dictionary<string, object>>> Edge(string fromId, string toId, Dictionary<string, object> document)
         {
             if (!ADocument.IsID(fromId))
             {
@@ -167,7 +169,7 @@ namespace ArangoDriver.Client
         /// Creates new edge with document data within specified collection between two document vertices in current database context.
         /// </summary>
         /// <exception cref="ArgumentException">Specified 'from' and 'to' ID values have invalid format.</exception>
-        public AResult<Dictionary<string, object>> Edge<T>(string fromId, string toId, T obj)
+        public Task<AResult<Dictionary<string, object>>> Edge<T>(string fromId, string toId, T obj)
         {
             if (!ADocument.IsID(fromId))
             {

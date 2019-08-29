@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 using fastJSON;
@@ -85,17 +87,17 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves result value as list of documents.
         /// </summary>
-        public AResult<List<Dictionary<string, object>>> ToDocuments()
+        public async Task<AResult<List<Dictionary<string, object>>>> ToDocuments()
         {
-            return ToList<Dictionary<string, object>>();
+            return await ToList<Dictionary<string, object>>();
         }
         
         /// <summary>
         /// Retrieves result value as list of objects.
         /// </summary>
-        public AResult<List<T>> ToList<T>()
+        public async Task<AResult<List<T>>> ToList<T>()
         {
-            var request = new Request(HttpMethod.POST, ApiBaseUri.Cursor, "");
+            var request = new Request(HttpMethod.Post, ApiBaseUri.Cursor, "");
             var bodyDocument = new Dictionary<string, object>();
             
             // required
@@ -116,7 +118,7 @@ namespace ArangoDriver.Client
             
             request.Body = JSON.ToJSON(bodyDocument, ASettings.JsonParameters);
             //this.LastRequest = request.Body;            
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             //this.LastResponse = response.Body;
             var result = new AResult<List<T>>(response);
             
@@ -137,7 +139,7 @@ namespace ArangoDriver.Client
                         
                         if (body.HasMore)
                         {
-                            var putResult = Put<T>(body.ID);
+                            var putResult = await Put<T>(body.ID);
                             
                             result.Success = putResult.Success;
                             result.StatusCode = putResult.StatusCode;
@@ -175,10 +177,10 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves result value as single document.
         /// </summary>
-        public AResult<Dictionary<string, object>> ToDocument()
+        public async Task<AResult<Dictionary<string, object>>> ToDocument()
         {
             var type = typeof(Dictionary<string, object>);
-            var listResult = ToList<Dictionary<string, object>>();
+            var listResult = await ToList<Dictionary<string, object>>();
             var result = new AResult<Dictionary<string, object>>();
             
             result.StatusCode = listResult.StatusCode;
@@ -204,9 +206,9 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves result value as single generic object.
         /// </summary>
-        public AResult<T> ToObject<T>()
+        public async Task<AResult<T>> ToObject<T>()
         {
-            var listResult = ToList<T>();
+            var listResult = await ToList<T>();
             var result = new AResult<T>();
             
             result.StatusCode = listResult.StatusCode;
@@ -232,9 +234,9 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves result value as single object.
         /// </summary>
-        public AResult<object> ToObject()
+        public async Task<AResult<object>> ToObject()
         {
-            var listResult = ToList<object>();
+            var listResult = await ToList<object>();
             var result = new AResult<object>();
             
             result.StatusCode = listResult.StatusCode;
@@ -264,9 +266,9 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves result which does not contain value. This can be used to execute non-query operations where only success information is relevant.
         /// </summary>
-        public AResult<object> ExecuteNonQuery()
+        public async Task<AResult<object>> ExecuteNonQuery()
         {
-            var listResult = ToList<Dictionary<string, object>>();
+            var listResult = await ToList<Dictionary<string, object>>();
             var result = new AResult<object>();
 
             result.StatusCode = listResult.StatusCode;
@@ -282,11 +284,11 @@ namespace ArangoDriver.Client
 
         #region More results in cursor (PUT)
 
-        internal AResult<List<T>> Put<T>(string cursorID)
+        internal async Task<AResult<List<T>>> Put<T>(string cursorID)
         {
-            var request = new Request(HttpMethod.PUT, ApiBaseUri.Cursor, "/" + cursorID);
+            var request = new Request(HttpMethod.Put, ApiBaseUri.Cursor, "/" + cursorID);
             
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<List<T>>(response);
             
             switch (response.StatusCode)
@@ -303,7 +305,7 @@ namespace ArangoDriver.Client
                         
                         if (body.HasMore)
                         {
-                            var putResult = Put<T>(body.ID);
+                            var putResult = await Put<T>(body.ID);
                             
                             result.Success = putResult.Success;
                             result.StatusCode = putResult.StatusCode;
@@ -335,9 +337,9 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Analyzes specified AQL query.
         /// </summary>
-        public AResult<Dictionary<string, object>> Parse(string query)
+        public async Task<AResult<Dictionary<string, object>>> Parse(string query)
         {
-            var request = new Request(HttpMethod.POST, ApiBaseUri.Query, "");
+            var request = new Request(HttpMethod.Post, ApiBaseUri.Query, "");
             var bodyDocument = new Dictionary<string, object>();
             
             // required
@@ -345,7 +347,7 @@ namespace ArangoDriver.Client
             
             request.Body = JSON.ToJSON(bodyDocument, ASettings.JsonParameters);
             
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
             
             switch (response.StatusCode)
@@ -382,11 +384,11 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Deletes specified AQL query cursor.
         /// </summary>
-        public AResult<bool> DeleteCursor(string cursorID)
+        public async Task<AResult<bool>> DeleteCursor(string cursorID)
         {
-            var request = new Request(HttpMethod.DELETE, ApiBaseUri.Cursor, "/" + cursorID);
+            var request = new Request(HttpMethod.Delete, ApiBaseUri.Cursor, "/" + cursorID);
             
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<bool>(response);
             
             switch (response.StatusCode)

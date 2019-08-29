@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 using fastJSON;
@@ -54,9 +56,9 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Creates new or replaces existing AQL user function with specified name and code.
         /// </summary>
-        public AResult<bool> Register(string name, string code)
+        public async Task<AResult<bool>> Register(string name, string code)
         {
-            var request = new Request(HttpMethod.POST, ApiBaseUri.AqlFunction, "");
+            var request = new Request(HttpMethod.Post, ApiBaseUri.AqlFunction, "");
             var bodyDocument = new Dictionary<string, object>();
             
             // required
@@ -68,7 +70,7 @@ namespace ArangoDriver.Client
             
             request.Body = JSON.ToJSON(bodyDocument, ASettings.JsonParameters);
             
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<bool>(response);
             
             switch (response.StatusCode)
@@ -96,14 +98,14 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves list of registered AQL user functions.
         /// </summary>
-        public AResult<List<Dictionary<string, object>>> List()
+        public async Task<AResult<List<Dictionary<string, object>>>> List()
         {
-            var request = new Request(HttpMethod.GET, ApiBaseUri.AqlFunction, "");
+            var request = new Request(HttpMethod.Get, ApiBaseUri.AqlFunction, "");
             
             // optional
             request.TrySetQueryStringParameter(ParameterName.Namespace, _parameters);
             
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<List<Dictionary<string, object>>>(response);
             
             switch (response.StatusCode)
@@ -132,14 +134,14 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Unregisters specified AQL user function.
         /// </summary>
-        public AResult<bool> Unregister(string name)
+        public async Task<AResult<bool>> Unregister(string name)
         {
-            var request = new Request(HttpMethod.DELETE, ApiBaseUri.AqlFunction, "/" + name);
+            var request = new Request(HttpMethod.Delete, ApiBaseUri.AqlFunction, "/" + name);
             
             // optional
             request.TrySetQueryStringParameter(ParameterName.Group, _parameters);
             
-            var response = _connection.Send(request);
+            var response = await _connection.Send(request);
             var result = new AResult<bool>(response);
             
             switch (response.StatusCode)
