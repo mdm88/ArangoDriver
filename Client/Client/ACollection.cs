@@ -296,7 +296,7 @@ namespace ArangoDriver.Client
             
             request.Body = JSON.ToJSON(bodyDocument, ASettings.JsonParameters);
             
-            var response = await _connection.Send(request);
+            var response = await Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
             
             switch (response.StatusCode)
@@ -307,34 +307,6 @@ namespace ArangoDriver.Client
                     result.Success = (body != null);
                     result.Value = body;
                     break;
-                default:
-                    // Arango error
-                    break;
-            }
-            
-            return result;
-        }
-        
-        /// <summary>
-        /// Rotates the journal of specified collection to make the data in the file available for compaction. Current journal of the collection will be closed and turned into read-only datafile. This operation is not available in cluster environment.
-        /// </summary>
-        public async Task<AResult<bool>> RotateJournal()
-        {
-            var request = new Request(HttpMethod.Put, ApiBaseUri.Collection, "/" + _collectionName + "/rotate");
-            
-            var response = await _connection.Send(request);
-            var result = new AResult<bool>(response);
-            
-            switch (response.StatusCode)
-            {
-                case 200:
-                    var body = response.ParseBody<Body<bool>>();
-                    
-                    result.Success = (body != null);
-                    result.Value = body?.Result ?? false;
-                    break;
-                case 400:
-                case 404:
                 default:
                     // Arango error
                     break;

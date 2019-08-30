@@ -157,7 +157,7 @@ namespace ArangoDriver.Client
             // optional
             //request.TrySetQueryStringParameter(ParameterName.IsSystem, _parameters);
 
-            var response = await _connection.Send(request);
+            var response = await Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
             
             switch (response.StatusCode)

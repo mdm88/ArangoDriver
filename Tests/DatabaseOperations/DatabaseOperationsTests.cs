@@ -9,14 +9,7 @@ using NUnit.Framework;
 namespace Tests.DatabaseOperations
 {
     public class DatabaseOperationsTests : TestBase
-    {
-        [TearDown]
-        public async Task Teardown()
-        {
-            await Connection.DropDatabase(TestDatabaseOneTime);
-            await Connection.DropDatabase(TestDatabaseGeneral);
-        }
-        
+    {   
         [Test]
         public async Task Should_get_list_of_accessible_databases()
         {

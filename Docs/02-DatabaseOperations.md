@@ -16,7 +16,7 @@ Creates new database with given name and optional user list.
 
 ```csharp
 // creates new database
-var createDatabaseResult1 = connection.Create("myDatabase1");
+var createDatabaseResult1 = await connection.CreateDatabase("myDatabase1");
 
 // creates another new database with specified users
 var users = new List<AUser>()
@@ -25,7 +25,7 @@ var users = new List<AUser>()
     new AUser { Username = "tester001", Password = "test001", Active = false } 
 };
 
-var createDatabaseResult2 = connection.Create("myDatabase2", users), 
+var createDatabaseResult2 = connection.CreateDatabase("myDatabase2", users), 
 ```
 
 ## Retrieve current database
@@ -35,7 +35,7 @@ Retrieves information about currently connected database.
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var currentDatabaseResult = db.GetCurrent();
+var currentDatabaseResult = await db.GetCurrent();
 
 if (currentDatabaseResult.Success)
 {
@@ -51,7 +51,7 @@ if (currentDatabaseResult.Success)
 Retrieves list of accessible databases which current user can access without specifying a different username or password.
 
 ```csharp
-var accessibleDatabasesResult = connection.GetAccessibleDatabases();
+var accessibleDatabasesResult = await connection.GetAccessibleDatabases();
 
 if (accessibleDatabasesResult.Success)
 {
@@ -67,7 +67,7 @@ if (accessibleDatabasesResult.Success)
 Retrieves the list of all existing databases.
 
 ```csharp
-var allDatabasesResult = connection.GetAllDatabases();
+var allDatabasesResult = await connection.GetAllDatabases();
 
 if (allDatabasesResult.Success)
 {
@@ -85,8 +85,7 @@ Retrieves information about collections in current database connection.
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var databaseCollectionsResult = db
-    .GetAllCollections();
+var databaseCollectionsResult = await db.GetAllCollections();
     
 if (databaseCollectionsResult.Success)
 {
@@ -102,7 +101,7 @@ if (databaseCollectionsResult.Success)
 Deletes specified database.
 
 ```csharp
-var deleteDatabaseResult = connection.DropDatabase("myDatabase");
+var deleteDatabaseResult = await connection.DropDatabase("myDatabase");
 
 if (deleteDatabaseResult.Success)
 {

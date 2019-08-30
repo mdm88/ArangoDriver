@@ -36,7 +36,7 @@ There is no need to dispose `ADatabase` instance in order to free database conne
 var db = connection.GetDatabase("myDatabase");
 
 // retrieve specified document
-var getResult = db.Document.Get("myCollection/123");
+var getResult = await db.Document.Get("myCollection/123");
 ```
 
 ## AResult object
@@ -118,10 +118,10 @@ if (... condition whether to use batch size query parameter ...)
 }
 
 // execute query operation
-var queryResult1 = queryOperation.ToList();
+var queryResult1 = await queryOperation.ToList();
 
 // more concise example of query operation
-var queryResult2 = db.Query
+var queryResult2 = await db.Query
     .Count(true)
     .BatchSize(1)
     .Aql("FOR item IN myCollection RETURN item")

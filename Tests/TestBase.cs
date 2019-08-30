@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System.Threading.Tasks;
 using ArangoDriver.Client;
 using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
@@ -23,6 +23,13 @@ namespace Arango.Tests
 			    configuration["Connection:User"],
 			    configuration["Connection:Password"]
 		    );
+	    }
+
+	    [TearDown]
+	    public async Task Teardown()
+	    {
+		    await Connection.DropDatabase(TestDatabaseOneTime);
+		    await Connection.DropDatabase(TestDatabaseGeneral);
 	    }
 	    
 	    //private static AConnection _connection;

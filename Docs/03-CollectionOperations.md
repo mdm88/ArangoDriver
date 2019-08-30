@@ -42,7 +42,8 @@ Applicable optional parameters available through fluent API:
 var db = connection.GetDatabase("myDatabase");
 
 // creates new document type collection
-var createCollectionResult = db.CreateCollection("MyDocumentCollection")
+var createCollectionResult = await db
+    .CreateCollection("MyDocumentCollection")
     .KeyGeneratorType(AKeyGeneratorType.Autoincrement)
     .WaitForSync(true)
     .Create();
@@ -66,7 +67,7 @@ Retrieves basic information about specified collection.
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = db.GetCollection("MyDocumentCollection").Get();
+var getCollectionResult = await db.GetCollection("MyDocumentCollection").Get();
 
 if (getCollectionResult.Success)
 {
@@ -85,7 +86,7 @@ Retrieves basic information with additional properties about specified collectio
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = db.GetCollection("MyDocumentCollection").GetProperties();
+var getCollectionResult = await db.GetCollection("MyDocumentCollection").GetProperties();
 
 if (getCollectionResult.Success)
 {
@@ -110,7 +111,7 @@ Retrieves basic information with additional properties and document count in spe
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = db.GetCollection("MyDocumentCollection").GetCount();
+var getCollectionResult = await db.GetCollection("MyDocumentCollection").GetCount();
 
 if (getCollectionResult.Success)
 {
@@ -136,7 +137,7 @@ Retrieves basic information with additional properties, document count and figur
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = db.GetCollection("MyDocumentCollection").GetFigures();
+var getCollectionResult = await db.GetCollection("MyDocumentCollection").GetFigures();
 
 if (getCollectionResult.Success)
 {
@@ -163,7 +164,7 @@ Retrieves basic information and revision ID of specified collection.
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = db.GetCollection("MyDocumentCollection").GetRevision();
+var getCollectionResult = await db.GetCollection("MyDocumentCollection").GetRevision();
 
 if (getCollectionResult.Success)
 {
@@ -188,7 +189,7 @@ Applicable optional parameters available through fluent API:
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = db.GetCollection("MyDocumentCollection").GetChecksum();
+var getCollectionResult = await db.GetCollection("MyDocumentCollection").GetChecksum();
 
 if (getCollectionResult.Success)
 {
@@ -209,7 +210,7 @@ Retrieves indexes in specified collection.
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = db.GetCollection("MyDocumentCollection").GetAllIndexes();
+var getCollectionResult = await db.GetCollection("MyDocumentCollection").GetAllIndexes();
 
 if (getIndexesResult.Success)
 {
@@ -227,7 +228,7 @@ Removes all documents from specified collection.
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = db.GetCollection("MyDocumentCollection").Truncate();
+var getCollectionResult = await db.GetCollection("MyDocumentCollection").Truncate();
 
 if (truncateCollectionResult.Success)
 {
@@ -279,7 +280,7 @@ Renames specified collection.
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = db.GetCollection("MyDocumentCollection").Rename("MyNewCollection");
+var getCollectionResult = await db.GetCollection("MyDocumentCollection").Rename("MyNewCollection");
 
 if (renameCollectionResult.Success)
 {
@@ -289,16 +290,6 @@ if (renameCollectionResult.Success)
     var status = renameCollectionResult.Value.Enum<ACollectionStatus>("status");
     var type = renameCollectionResult.Value.Enum<ACollectionType>("type");
 }
-```
-
-## Rotate collection journal
-
-Rotates the journal of specified collection to make the data in the file available for compaction. Current journal of the collection will be closed and turned into read-only datafile. This operation is not available in cluster environment.
-
-```csharp
-var db = connection.GetDatabase("myDatabase");
-
-var getCollectionResult = db.GetCollection("MyDocumentCollection").RotateJournal();
 ```
 
 ## Delete collection
@@ -312,7 +303,7 @@ Applicable optional parameters available through fluent API:
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var deleteCollectionResult = db.DropCollection("MyDocumentCollection");
+var deleteCollectionResult = await db.DropCollection("MyDocumentCollection");
 
 if (deleteCollectionResult.Success)
 {
