@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArangoDriver", "ArangoDriver.csproj", "{DCAABC53-1CFD-45FC-AB08-4AF864C76864}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "Client\Client.csproj", "{1CF2D127-8AC5-417C-84B3-9970729ECCAA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{AB714B4C-8E99-4D94-A934-102F354F57DA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -8,9 +10,13 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{DCAABC53-1CFD-45FC-AB08-4AF864C76864}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DCAABC53-1CFD-45FC-AB08-4AF864C76864}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DCAABC53-1CFD-45FC-AB08-4AF864C76864}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DCAABC53-1CFD-45FC-AB08-4AF864C76864}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CF2D127-8AC5-417C-84B3-9970729ECCAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CF2D127-8AC5-417C-84B3-9970729ECCAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CF2D127-8AC5-417C-84B3-9970729ECCAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CF2D127-8AC5-417C-84B3-9970729ECCAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB714B4C-8E99-4D94-A934-102F354F57DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB714B4C-8E99-4D94-A934-102F354F57DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB714B4C-8E99-4D94-A934-102F354F57DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB714B4C-8E99-4D94-A934-102F354F57DA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

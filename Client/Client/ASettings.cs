@@ -10,7 +10,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Determines driver name.
         /// </summary>
-        public const string DriverName = "ArangoDriver";
+        public const string DriverName = "Client";
         
         /// <summary>
         /// Determines driver version.

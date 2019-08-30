@@ -49,15 +49,15 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Creates new database with given name.
         /// </summary>
-        public Task<AResult<bool>> Create(string databaseName)
+        public Task<AResult<bool>> CreateDatabase(string databaseName)
         {
-            return Create(databaseName, null);
+            return CreateDatabase(databaseName, null);
         }
         
         /// <summary>
         /// Creates new database with given name and user list.
         /// </summary>
-        public async Task<AResult<bool>> Create(string databaseName, List<AUser> users)
+        public async Task<AResult<bool>> CreateDatabase(string databaseName, List<AUser> users)
         {
             var request = new Request(HttpMethod.Post, ApiBaseUri.Database, "");
             var bodyDocument = new Dictionary<string, object>();
@@ -219,8 +219,9 @@ namespace ArangoDriver.Client
 
         private async Task<Response> Send(Uri uri, Request request)
         {
-            HttpRequestMessage httpRequestMessage =
-                new HttpRequestMessage(request.HttpMethod, uri + request.GetRelativeUri());
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(request.HttpMethod, uri + request.GetRelativeUri());
+            httpRequestMessage.Version = HttpVersion.Version11;
+            
             foreach (KeyValuePair<string, string> header in request.Headers)
             {
                 httpRequestMessage.Headers.Add(header.Key, header.Value);
