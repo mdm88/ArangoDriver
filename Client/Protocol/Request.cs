@@ -55,7 +55,11 @@ namespace ArangoDriver.Protocol
         {
             if (parameters.ContainsKey(parameterName))
             {
-                Headers.Add(parameterName, parameters.String(parameterName));
+                string value = parameters.String(parameterName);
+                if (parameterName == ParameterName.IfMatch)
+                    value = "\"" + value + "\"";
+                
+                Headers.Add(parameterName, value);
             }
         }
         
