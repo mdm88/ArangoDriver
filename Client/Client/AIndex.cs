@@ -4,17 +4,18 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
-using fastJSON;
 
 namespace ArangoDriver.Client
 {
     public class AIndex
     {
+        private readonly RequestFactory _requestFactory;
         readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
         readonly ADatabase _connection;
         
-        internal AIndex(ADatabase connection)
+        internal AIndex(RequestFactory requestFactory, ADatabase connection)
         {
+            _requestFactory = requestFactory;
             _connection = connection;
         }
         
@@ -90,40 +91,40 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<Dictionary<string, object>>> Create(string collectionName)
         {
-            var request = new Request(HttpMethod.Post, ApiBaseUri.Index, "");
-            var bodyDocument = new Dictionary<string, object>();
+            var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Index, "");
+            var document = new Dictionary<string, object>();
             
             // required
             request.QueryString.Add(ParameterName.Collection, collectionName);
             
             // required
-            bodyDocument.String(ParameterName.Type, _parameters.String(ParameterName.Type));
+            document.String(ParameterName.Type, _parameters.String(ParameterName.Type));
             
             switch (_parameters.Enum<AIndexType>(ParameterName.Type))
             {
                 case AIndexType.Fulltext:
-                    Request.TrySetBodyParameter(ParameterName.Fields, _parameters, bodyDocument);
-                    Request.TrySetBodyParameter(ParameterName.MinLength, _parameters, bodyDocument);
+                    Request.TrySetBodyParameter(ParameterName.Fields, _parameters, document);
+                    Request.TrySetBodyParameter(ParameterName.MinLength, _parameters, document);
                     break;
                 case AIndexType.Geo:
-                    Request.TrySetBodyParameter(ParameterName.Fields, _parameters, bodyDocument);
-                    Request.TrySetBodyParameter(ParameterName.GeoJson, _parameters, bodyDocument);
+                    Request.TrySetBodyParameter(ParameterName.Fields, _parameters, document);
+                    Request.TrySetBodyParameter(ParameterName.GeoJson, _parameters, document);
                     break;
                 case AIndexType.Hash:
-                    Request.TrySetBodyParameter(ParameterName.Fields, _parameters, bodyDocument);
-                    Request.TrySetBodyParameter(ParameterName.Sparse, _parameters, bodyDocument);
-                    Request.TrySetBodyParameter(ParameterName.Unique, _parameters, bodyDocument);
+                    Request.TrySetBodyParameter(ParameterName.Fields, _parameters, document);
+                    Request.TrySetBodyParameter(ParameterName.Sparse, _parameters, document);
+                    Request.TrySetBodyParameter(ParameterName.Unique, _parameters, document);
                     break;
                 case AIndexType.Skiplist:
-                    Request.TrySetBodyParameter(ParameterName.Fields, _parameters, bodyDocument);
-                    Request.TrySetBodyParameter(ParameterName.Sparse, _parameters, bodyDocument);
-                    Request.TrySetBodyParameter(ParameterName.Unique, _parameters, bodyDocument);
+                    Request.TrySetBodyParameter(ParameterName.Fields, _parameters, document);
+                    Request.TrySetBodyParameter(ParameterName.Sparse, _parameters, document);
+                    Request.TrySetBodyParameter(ParameterName.Unique, _parameters, document);
                     break;
                 default:
                     break;
             }
             
-            request.Body = JSON.ToJSON(bodyDocument, ASettings.JsonParameters);
+            request.SetBody(document);
             
             var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
@@ -164,7 +165,7 @@ namespace ArangoDriver.Client
                 throw new ArgumentException("Specified id value (" + id + ") has invalid format.");
             }
             
-            var request = new Request(HttpMethod.Get, ApiBaseUri.Index, "/" + id);
+            var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Index, "/" + id);
             
             var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
@@ -203,7 +204,7 @@ namespace ArangoDriver.Client
                 throw new ArgumentException("Specified id value (" + id + ") has invalid format.");
             }
             
-            var request = new Request(HttpMethod.Delete, ApiBaseUri.Index, "/" + id);
+            var request = _requestFactory.Create(HttpMethod.Delete, ApiBaseUri.Index, "/" + id);
             
             var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);

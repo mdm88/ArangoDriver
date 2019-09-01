@@ -3,13 +3,13 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <PackageId>ArangoDriver</PackageId>
-        <Version>0.2.3</Version>
+        <Version>0.3.0</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <RootNamespace>ArangoDriver</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="fastJSON" Version="2.2.4" />
+      <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
     </ItemGroup>
 
     <ItemGroup>

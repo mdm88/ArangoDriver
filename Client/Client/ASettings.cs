@@ -1,5 +1,4 @@
 ﻿using System.Text.RegularExpressions;
-using fastJSON;
 
 namespace ArangoDriver.Client
 {
@@ -16,15 +15,5 @@ namespace ArangoDriver.Client
         /// Determines driver version.
         /// </summary>
         public const string DriverVersion = "0.1.0";
-        
-        /// <summary>
-        /// Determines JSON serialization options.
-        /// </summary>
-        public static JSONParameters JsonParameters { get; set; }
-        
-        static ASettings()
-        {
-            JsonParameters = new JSONParameters { UseEscapedUnicode = false, UseFastGuid = false, UseExtensions = false };
-        }
     }
 }

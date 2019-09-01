@@ -4,19 +4,20 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
-using fastJSON;
 
 namespace ArangoDriver.Client
 {
     public class ACollection
     {
+        private readonly RequestFactory _requestFactory;
         private readonly ADatabase _connection;
         private readonly string _collectionName;
 
         public string Name => _collectionName;
 
-        internal ACollection(ADatabase connection, string collectionName)
+        internal ACollection(RequestFactory requestFactory, ADatabase connection, string collectionName)
         {
+            _requestFactory = requestFactory;
             _connection = connection;
             _collectionName = collectionName;
         }
@@ -28,7 +29,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<Dictionary<string, object>>> Get()
         {
-            var request = new Request(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName);
+            var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName);
 
             var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
@@ -55,7 +56,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<Dictionary<string, object>>> GetProperties()
         {
-            var request = new Request(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/properties");
+            var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/properties");
 
             var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
@@ -83,7 +84,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<Dictionary<string, object>>> GetCount()
         {
-            var request = new Request(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/count");
+            var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/count");
 
             var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
@@ -111,7 +112,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<Dictionary<string, object>>> GetFigures()
         {
-            var request = new Request(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/figures");
+            var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/figures");
 
             var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
@@ -139,7 +140,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<Dictionary<string, object>>> GetRevision()
         {
-            var request = new Request(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/revision");
+            var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/revision");
 
             var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
@@ -167,7 +168,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<Dictionary<string, object>>> GetChecksum()
         {
-            var request = new Request(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/checksum");
+            var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/checksum");
 
             // optional
             //request.TrySetQueryStringParameter(ParameterName.WithRevisions, _parameters);
@@ -200,7 +201,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<Dictionary<string, object>>> GetAllIndexes()
         {
-            var request = new Request(HttpMethod.Get, ApiBaseUri.Index, "");
+            var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Index, "");
 
             // required
             request.QueryString.Add(ParameterName.Collection, _collectionName);
@@ -230,7 +231,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<Dictionary<string, object>>> Truncate()
         {
-            var request = new Request(HttpMethod.Put, ApiBaseUri.Collection, "/" + _collectionName + "/truncate");
+            var request = _requestFactory.Create(HttpMethod.Put, ApiBaseUri.Collection, "/" + _collectionName + "/truncate");
             
             var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
@@ -290,11 +291,11 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<Dictionary<string, object>>> Rename(string newCollectionName)
         {
-            var request = new Request(HttpMethod.Put, ApiBaseUri.Collection, "/" + _collectionName + "/rename");
-            var bodyDocument = new Dictionary<string, object>()
+            var request = _requestFactory.Create(HttpMethod.Put, ApiBaseUri.Collection, "/" + _collectionName + "/rename");
+            var document = new Dictionary<string, object>()
                 .String(ParameterName.Name, newCollectionName);
             
-            request.Body = JSON.ToJSON(bodyDocument, ASettings.JsonParameters);
+            request.SetBody(document);
             
             var response = await Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
@@ -326,7 +327,7 @@ namespace ArangoDriver.Client
         /// <returns>DocumentCreate</returns>
         public DocumentCreate Insert()
         {
-            return new DocumentCreate(this);
+            return new DocumentCreate(_requestFactory, this);
         }
         
         /// <summary>
@@ -340,7 +341,7 @@ namespace ArangoDriver.Client
                 throw new ArgumentException("Specified 'id' value (" + id + ") has invalid format.");
             }
             
-            var request = new Request(HttpMethod.Head, ApiBaseUri.Document, "/" + id);
+            var request = _requestFactory.Create(HttpMethod.Head, ApiBaseUri.Document, "/" + id);
             
             // optional
             //request.TrySetHeaderParameter(ParameterName.IfMatch, _parameters);
@@ -386,7 +387,7 @@ namespace ArangoDriver.Client
                 throw new ArgumentException("Specified 'id' value (" + id + ") has invalid format.");
             }
             
-            var request = new Request(HttpMethod.Get, ApiBaseUri.Document, "/" + id);
+            var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Document, "/" + id);
             
             // optional
             //request.TrySetHeaderParameter(ParameterName.IfMatch, _parameters);
@@ -438,7 +439,7 @@ namespace ArangoDriver.Client
                 throw new ArgumentException("Specified 'startVertexID' value (" + startVertexID + ") has invalid format.");
             }
 
-            var request = new Request(HttpMethod.Get, ApiBaseUri.Edges, "/" + Name);
+            var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Edges, "/" + Name);
 
             // required
             request.QueryString.Add(ParameterName.Vertex, startVertexID);
@@ -477,7 +478,7 @@ namespace ArangoDriver.Client
         /// <returns>DocumentUpdate</returns>
         public DocumentUpdate Update()
         {
-            return new DocumentUpdate(this);
+            return new DocumentUpdate(_requestFactory, this);
         }
 
         /// <summary>
@@ -487,7 +488,7 @@ namespace ArangoDriver.Client
         /// <returns>DocumentReplace</returns>
         public DocumentReplace Replace()
         {
-            return new DocumentReplace(this);
+            return new DocumentReplace(_requestFactory, this);
         }
         
         /// <summary>
@@ -497,7 +498,7 @@ namespace ArangoDriver.Client
         /// <returns>DocumentDelete</returns>
         public DocumentDelete Delete()
         {
-            return new DocumentDelete(this);
+            return new DocumentDelete(_requestFactory, this);
         }
         
         #endregion

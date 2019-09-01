@@ -3,18 +3,19 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
-using fastJSON;
 
 namespace ArangoDriver.Client
 {
     public class CollectionBuilder
     {
+	    private readonly RequestFactory _requestFactory;
         private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
         private readonly ADatabase _connection;
         private readonly string _collectionName;
         
-        internal CollectionBuilder(ADatabase connection, string collectionName)
+        internal CollectionBuilder(RequestFactory requestFactory, ADatabase connection, string collectionName)
         {
+	        _requestFactory = requestFactory;
             _connection = connection;
             _collectionName = collectionName;
         }
@@ -201,37 +202,37 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<Dictionary<string, object>>> Create()
         {
-            var request = new Request(HttpMethod.Post, ApiBaseUri.Collection, "");
-            var bodyDocument = new Dictionary<string, object>();
+            var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Collection, "");
+            var document = new Dictionary<string, object>();
             
             // required
-            bodyDocument.String(ParameterName.Name, _collectionName);
+            document.String(ParameterName.Name, _collectionName);
             // optional
-            Request.TrySetBodyParameter(ParameterName.Type, _parameters, bodyDocument);
+            Request.TrySetBodyParameter(ParameterName.Type, _parameters, document);
             // optional
-            Request.TrySetBodyParameter(ParameterName.WaitForSync, _parameters, bodyDocument);
+            Request.TrySetBodyParameter(ParameterName.WaitForSync, _parameters, document);
             // optional
-            Request.TrySetBodyParameter(ParameterName.JournalSize, _parameters, bodyDocument);
+            Request.TrySetBodyParameter(ParameterName.JournalSize, _parameters, document);
             // optional
-            Request.TrySetBodyParameter(ParameterName.DoCompact, _parameters, bodyDocument);
+            Request.TrySetBodyParameter(ParameterName.DoCompact, _parameters, document);
             // optional
-            Request.TrySetBodyParameter(ParameterName.IsSystem, _parameters, bodyDocument);
+            Request.TrySetBodyParameter(ParameterName.IsSystem, _parameters, document);
             // optional
-            Request.TrySetBodyParameter(ParameterName.IsVolatile, _parameters, bodyDocument);
+            Request.TrySetBodyParameter(ParameterName.IsVolatile, _parameters, document);
             // optional
-            Request.TrySetBodyParameter(ParameterName.KeyOptionsType, _parameters, bodyDocument);
+            Request.TrySetBodyParameter(ParameterName.KeyOptionsType, _parameters, document);
             // optional
-            Request.TrySetBodyParameter(ParameterName.KeyOptionsAllowUserKeys, _parameters, bodyDocument);
+            Request.TrySetBodyParameter(ParameterName.KeyOptionsAllowUserKeys, _parameters, document);
             // optional
-            Request.TrySetBodyParameter(ParameterName.KeyOptionsIncrement, _parameters, bodyDocument);
+            Request.TrySetBodyParameter(ParameterName.KeyOptionsIncrement, _parameters, document);
             // optional
-            Request.TrySetBodyParameter(ParameterName.KeyOptionsOffset, _parameters, bodyDocument);
+            Request.TrySetBodyParameter(ParameterName.KeyOptionsOffset, _parameters, document);
             // optional
-            Request.TrySetBodyParameter(ParameterName.NumberOfShards, _parameters, bodyDocument);
+            Request.TrySetBodyParameter(ParameterName.NumberOfShards, _parameters, document);
             // optional
-            Request.TrySetBodyParameter(ParameterName.ShardKeys, _parameters, bodyDocument);
+            Request.TrySetBodyParameter(ParameterName.ShardKeys, _parameters, document);
             
-            request.Body = JSON.ToJSON(bodyDocument, ASettings.JsonParameters);
+            request.SetBody(document);
             
             var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);

@@ -4,12 +4,12 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
-using fastJSON;
 
 namespace ArangoDriver.Client
 {
     public class DocumentReplace
     {
+        private readonly RequestFactory _requestFactory;
         private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
         private readonly ACollection _collection;
 
@@ -71,8 +71,9 @@ namespace ArangoDriver.Client
 
         #endregion
 
-        public DocumentReplace(ACollection collection)
+        internal DocumentReplace(RequestFactory requestFactory, ACollection collection)
         {
+            _requestFactory = requestFactory;
             _collection = collection;
         }
         
@@ -81,15 +82,15 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Completely replaces existing document identified by its handle with new document data.
         /// </summary>
-        /// <exception cref="ArgumentException">Specified 'id' value has invalid format.</exception>
-        public async Task<AResult<Dictionary<string, object>>> Document(string id, string json)
+        /// <exception cref="ArgumentException">Specified id value has invalid format.</exception>
+        public async Task<AResult<Dictionary<string, object>>> Document<T>(string id, T document)
         {
             if (!ADocument.IsID(id))
             {
                 throw new ArgumentException("Specified 'id' value (" + id + ") has invalid format.");
             }
             
-            var request = new Request(HttpMethod.Put, ApiBaseUri.Document, "/" + id);
+            var request = _requestFactory.Create(HttpMethod.Put, ApiBaseUri.Document, "/" + id);
             
             // optional
             request.TrySetQueryStringParameter(ParameterName.WaitForSync, _parameters);
@@ -102,7 +103,7 @@ namespace ArangoDriver.Client
             // optional
             request.TrySetHeaderParameter(ParameterName.IfMatch, _parameters);
             
-            request.Body = json;
+            request.SetBody(document);
             
             var response = await _collection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
@@ -132,24 +133,6 @@ namespace ArangoDriver.Client
             
             return result;
         }
-        
-        /// <summary>
-        /// Completely replaces existing document identified by its handle with new document data.
-        /// </summary>
-        /// <exception cref="ArgumentException">Specified id value has invalid format.</exception>
-        public Task<AResult<Dictionary<string, object>>> Document(string id, Dictionary<string, object> document)
-        {
-            return Document(id, JSON.ToJSON(document, ASettings.JsonParameters));
-        }
-        
-        /// <summary>
-        /// Completely replaces existing document identified by its handle with new document data.
-        /// </summary>
-        /// <exception cref="ArgumentException">Specified id value has invalid format.</exception>
-        public Task<AResult<Dictionary<string, object>>> Document<T>(string id, T obj)
-        {
-            return Document(id, Dictator.ToDocument(obj));
-        }
 
         #endregion
 
@@ -166,7 +149,7 @@ namespace ArangoDriver.Client
                 throw new ArgumentException("Specified document does not contain '_from' and '_to' fields.");
             }
 
-            return Document(id, JSON.ToJSON(document, ASettings.JsonParameters));
+            return Document(id, document);
         }
 
         /// <summary>
@@ -188,7 +171,7 @@ namespace ArangoDriver.Client
             document.From(fromId);
             document.To(toId);
 
-            return Document(id, JSON.ToJSON(document, ASettings.JsonParameters));
+            return Document(id, document);
         }
 
         /// <summary>

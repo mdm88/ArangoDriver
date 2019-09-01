@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Arango.Tests;
 using ArangoDriver.Client;
@@ -32,12 +33,12 @@ namespace Tests.DocumentOperations
             var documents = new List<Dictionary<string, object>>();
          	
             var document1 = new Dictionary<string, object>()
-                .String("foo", "string value one")
-                .Int("bar", 1);
+                .String("Foo", "string value one")
+                .Int("Bar", 1);
         	
             var document2 = new Dictionary<string, object>()
-                .String("foo", "string value two")
-                .Int("bar", 2);
+                .String("Foo", "string value two")
+                .Int("Bar", 2);
         	
             var createResult1 = await _collection.Insert().Document(document1);
         	
@@ -59,8 +60,8 @@ namespace Tests.DocumentOperations
         public async Task CreateDocument()
         {
             var document = new Dictionary<string, object>()
-        		.String("foo", "foo string value")
-        		.Int("bar", 12345);
+        		.String("Foo", "Foo string value")
+        		.Int("Bar", 12345);
 
             var createResult = await _collection
                 .Insert()
@@ -78,8 +79,8 @@ namespace Tests.DocumentOperations
         public async Task CreateDocumentWithReturnNew()
         {
             var document = new Dictionary<string, object>()
-                .String("foo", "foo string value")
-                .Int("bar", 12345);
+                .String("Foo", "Foo string value")
+                .Int("Bar", 12345);
 
             var createResult = await _collection
                 .Insert()
@@ -96,16 +97,16 @@ namespace Tests.DocumentOperations
             Assert.AreEqual(createResult.Value.ID(), createResult.Value.String("new._id"));
             Assert.AreEqual(createResult.Value.Key(), createResult.Value.String("new._key"));
             Assert.AreEqual(createResult.Value.Rev(), createResult.Value.String("new._rev"));
-            Assert.AreEqual(document.String("foo"), createResult.Value.String("new.foo"));
-            Assert.AreEqual(document.Int("bar"), createResult.Value.Int("new.bar"));
+            Assert.AreEqual(document.String("Foo"), createResult.Value.String("new.Foo"));
+            Assert.AreEqual(document.Int("Bar"), createResult.Value.Int("new.Bar"));
         }
 
         [Test]
         public async Task CreateDocumentWithWaitForSync()
         {
             var document = new Dictionary<string, object>()
-        		.String("foo", "foo string value")
-        		.Int("bar", 12345);
+        		.String("Foo", "Foo string value")
+        		.Int("Bar", 12345);
 
             var createResult = await _collection
                 .Insert()
@@ -124,7 +125,7 @@ namespace Tests.DocumentOperations
         public async Task CreateDocumentFromGenericObject()
         {
             var dummy = new Dummy();
-            dummy.Foo = "foo string value";
+            dummy.Foo = "Foo string value";
             dummy.Bar = 12345;
          
             var createResult = await _collection
@@ -144,9 +145,35 @@ namespace Tests.DocumentOperations
             Assert.AreEqual(getResult.Value.ID(), createResult.Value.ID());
             Assert.AreEqual(getResult.Value.Key(), createResult.Value.Key());
             Assert.AreEqual(getResult.Value.Rev(), createResult.Value.Rev());
-            Assert.AreEqual(getResult.Value.String("foo"), dummy.Foo);
-            Assert.AreEqual(getResult.Value.Int("bar"), dummy.Bar);
-            Assert.AreEqual(0, dummy.Baz);
+            Assert.AreEqual(getResult.Value.String("Foo"), dummy.Foo);
+            Assert.AreEqual(getResult.Value.Int("Bar"), dummy.Bar);
+            Assert.AreEqual(getResult.Value.Int("Baz"), dummy.Baz);
+        }
+        
+        [Test]
+        public async Task CreateDocumentFromInterface()
+        {
+            var dummy = new Dummy();
+            dummy.Foo = "Foo string value";
+            dummy.Bar = 12345;
+         
+            var createResult = await _collection
+                .Insert()
+                .Document((IFoo)dummy);
+            
+            Assert.AreEqual(202, createResult.StatusCode);
+            Assert.IsTrue(createResult.Success);
+            Assert.IsTrue(createResult.HasValue);
+            Assert.IsTrue(createResult.Value.IsString("_id"));
+            Assert.IsTrue(createResult.Value.IsString("_key"));
+            Assert.IsTrue(createResult.Value.IsString("_rev"));
+            
+            var getResult = await _collection
+                .Get<IFoo>(createResult.Value.ID());
+            
+            Assert.AreEqual(getResult.Value.Foo, dummy.Foo);
+            Assert.AreEqual(((Dummy)getResult.Value).Bar, dummy.Bar);
+            Assert.AreEqual(((Dummy)getResult.Value).Baz, dummy.Baz);
         }
         
         [Test]
@@ -154,8 +181,8 @@ namespace Tests.DocumentOperations
         {
             var document = new Dictionary<string, object>()
                 .String("_key", "1234-5678")
-        		.String("foo", "foo string value")
-        		.Int("bar", 12345);
+        		.String("Foo", "Foo string value")
+        		.Int("Bar", 12345);
 
             var createResult = await _collection
                 .Insert()
@@ -167,6 +194,30 @@ namespace Tests.DocumentOperations
             Assert.AreEqual(TestDocumentCollectionName + "/" + document.Key(), createResult.Value.ID());
             Assert.AreEqual(document.Key(), createResult.Value.Key());
             Assert.IsTrue(createResult.Value.IsString("_rev"));
+        }
+        
+        [Test]
+        public async Task CreateDocumentMultiple()
+        {
+            var document1 = new Dictionary<string, object>()
+                .String("Foo", "Foo string value")
+                .Int("Bar", 12345);
+            
+            var document2 = new Dictionary<string, object>()
+                .String("Foo", "Foo string value")
+                .Int("Bar", 12345);
+
+            var createResult = await _collection
+                .Insert()
+                .Documents(new List<Dictionary<string, object>>() {document1, document2});
+            
+            Assert.AreEqual(202, createResult.StatusCode);
+            Assert.IsTrue(createResult.Success);
+            Assert.IsTrue(createResult.HasValue);
+            Assert.AreEqual(2, createResult.Value.Count);
+            Assert.IsTrue(createResult.Value.First().IsString("_id"));
+            Assert.IsTrue(createResult.Value.First().IsString("_key"));
+            Assert.IsTrue(createResult.Value.First().IsString("_rev"));
         }
         
         #endregion
@@ -266,8 +317,8 @@ namespace Tests.DocumentOperations
             Assert.AreEqual(getResult.Value.ID(), documents[0].ID());
             Assert.AreEqual(getResult.Value.Key(), documents[0].Key());
             Assert.AreEqual(getResult.Value.Rev(), documents[0].Rev());
-            Assert.AreEqual(getResult.Value.String("foo"), documents[0].String("foo"));
-            Assert.AreEqual(getResult.Value.String("bar"), documents[0].String("bar"));
+            Assert.AreEqual(getResult.Value.String("Foo"), documents[0].String("Foo"));
+            Assert.AreEqual(getResult.Value.String("Bar"), documents[0].String("Bar"));
         }
         /*
         [Test]
@@ -286,8 +337,8 @@ namespace Tests.DocumentOperations
             Assert.AreEqual(getResult.Value.ID(), documents[0].ID());
             Assert.AreEqual(getResult.Value.Key(), documents[0].Key());
             Assert.AreEqual(getResult.Value.Rev(), documents[0].Rev());
-            Assert.AreEqual(getResult.Value.String("foo"), documents[0].String("foo"));
-            Assert.AreEqual(getResult.Value.String("bar"), documents[0].String("bar"));
+            Assert.AreEqual(getResult.Value.String("Foo"), documents[0].String("Foo"));
+            Assert.AreEqual(getResult.Value.String("Bar"), documents[0].String("Bar"));
         }
         
         [Test]
@@ -324,8 +375,8 @@ namespace Tests.DocumentOperations
             Assert.AreEqual(getResult.Value.ID(), documents[0].ID());
             Assert.AreEqual(getResult.Value.Key(), documents[0].Key());
             Assert.AreEqual(getResult.Value.Rev(), documents[0].Rev());
-            Assert.AreEqual(getResult.Value.String("foo"), documents[0].String("foo"));
-            Assert.AreEqual(getResult.Value.String("bar"), documents[0].String("bar"));
+            Assert.AreEqual(getResult.Value.String("Foo"), documents[0].String("Foo"));
+            Assert.AreEqual(getResult.Value.String("Bar"), documents[0].String("Bar"));
         }
         
         [Test]
@@ -354,8 +405,8 @@ namespace Tests.DocumentOperations
             Assert.AreEqual(200, getResult.StatusCode);
             Assert.IsTrue(getResult.Success);
             Assert.IsTrue(getResult.HasValue);
-            Assert.AreEqual(documents[0].String("foo"), getResult.Value.Foo);
-            Assert.AreEqual(documents[0].Int("bar"), getResult.Value.Bar);
+            Assert.AreEqual(documents[0].String("Foo"), getResult.Value.Foo);
+            Assert.AreEqual(documents[0].Int("Bar"), getResult.Value.Bar);
             Assert.AreEqual(0, getResult.Value.Baz);
         }
         
@@ -369,9 +420,9 @@ namespace Tests.DocumentOperations
             var documents = await InsertTestData();
 
             var document = new Dictionary<string, object>()
-                .String("foo", "some other new string")
-                .Int("bar", 54321)
-                .Int("baz", 12345);
+                .String("Foo", "some other new string")
+                .Int("Bar", 54321)
+                .Int("Baz", 12345);
             
             var updateResult = await _collection
                 .Update()
@@ -391,12 +442,12 @@ namespace Tests.DocumentOperations
             Assert.AreEqual(getResult.Value.Key(), updateResult.Value.Key());
             Assert.AreEqual(getResult.Value.Rev(), updateResult.Value.Rev());
             
-            Assert.AreNotEqual(getResult.Value.String("foo"), documents[0].String("foo"));
-            Assert.AreEqual(getResult.Value.String("foo"), document.String("foo"));
+            Assert.AreNotEqual(getResult.Value.String("Foo"), documents[0].String("Foo"));
+            Assert.AreEqual(getResult.Value.String("Foo"), document.String("Foo"));
             
-            Assert.AreNotEqual(getResult.Value.Int("bar"), documents[0].Int("bar"));
-            Assert.AreEqual(getResult.Value.Int("bar"), document.Int("bar"));
-            Assert.AreEqual(getResult.Value.Int("baz"), document.Int("baz"));
+            Assert.AreNotEqual(getResult.Value.Int("Bar"), documents[0].Int("Bar"));
+            Assert.AreEqual(getResult.Value.Int("Bar"), document.Int("Bar"));
+            Assert.AreEqual(getResult.Value.Int("Baz"), document.Int("Baz"));
         }
 
         [Test]
@@ -405,9 +456,9 @@ namespace Tests.DocumentOperations
             var documents = await InsertTestData();
 
             var document = new Dictionary<string, object>()
-                .String("foo", "some other new string")
-                .Int("bar", 54321)
-                .Int("baz", 12345);
+                .String("Foo", "some other new string")
+                .Int("Bar", 54321)
+                .Int("Baz", 12345);
 
             var updateResult = await _collection
                 .Update()
@@ -429,9 +480,9 @@ namespace Tests.DocumentOperations
             var documents = await InsertTestData();
 
             var document = new Dictionary<string, object>()
-                .String("foo", "some other new string")
-                .Int("bar", 54321)
-                .Int("baz", 12345);
+                .String("Foo", "some other new string")
+                .Int("Bar", 54321)
+                .Int("Baz", 12345);
 
             var updateResult = await _collection
                 .Update()
@@ -453,9 +504,9 @@ namespace Tests.DocumentOperations
             var documents = await InsertTestData();
 
             var document = new Dictionary<string, object>()
-                .String("foo", "some other new string")
-                .Int("bar", 54321)
-                .Int("baz", 12345);
+                .String("Foo", "some other new string")
+                .Int("Bar", 54321)
+                .Int("Baz", 12345);
          
             var updateResult = await _collection
                 .Update()
@@ -476,12 +527,12 @@ namespace Tests.DocumentOperations
             Assert.AreEqual(getResult.Value.Key(), updateResult.Value.Key());
             Assert.AreEqual(getResult.Value.Rev(), updateResult.Value.Rev());
             
-            Assert.AreNotEqual(getResult.Value.String("foo"), documents[0].String("foo"));
-            Assert.AreEqual(getResult.Value.String("foo"), document.String("foo"));
+            Assert.AreNotEqual(getResult.Value.String("Foo"), documents[0].String("Foo"));
+            Assert.AreEqual(getResult.Value.String("Foo"), document.String("Foo"));
             
-            Assert.AreNotEqual(getResult.Value.Int("bar"), documents[0].Int("bar"));
-            Assert.AreEqual(getResult.Value.Int("bar"), document.Int("bar"));
-            Assert.AreEqual(getResult.Value.Int("baz"), document.Int("baz"));
+            Assert.AreNotEqual(getResult.Value.Int("Bar"), documents[0].Int("Bar"));
+            Assert.AreEqual(getResult.Value.Int("Bar"), document.Int("Bar"));
+            Assert.AreEqual(getResult.Value.Int("Baz"), document.Int("Baz"));
         }
 
         [Test]
@@ -493,9 +544,9 @@ namespace Tests.DocumentOperations
                 .ID(documents[0].ID())
                 .Key(documents[0].Key())
                 .Rev(documents[0].Rev())
-                .String("foo", "some other new string")
-                .Int("bar", 54321)
-                .Int("baz", 12345);
+                .String("Foo", "some other new string")
+                .Int("Bar", 54321)
+                .Int("Baz", 12345);
 
             var updateResult = await _collection
                 .Update()
@@ -516,9 +567,9 @@ namespace Tests.DocumentOperations
             var documents = await InsertTestData();
 
             var document = new Dictionary<string, object>()
-                .String("foo", "some other new string")
-                .Int("bar", 54321)
-                .Int("baz", 12345);
+                .String("Foo", "some other new string")
+                .Int("Bar", 54321)
+                .Int("Baz", 12345);
          
             var updateResult = await _collection
                 .Update()
@@ -539,12 +590,12 @@ namespace Tests.DocumentOperations
             Assert.AreEqual(getResult.Value.Key(), updateResult.Value.Key());
             Assert.AreEqual(getResult.Value.Rev(), updateResult.Value.Rev());
             
-            Assert.AreNotEqual(getResult.Value.String("foo"), documents[0].String("foo"));
-            Assert.AreEqual(getResult.Value.String("foo"), document.String("foo"));
+            Assert.AreNotEqual(getResult.Value.String("Foo"), documents[0].String("Foo"));
+            Assert.AreEqual(getResult.Value.String("Foo"), document.String("Foo"));
             
-            Assert.AreNotEqual(getResult.Value.Int("bar"), documents[0].Int("bar"));
-            Assert.AreEqual(getResult.Value.Int("bar"), document.Int("bar"));
-            Assert.AreEqual(getResult.Value.Int("baz"), document.Int("baz"));
+            Assert.AreNotEqual(getResult.Value.Int("Bar"), documents[0].Int("Bar"));
+            Assert.AreEqual(getResult.Value.Int("Bar"), document.Int("Bar"));
+            Assert.AreEqual(getResult.Value.Int("Baz"), document.Int("Baz"));
         }
         
         [Test]
@@ -553,9 +604,9 @@ namespace Tests.DocumentOperations
             var documents = await InsertTestData();
 
             var document = new Dictionary<string, object>()
-                .String("foo", "some other new string")
-                .Int("bar", 54321)
-                .Int("baz", 12345);
+                .String("Foo", "some other new string")
+                .Int("Bar", 54321)
+                .Int("Baz", 12345);
          
             var updateResult = await _collection
                 .Update()
@@ -574,8 +625,8 @@ namespace Tests.DocumentOperations
         public async Task UpdateDocumentWithKeepNull()
         {
             var newDocument = new Dictionary<string, object>()
-                .String("foo", "some string")
-                .Object("bar", null);
+                .String("Foo", "some string")
+                .Object("Bar", null);
             
             var createResult = await _collection
                 .Insert()
@@ -584,8 +635,8 @@ namespace Tests.DocumentOperations
             newDocument.Merge(createResult.Value);
             
             var document = new Dictionary<string, object>()
-                .String("foo", "some other new string")
-                .Object("baz", null);
+                .String("Foo", "some other new string")
+                .Object("Baz", null);
             
             var updateResult = await _collection
                 .Update()
@@ -606,20 +657,20 @@ namespace Tests.DocumentOperations
             Assert.AreEqual(getResult.Value.Key(), updateResult.Value.Key());
             Assert.AreEqual(getResult.Value.Rev(), updateResult.Value.Rev());
             
-            Assert.AreNotEqual(getResult.Value.String("foo"), newDocument.String("foo"));
-            Assert.AreEqual(getResult.Value.String("foo"), document.String("foo"));
+            Assert.AreNotEqual(getResult.Value.String("Foo"), newDocument.String("Foo"));
+            Assert.AreEqual(getResult.Value.String("Foo"), document.String("Foo"));
             
-            Assert.IsTrue(getResult.Value.Has("bar"));
+            Assert.IsTrue(getResult.Value.Has("Bar"));
             
-            Assert.IsFalse(getResult.Value.Has("baz"));
+            Assert.IsFalse(getResult.Value.Has("Baz"));
         }
         
         [Test]
         public async Task UpdateDocumentWithMergeArrays()
         {
             var newDocument = new Dictionary<string, object>()
-                .String("foo", "some string")
-                .Document("bar", new Dictionary<string, object>().String("foo", "string value"));
+                .String("Foo", "some string")
+                .Document("Bar", new Dictionary<string, object>().String("Foo", "string value"));
             
             var createResult = await _collection
                 .Insert()
@@ -628,8 +679,8 @@ namespace Tests.DocumentOperations
             newDocument.Merge(createResult.Value);
             
             var document = new Dictionary<string, object>()
-                .String("foo", "some other new string")
-                .Document("bar", new Dictionary<string, object>().String("bar", "other string value"));
+                .String("Foo", "some other new string")
+                .Document("Bar", new Dictionary<string, object>().String("Bar", "other string value"));
             
             var updateResult = await _collection
                 .Update()
@@ -650,20 +701,20 @@ namespace Tests.DocumentOperations
             Assert.AreEqual(getResult.Value.Key(), updateResult.Value.Key());
             Assert.AreEqual(getResult.Value.Rev(), updateResult.Value.Rev());
             
-            Assert.AreNotEqual(getResult.Value.String("foo"), newDocument.String("foo"));
-            Assert.AreEqual(getResult.Value.String("foo"), document.String("foo"));
+            Assert.AreNotEqual(getResult.Value.String("Foo"), newDocument.String("Foo"));
+            Assert.AreEqual(getResult.Value.String("Foo"), document.String("Foo"));
             
-            Assert.IsTrue(getResult.Value.Has("bar.foo"));
+            Assert.IsTrue(getResult.Value.Has("Bar.Foo"));
             
-            Assert.IsTrue(getResult.Value.Has("bar.bar"));
+            Assert.IsTrue(getResult.Value.Has("Bar.Bar"));
         }
         
         [Test]
         public async Task UpdateDocumentWithoutMergeArrays()
         {
             var newDocument = new Dictionary<string, object>()
-                .String("foo", "some string")
-                .Document("bar", new Dictionary<string, object>().String("foo", "string value"));
+                .String("Foo", "some string")
+                .Document("Bar", new Dictionary<string, object>().String("Foo", "string value"));
             
             var createResult = await _collection
                 .Insert()
@@ -672,8 +723,8 @@ namespace Tests.DocumentOperations
             newDocument.Merge(createResult.Value);
             
             var document = new Dictionary<string, object>()
-                .String("foo", "some other new string")
-                .Document("bar", new Dictionary<string, object>().String("bar", "other string value"));
+                .String("Foo", "some other new string")
+                .Document("Bar", new Dictionary<string, object>().String("Bar", "other string value"));
             
             var updateResult = await _collection
                 .Update()
@@ -694,12 +745,12 @@ namespace Tests.DocumentOperations
             Assert.AreEqual(getResult.Value.Key(), updateResult.Value.Key());
             Assert.AreEqual(getResult.Value.Rev(), updateResult.Value.Rev());
             
-            Assert.AreNotEqual(getResult.Value.String("foo"), newDocument.String("foo"));
-            Assert.AreEqual(getResult.Value.String("foo"), document.String("foo"));
+            Assert.AreNotEqual(getResult.Value.String("Foo"), newDocument.String("Foo"));
+            Assert.AreEqual(getResult.Value.String("Foo"), document.String("Foo"));
             
-            Assert.IsFalse(getResult.Value.Has("bar.foo"));
+            Assert.IsFalse(getResult.Value.Has("Bar.Foo"));
             
-            Assert.IsTrue(getResult.Value.Has("bar.bar"));
+            Assert.IsTrue(getResult.Value.Has("Bar.Bar"));
         }
         
         [Test]
@@ -730,12 +781,11 @@ namespace Tests.DocumentOperations
             Assert.AreEqual(getResult.Value.Key(), updateResult.Value.Key());
             Assert.AreEqual(getResult.Value.Rev(), updateResult.Value.Rev());
             
-            Assert.AreNotEqual(getResult.Value.String("foo"), documents[0].String("foo"));
-            Assert.AreEqual(getResult.Value.String("foo"), dummy.Foo);
-            
-            Assert.AreNotEqual(getResult.Value.Int("bar"), documents[0].Int("bar"));
-            Assert.AreEqual(getResult.Value.Int("bar"), dummy.Bar);
-            Assert.AreEqual(getResult.Value.Int("baz"), dummy.Baz);
+            Assert.AreNotEqual(getResult.Value.String("Foo"), documents[0].String("Foo"));
+            Assert.AreEqual(getResult.Value.String("Foo"), dummy.Foo);
+            Assert.AreNotEqual(getResult.Value.Int("Bar"), documents[0].Int("Bar"));
+            Assert.AreEqual(getResult.Value.Int("Bar"), dummy.Bar);
+            Assert.AreEqual(getResult.Value.Int("Baz"), dummy.Baz);
         }
         
         #endregion
@@ -748,8 +798,8 @@ namespace Tests.DocumentOperations
             var documents = await InsertTestData();
 
             var document = new Dictionary<string, object>()
-                .String("foo", "some other new string")
-                .Int("baz", 54321);
+                .String("Foo", "some other new string")
+                .Int("Baz", 54321);
          
             var replaceResult = await _collection
                 .Replace()
@@ -769,12 +819,12 @@ namespace Tests.DocumentOperations
             Assert.AreEqual(getResult.Value.Key(), replaceResult.Value.Key());
             Assert.AreEqual(getResult.Value.Rev(), replaceResult.Value.Rev());
             
-            Assert.AreNotEqual(getResult.Value.String("foo"), documents[0].String("foo"));
-            Assert.AreEqual(getResult.Value.String("foo"), document.String("foo"));
+            Assert.AreNotEqual(getResult.Value.String("Foo"), documents[0].String("Foo"));
+            Assert.AreEqual(getResult.Value.String("Foo"), document.String("Foo"));
             
-            Assert.AreEqual(getResult.Value.Int("baz"), document.Int("baz"));
+            Assert.AreEqual(getResult.Value.Int("Baz"), document.Int("Baz"));
             
-            Assert.IsFalse(getResult.Value.Has("bar"));
+            Assert.IsFalse(getResult.Value.Has("Bar"));
         }
 
         [Test]
@@ -783,8 +833,8 @@ namespace Tests.DocumentOperations
             var documents = await InsertTestData();
 
             var document = new Dictionary<string, object>()
-                .String("foo", "some other new string")
-                .Int("baz", 54321);
+                .String("Foo", "some other new string")
+                .Int("Baz", 54321);
 
             var replaceResult = await _collection
                 .Replace()
@@ -806,8 +856,8 @@ namespace Tests.DocumentOperations
             var documents = await InsertTestData();
 
             var document = new Dictionary<string, object>()
-                .String("foo", "some other new string")
-                .Int("baz", 54321);
+                .String("Foo", "some other new string")
+                .Int("Baz", 54321);
 
             var replaceResult = await _collection
                 .Replace()
@@ -829,8 +879,8 @@ namespace Tests.DocumentOperations
             var documents = await InsertTestData();
 
             var document = new Dictionary<string, object>()
-                .String("foo", "some other new string")
-                .Int("baz", 54321);
+                .String("Foo", "some other new string")
+                .Int("Baz", 54321);
             
             var replaceResult = await _collection
                 .Replace()
@@ -851,12 +901,12 @@ namespace Tests.DocumentOperations
             Assert.AreEqual(getResult.Value.Key(), replaceResult.Value.Key());
             Assert.AreEqual(getResult.Value.Rev(), replaceResult.Value.Rev());
             
-            Assert.AreNotEqual(getResult.Value.String("foo"), documents[0].String("foo"));
-            Assert.AreEqual(getResult.Value.String("foo"), document.String("foo"));
+            Assert.AreNotEqual(getResult.Value.String("Foo"), documents[0].String("Foo"));
+            Assert.AreEqual(getResult.Value.String("Foo"), document.String("Foo"));
             
-            Assert.AreEqual(getResult.Value.Int("baz"), document.Int("baz"));
+            Assert.AreEqual(getResult.Value.Int("Baz"), document.Int("Baz"));
             
-            Assert.IsFalse(getResult.Value.Has("bar"));
+            Assert.IsFalse(getResult.Value.Has("Bar"));
         }
 
         [Test]
@@ -868,8 +918,8 @@ namespace Tests.DocumentOperations
                 .ID(documents[0].ID())
                 .Key(documents[0].Key())
                 .Rev(documents[0].Rev())
-                .String("foo", "some other new string")
-                .Int("baz", 54321);
+                .String("Foo", "some other new string")
+                .Int("Baz", 54321);
 
             var replaceResult = await _collection
                 .Replace()
@@ -890,8 +940,8 @@ namespace Tests.DocumentOperations
             var documents = await InsertTestData();
 
             var document = new Dictionary<string, object>()
-                .String("foo", "some other new string")
-                .Int("baz", 54321);
+                .String("Foo", "some other new string")
+                .Int("Baz", 54321);
          
             var replaceResult = await _collection
                 .Replace()
@@ -912,12 +962,12 @@ namespace Tests.DocumentOperations
             Assert.AreEqual(getResult.Value.Key(), replaceResult.Value.Key());
             Assert.AreEqual(getResult.Value.Rev(), replaceResult.Value.Rev());
             
-            Assert.AreNotEqual(getResult.Value.String("foo"), documents[0].String("foo"));
-            Assert.AreEqual(getResult.Value.String("foo"), document.String("foo"));
+            Assert.AreNotEqual(getResult.Value.String("Foo"), documents[0].String("Foo"));
+            Assert.AreEqual(getResult.Value.String("Foo"), document.String("Foo"));
             
-            Assert.AreEqual(getResult.Value.Int("baz"), document.Int("baz"));
+            Assert.AreEqual(getResult.Value.Int("Baz"), document.Int("Baz"));
             
-            Assert.IsFalse(getResult.Value.Has("bar"));
+            Assert.IsFalse(getResult.Value.Has("Bar"));
         }
         
         [Test]
@@ -926,8 +976,8 @@ namespace Tests.DocumentOperations
             var documents = await InsertTestData();
 
             var document = new Dictionary<string, object>()
-                .String("foo", "some other new string")
-                .Int("baz", 54321);
+                .String("Foo", "some other new string")
+                .Int("Baz", 54321);
             
             var replaceResult = await _collection
                 .Replace()
@@ -969,12 +1019,10 @@ namespace Tests.DocumentOperations
             Assert.AreEqual(getResult.Value.Key(), replaceResult.Value.Key());
             Assert.AreEqual(getResult.Value.Rev(), replaceResult.Value.Rev());
             
-            Assert.AreNotEqual(getResult.Value.String("foo"), documents[0].String("foo"));
-            Assert.AreEqual(getResult.Value.String("foo"), dummy.Foo);
-            
-            Assert.AreEqual(getResult.Value.Int("baz"), dummy.Baz);
-            
-            Assert.AreEqual(0, dummy.Bar);
+            Assert.AreNotEqual(getResult.Value.String("Foo"), documents[0].String("Foo"));
+            Assert.AreEqual(getResult.Value.String("Foo"), dummy.Foo);
+            Assert.AreEqual(getResult.Value.Int("Bar"), dummy.Bar);
+            Assert.AreEqual(getResult.Value.Int("Baz"), dummy.Baz);
         }
         
         #endregion
@@ -1069,6 +1117,10 @@ namespace Tests.DocumentOperations
             Assert.IsTrue(deleteResult.Value.Has("old"));
         }
 
+        #endregion
+        
+        #region Special cases
+        
         #endregion
     }
 }

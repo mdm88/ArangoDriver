@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using ArangoDriver.External.dictator;
-using ArangoDriver.Protocol;
-using fastJSON;
-
-namespace ArangoDriver.Client
+﻿namespace ArangoDriver.Client
 {
     public static class ADocument
     {

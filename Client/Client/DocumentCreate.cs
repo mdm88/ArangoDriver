@@ -4,12 +4,12 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
-using fastJSON;
 
 namespace ArangoDriver.Client
 {
     public class DocumentCreate
     {
+        private readonly RequestFactory _requestFactory;
         private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
         private readonly ACollection _collection;
         
@@ -39,26 +39,25 @@ namespace ArangoDriver.Client
         
         #endregion
 
-        public DocumentCreate(ACollection collection)
+        internal DocumentCreate(RequestFactory requestFactory, ACollection collection)
         {
+            _requestFactory = requestFactory;
             _collection = collection;
         }
-        
-        #region Document
 
         /// <summary>
         /// Creates new document within specified collection in current database context.
         /// </summary>
-        public async Task<AResult<Dictionary<string, object>>> Document(string json)
+        private async Task<AResult<Dictionary<string, object>>> Insert<T>(T document)
         {
-            var request = new Request(HttpMethod.Post, ApiBaseUri.Document, "/" + _collection.Name);
+            var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Document, "/" + _collection.Name);
             
             // optional
             request.TrySetQueryStringParameter(ParameterName.WaitForSync, _parameters);
             // optional
             request.TrySetQueryStringParameter(ParameterName.ReturnNew, _parameters);
 
-            request.Body = json;
+            request.SetBody(document);
             
             var response = await _collection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
@@ -87,17 +86,58 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Creates new document within specified collection in current database context.
         /// </summary>
-        public Task<AResult<Dictionary<string, object>>> Document(Dictionary<string, object> document)
+        private async Task<AResult<List<Dictionary<string, object>>>> InsertMany<T>(IEnumerable<T> document)
         {
-            return Document(JSON.ToJSON(document, ASettings.JsonParameters));
-        }
+            var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Document, "/" + _collection.Name);
+            
+            // optional
+            request.TrySetQueryStringParameter(ParameterName.WaitForSync, _parameters);
+            // optional
+            request.TrySetQueryStringParameter(ParameterName.ReturnNew, _parameters);
 
+            request.SetBody(document);
+            
+            var response = await _collection.Send(request);
+            var result = new AResult<List<Dictionary<string, object>>>(response);
+            
+            switch (response.StatusCode)
+            {
+                case 201:
+                case 202:
+                    
+                    var body = response.ParseBody<List<Dictionary<string, object>>>();
+                    
+                    result.Success = (body != null);
+                    result.Value = body;
+                    break;
+                case 400:
+                case 404:
+                default:
+                    // Arango error
+                    break;
+            }
+            
+            _parameters.Clear();
+            
+            return result;
+        }
+        
+        #region Document
+        
         /// <summary>
         /// Creates new document within specified collection in current database context.
         /// </summary>
-        public Task<AResult<Dictionary<string, object>>> Document<T>(T obj)
+        public Task<AResult<Dictionary<string, object>>> Document<T>(T document)
         {
-            return Document(Dictator.ToDocument(obj));
+            return Insert(document);
+        }
+        
+        /// <summary>
+        /// Creates multiple new document within specified collection in current database context.
+        /// </summary>
+        public Task<AResult<List<Dictionary<string, object>>>> Documents<T>(IEnumerable<T> document)
+        {
+            return InsertMany(document);
         }
         
         #endregion
@@ -115,7 +155,7 @@ namespace ArangoDriver.Client
                 throw new ArgumentException("Specified document does not contain '_from' and '_to' fields.");
             }
 
-            return Document(JSON.ToJSON(document, ASettings.JsonParameters));
+            return Insert(document);
         }
 
         /// <summary>
@@ -140,7 +180,7 @@ namespace ArangoDriver.Client
                 { "_to", toId  },
             };
 
-            return Document(document);
+            return Edge(document);
         }
 
         /// <summary>
@@ -162,7 +202,7 @@ namespace ArangoDriver.Client
             document.From(fromId);
             document.To(toId);
 
-            return Document(JSON.ToJSON(document, ASettings.JsonParameters));
+            return Edge(document);
         }
 
         /// <summary>

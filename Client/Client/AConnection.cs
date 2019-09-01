@@ -6,7 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
-using fastJSON;
+using ArangoDriver.Protocol.Requests;
+using ArangoDriver.Serialization;
 
 namespace ArangoDriver.Client
 {
@@ -16,6 +17,8 @@ namespace ArangoDriver.Client
     public class AConnection
     {
         private readonly HttpClient _httpClient;
+        private readonly IJsonSerializer _jsonSerializer;
+        private readonly RequestFactory _requestFactory;
         
         private readonly string _username;
         private readonly string _password;
@@ -32,6 +35,8 @@ namespace ArangoDriver.Client
             _baseUri = new Uri((isSecured ? "https" : "http") + "://" + hostname + ":" + port + "/");
             
             _httpClient = new HttpClient();
+            _jsonSerializer = new JsonNetSerializer();
+            _requestFactory = new RequestFactory(_jsonSerializer);
         }
         
         #region Databases
@@ -43,7 +48,7 @@ namespace ArangoDriver.Client
         /// <returns>ADatabase</returns>
         public ADatabase GetDatabase(string databaseName)
         {
-            return new ADatabase(this, databaseName);
+            return new ADatabase(_requestFactory, this, databaseName);
         }
         
         /// <summary>
@@ -59,45 +64,14 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<bool>> CreateDatabase(string databaseName, List<AUser> users)
         {
-            var request = new Request(HttpMethod.Post, ApiBaseUri.Database, "");
-            var bodyDocument = new Dictionary<string, object>();
-            
-            // required: database name
-            bodyDocument.String("name", databaseName);
-            
-            // optional: list of users
-            if ((users != null) && (users.Count > 0))
+            var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Database, "");
+            var document = new DatabaseCreate()
             {
-                var userList = new List<Dictionary<string, object>>();
-                
-                foreach (var user in users)
-                {
-                    var userItem = new Dictionary<string, object>();
-                    
-                    if (!string.IsNullOrEmpty(user.Username))
-                    {
-                        userItem.String("username", user.Username);
-                    }
-                    
-                    if (!string.IsNullOrEmpty(user.Password))
-                    {
-                        userItem.String("passwd", user.Password);
-                    }
-                    
-                    userItem.Bool("active", user.Active);
-                    
-                    if (user.Extra != null)
-                    {
-                        userItem.Document("extra", user.Extra);
-                    }
-                    
-                    userList.Add(userItem);
-                }
-                
-                bodyDocument.List("users", userList);
-            }
+                Name = databaseName,
+                Users = users
+            };
             
-            request.Body = JSON.ToJSON(bodyDocument, ASettings.JsonParameters);
+            request.SetBody(document);
             
             var response = await Send(request);
             var result = new AResult<bool>(response);
@@ -126,7 +100,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<List<string>>> GetAccessibleDatabases()
         {
-            var request = new Request(HttpMethod.Get, ApiBaseUri.Database, "/user");
+            var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Database, "/user");
             
             var response = await Send(request);
             var result = new AResult<List<string>>(response);
@@ -153,7 +127,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<List<string>>> GetAllDatabases()
         {
-            var request = new Request(HttpMethod.Get, ApiBaseUri.Database, "");
+            var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Database, "");
             
             var response = await Send(request);
             var result = new AResult<List<string>>(response);
@@ -181,7 +155,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<bool>> DropDatabase(string databaseName)
         {
-            var request = new Request(HttpMethod.Delete, ApiBaseUri.Database, "/" + databaseName);
+            var request = _requestFactory.Create(HttpMethod.Delete, ApiBaseUri.Database, "/" + databaseName);
             
             var response = await Send(request);
             var result = new AResult<bool>(response);
@@ -239,7 +213,7 @@ namespace ArangoDriver.Client
                 );
             }
 
-            if (!string.IsNullOrEmpty(request.Body))
+            if (request.Body != null)
             {
                 httpRequestMessage.Content = new StringContent(request.Body, Encoding.UTF8, "application/json");
                 //httpRequestMessage.Headers.Add(HttpRequestHeader.ContentLength.ToString(), "0");
@@ -252,7 +226,7 @@ namespace ArangoDriver.Client
 
             HttpResponseMessage httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage);
 
-            var response = new Response
+            var response = new Response(_jsonSerializer)
             {
                 StatusCode = (int) httpResponseMessage.StatusCode,
                 Headers = httpResponseMessage.Headers,

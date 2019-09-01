@@ -4,12 +4,12 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
-using fastJSON;
 
 namespace ArangoDriver.Client
 {
     public class DocumentUpdate
     {   
+        private readonly RequestFactory _requestFactory;
         private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
         private readonly ACollection _collection;
 
@@ -93,8 +93,9 @@ namespace ArangoDriver.Client
 
         #endregion
 
-        public DocumentUpdate(ACollection collection)
+        internal DocumentUpdate(RequestFactory requestFactory, ACollection collection)
         {
+            _requestFactory = requestFactory;
             _collection = collection;
         }
         
@@ -103,15 +104,14 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Updates existing document identified by its handle with new document data.
         /// </summary>
-        /// <exception cref="ArgumentException">Specified 'id' value has invalid format.</exception>
-        public async Task<AResult<Dictionary<string, object>>> Update(string id, string json)
+        public async Task<AResult<Dictionary<string, object>>> Update<T>(string id, T document)
         {
             if (!ADocument.IsID(id))
             {
                 throw new ArgumentException("Specified 'id' value (" + id + ") has invalid format.");
             }
             
-            var request = new Request(HttpMethod.Patch, ApiBaseUri.Document, "/" + id);
+            var request = _requestFactory.Create(HttpMethod.Patch, ApiBaseUri.Document, "/" + id);
             
             // optional
             request.TrySetQueryStringParameter(ParameterName.WaitForSync, _parameters);
@@ -128,7 +128,7 @@ namespace ArangoDriver.Client
             // optional
             request.TrySetHeaderParameter(ParameterName.IfMatch, _parameters);
 
-            request.Body = json;
+            request.SetBody(document);
             
             var response = await _collection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
@@ -157,22 +157,6 @@ namespace ArangoDriver.Client
             _parameters.Clear();
             
             return result;
-        }
-
-        /// <summary>
-        /// Updates existing document identified by its handle with new document data.
-        /// </summary>
-        public Task<AResult<Dictionary<string, object>>> Update(string id, Dictionary<string, object> document)
-        {
-            return Update(id, JSON.ToJSON(document, ASettings.JsonParameters));
-        }
-        
-        /// <summary>
-        /// Updates existing document identified by its handle with new document data.
-        /// </summary>
-        public Task<AResult<Dictionary<string, object>>> Update<T>(string id, T obj)
-        {
-            return Update(id, Dictator.ToDocument(obj));
         }
         
         #endregion

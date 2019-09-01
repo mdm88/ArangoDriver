@@ -3,11 +3,34 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using ArangoDriver.External.dictator;
+using ArangoDriver.Serialization;
 
 namespace ArangoDriver.Protocol
 {
+    internal class RequestFactory
+    {
+        private readonly IJsonSerializer _jsonSerializer;
+
+        internal RequestFactory(IJsonSerializer jsonSerializer)
+        {
+            _jsonSerializer = jsonSerializer;
+        }
+
+        internal Request Create(HttpMethod httpMethod, string apiUri)
+        {
+            return new Request(_jsonSerializer, httpMethod, apiUri);
+        }
+
+        internal Request Create(HttpMethod httpMethod, string apiUri, string operationUri)
+        {
+            return new Request(_jsonSerializer, httpMethod, apiUri, operationUri);
+        }
+    }
+    
     internal class Request
     {
+        private readonly IJsonSerializer _jsonSerializer;
+        
         internal HttpMethod HttpMethod { get; set; }
         internal string OperationUri { get; set; }
         //internal WebHeaderCollection Headers = new WebHeaderCollection();
@@ -15,12 +38,13 @@ namespace ArangoDriver.Protocol
         internal Dictionary<string, string> QueryString = new Dictionary<string, string>();
         internal string Body { get; set; }
 
-        internal Request(HttpMethod httpMethod, string apiUri) : this(httpMethod, apiUri, "")
+        internal Request(IJsonSerializer jsonSerializer, HttpMethod httpMethod, string apiUri) : this(jsonSerializer, httpMethod, apiUri, "")
         {
         }
 
-        internal Request(HttpMethod httpMethod, string apiUri, string operationUri)
+        internal Request(IJsonSerializer jsonSerializer, HttpMethod httpMethod, string apiUri, string operationUri)
         {
+            _jsonSerializer = jsonSerializer;
             HttpMethod = httpMethod;
             OperationUri = apiUri + operationUri;
         }
@@ -69,6 +93,11 @@ namespace ArangoDriver.Protocol
             {
                 QueryString.Add(parameterName, parameters.String(parameterName));
             }
+        }
+
+        internal void SetBody<T>(T obj)
+        {
+            Body = _jsonSerializer.Serialize(obj);
         }
         
         internal static void TrySetBodyParameter(string parameterName, Dictionary<string, object> source, Dictionary<string, object> destination)

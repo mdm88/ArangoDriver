@@ -3,20 +3,21 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
-using fastJSON;
 
 namespace ArangoDriver.Client
 {
     public class ATransaction
     {
+        private readonly RequestFactory _requestFactory;
         readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
         readonly ADatabase _connection;
         readonly List<string> _readCollections = new List<string>();
         readonly List<string> _writeCollections = new List<string>();
         readonly Dictionary<string, object> _transactionParams = new Dictionary<string, object>();
         
-        internal ATransaction(ADatabase connection)
+        internal ATransaction(RequestFactory requestFactory, ADatabase connection)
         {
+            _requestFactory = requestFactory;
             _connection = connection;
         }
         
@@ -80,32 +81,32 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<T>> Execute<T>(string action)
         {
-            var request = new Request(HttpMethod.Post, ApiBaseUri.Transaction, "");
-            var bodyDocument = new Dictionary<string, object>();
+            var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Transaction, "");
+            var document = new Dictionary<string, object>();
             
             // required
-            bodyDocument.String(ParameterName.Action, action);
+            document.String(ParameterName.Action, action);
             // required
             if (_readCollections.Count > 0)
             {
-                bodyDocument.List(ParameterName.Collections + ".read", _readCollections);
+                document.List(ParameterName.Collections + ".read", _readCollections);
             }
             // required
             if (_writeCollections.Count > 0)
             {
-                bodyDocument.List(ParameterName.Collections + ".write", _writeCollections);
+                document.List(ParameterName.Collections + ".write", _writeCollections);
             }
             // optional
-            Request.TrySetBodyParameter(ParameterName.WaitForSync, _parameters, bodyDocument);
+            Request.TrySetBodyParameter(ParameterName.WaitForSync, _parameters, document);
             // optional
-            Request.TrySetBodyParameter(ParameterName.LockTimeout, _parameters, bodyDocument);
+            Request.TrySetBodyParameter(ParameterName.LockTimeout, _parameters, document);
             // optional
             if (_transactionParams.Count > 0)
             {
-                bodyDocument.Document(ParameterName.Params, _transactionParams);
+                document.Document(ParameterName.Params, _transactionParams);
             }
 
-            request.Body = JSON.ToJSON(bodyDocument, ASettings.JsonParameters);
+            request.SetBody(document);
             
             var response = await _connection.Send(request);
             var result = new AResult<T>(response);

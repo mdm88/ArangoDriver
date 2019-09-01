@@ -9,6 +9,7 @@ namespace ArangoDriver.Client
 {
     public class DocumentDelete
     {
+        private readonly RequestFactory _requestFactory;
         private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
         private readonly ACollection _collection;
 
@@ -48,8 +49,9 @@ namespace ArangoDriver.Client
 
         #endregion
 
-        public DocumentDelete(ACollection collection)
+        internal DocumentDelete(RequestFactory requestFactory, ACollection collection)
         {
+            _requestFactory = requestFactory;
             _collection = collection;
         }
 
@@ -66,7 +68,7 @@ namespace ArangoDriver.Client
                 throw new ArgumentException("Specified 'id' value (" + id + ") has invalid format.");
             }
             
-            var request = new Request(HttpMethod.Delete, ApiBaseUri.Document, "/" + id);
+            var request = _requestFactory.Create(HttpMethod.Delete, ApiBaseUri.Document, "/" + id);
             
             // optional
             request.TrySetQueryStringParameter(ParameterName.WaitForSync, _parameters);

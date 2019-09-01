@@ -3,17 +3,18 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
-using fastJSON;
 
 namespace ArangoDriver.Client
 {
     public class AFoxx
     {
+        private readonly RequestFactory _requestFactory;
         readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
         readonly ADatabase _connection;
 
-        internal AFoxx(ADatabase connection)
+        internal AFoxx(RequestFactory requestFactory, ADatabase connection)
         {
+            _requestFactory = requestFactory;
             _connection = connection;
         }
 
@@ -73,11 +74,11 @@ namespace ArangoDriver.Client
 
         private async Task<AResult<T>> Request<T>(HttpMethod httpMethod, string relativeUri)
         {
-            var request = new Request(httpMethod, relativeUri);
+            var request = _requestFactory.Create(httpMethod, relativeUri);
 
             if (_parameters.Has(ParameterName.Body))
             {
-                request.Body = JSON.ToJSON(_parameters.Object(ParameterName.Body), ASettings.JsonParameters);
+                request.SetBody(_parameters.Object(ParameterName.Body));
             }
 
             var response = await _connection.Send(request);

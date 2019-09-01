@@ -3,17 +3,18 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
-using fastJSON;
 
 namespace ArangoDriver.Client
 {
     public class AFunction
     {
+        private readonly RequestFactory _requestFactory;
         readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
         readonly ADatabase _connection;
         
-        internal AFunction(ADatabase connection)
+        internal AFunction(RequestFactory requestFactory, ADatabase connection)
         {
+            _requestFactory = requestFactory;
             _connection = connection;
         }
         
@@ -58,17 +59,17 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<bool>> Register(string name, string code)
         {
-            var request = new Request(HttpMethod.Post, ApiBaseUri.AqlFunction, "");
-            var bodyDocument = new Dictionary<string, object>();
+            var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.AqlFunction, "");
+            var document = new Dictionary<string, object>();
             
             // required
-            bodyDocument.String(ParameterName.Name, name);
+            document.String(ParameterName.Name, name);
             // required
-            bodyDocument.String(ParameterName.Code, code);
+            document.String(ParameterName.Code, code);
             // optional
-            Request.TrySetBodyParameter(ParameterName.IsDeterministic, _parameters, bodyDocument);
+            Request.TrySetBodyParameter(ParameterName.IsDeterministic, _parameters, document);
             
-            request.Body = JSON.ToJSON(bodyDocument, ASettings.JsonParameters);
+            request.SetBody(document);
             
             var response = await _connection.Send(request);
             var result = new AResult<bool>(response);
@@ -100,7 +101,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<List<Dictionary<string, object>>>> List()
         {
-            var request = new Request(HttpMethod.Get, ApiBaseUri.AqlFunction, "");
+            var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.AqlFunction, "");
             
             // optional
             request.TrySetQueryStringParameter(ParameterName.Namespace, _parameters);
@@ -136,7 +137,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<bool>> Unregister(string name)
         {
-            var request = new Request(HttpMethod.Delete, ApiBaseUri.AqlFunction, "/" + name);
+            var request = _requestFactory.Create(HttpMethod.Delete, ApiBaseUri.AqlFunction, "/" + name);
             
             // optional
             request.TrySetQueryStringParameter(ParameterName.Group, _parameters);

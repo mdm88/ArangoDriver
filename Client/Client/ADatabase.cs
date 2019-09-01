@@ -8,6 +8,7 @@ namespace ArangoDriver.Client
 {
     public class ADatabase
     {
+        private readonly RequestFactory _requestFactory;
         private readonly AConnection _connection;
         private readonly string _databaseName;
 
@@ -18,7 +19,7 @@ namespace ArangoDriver.Client
         {
             get
             {
-                return new AFunction(this);
+                return new AFunction(_requestFactory, this);
             }
         }
         
@@ -29,7 +30,7 @@ namespace ArangoDriver.Client
         {
             get
             {
-                return new AIndex(this);
+                return new AIndex(_requestFactory, this);
             }
         }
         
@@ -40,7 +41,7 @@ namespace ArangoDriver.Client
         {
             get
             {
-                return new AQuery(this);
+                return new AQuery(_requestFactory, this);
             }
         }
         
@@ -51,7 +52,7 @@ namespace ArangoDriver.Client
         {
             get
             {
-                return new ATransaction(this);
+                return new ATransaction(_requestFactory, this);
             }
         }
 
@@ -62,15 +63,16 @@ namespace ArangoDriver.Client
         {
             get
             {
-                return new AFoxx(this);
+                return new AFoxx(_requestFactory, this);
             }
         }
 
         /// <summary>
         /// Initializes new database context to perform operations on remote database identified by specified alias.
         /// </summary>
-        public ADatabase(AConnection connection, string database)
+        internal ADatabase(RequestFactory requestFactory, AConnection connection, string database)
         {
+            _requestFactory = requestFactory;
             _connection = connection;
             _databaseName = database;
         }
@@ -82,7 +84,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<Dictionary<string, object>>> GetCurrent()
         {
-            var request = new Request(HttpMethod.Get, ApiBaseUri.Database, "/current");
+            var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Database, "/current");
             
             var response = await Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
@@ -111,12 +113,12 @@ namespace ArangoDriver.Client
 
         public CollectionBuilder CreateCollection(string name)
         {
-            return new CollectionBuilder(this, name);
+            return new CollectionBuilder(_requestFactory, this, name);
         }
 
         public ACollection GetCollection(string name)
         {
-            return new ACollection(this, name);
+            return new ACollection(_requestFactory, this, name);
         }
         
         /// <summary>
@@ -124,7 +126,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<List<Dictionary<string, object>>>> GetAllCollections()
         {
-            var request = new Request(HttpMethod.Get, ApiBaseUri.Collection, "");
+            var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Collection, "");
             
             var response = await Send(request);
             var result = new AResult<List<Dictionary<string, object>>>(response);
@@ -152,7 +154,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<Dictionary<string, object>>> DropCollection(string collectionName)
         {
-            var request = new Request(HttpMethod.Delete, ApiBaseUri.Collection, "/" + collectionName);
+            var request = _requestFactory.Create(HttpMethod.Delete, ApiBaseUri.Collection, "/" + collectionName);
 
             // optional
             //request.TrySetQueryStringParameter(ParameterName.IsSystem, _parameters);

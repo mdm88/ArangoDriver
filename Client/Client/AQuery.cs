@@ -5,19 +5,20 @@ using System.Text;
 using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
-using fastJSON;
 
 namespace ArangoDriver.Client
 {
     public class AQuery
     {
+        private readonly RequestFactory _requestFactory;
         readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
         readonly ADatabase _connection;
         readonly StringBuilder _query = new StringBuilder();
         readonly Dictionary<string, object> _bindVars = new Dictionary<string, object>();
         
-        internal AQuery(ADatabase connection)
+        internal AQuery(RequestFactory requestFactory, ADatabase connection)
         {
+            _requestFactory = requestFactory;
             _connection = connection;
         }
         
@@ -97,26 +98,26 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<List<T>>> ToList<T>()
         {
-            var request = new Request(HttpMethod.Post, ApiBaseUri.Cursor, "");
-            var bodyDocument = new Dictionary<string, object>();
+            var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Cursor, "");
+            var document = new Dictionary<string, object>();
             
             // required
-            bodyDocument.String(ParameterName.Query, _query.ToString());
+            document.String(ParameterName.Query, _query.ToString());
             // optional
-            Request.TrySetBodyParameter(ParameterName.Count, _parameters, bodyDocument);
+            Request.TrySetBodyParameter(ParameterName.Count, _parameters, document);
             // optional
-            Request.TrySetBodyParameter(ParameterName.BatchSize, _parameters, bodyDocument);
+            Request.TrySetBodyParameter(ParameterName.BatchSize, _parameters, document);
             // optional
-            Request.TrySetBodyParameter(ParameterName.TTL, _parameters, bodyDocument);
+            Request.TrySetBodyParameter(ParameterName.TTL, _parameters, document);
             // optional
             if (_bindVars.Count > 0)
             {
-                bodyDocument.Document(ParameterName.BindVars, _bindVars);
+                document.Document(ParameterName.BindVars, _bindVars);
             }
             
             // TODO: options parameter
             
-            request.Body = JSON.ToJSON(bodyDocument, ASettings.JsonParameters);
+            request.SetBody(document);
             //this.LastRequest = request.Body;            
             var response = await _connection.Send(request);
             //this.LastResponse = response.Body;
@@ -286,7 +287,7 @@ namespace ArangoDriver.Client
 
         internal async Task<AResult<List<T>>> Put<T>(string cursorID)
         {
-            var request = new Request(HttpMethod.Put, ApiBaseUri.Cursor, "/" + cursorID);
+            var request = _requestFactory.Create(HttpMethod.Put, ApiBaseUri.Cursor, "/" + cursorID);
             
             var response = await _connection.Send(request);
             var result = new AResult<List<T>>(response);
@@ -339,13 +340,13 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<Dictionary<string, object>>> Parse(string query)
         {
-            var request = new Request(HttpMethod.Post, ApiBaseUri.Query, "");
-            var bodyDocument = new Dictionary<string, object>();
+            var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Query, "");
+            var document = new Dictionary<string, object>();
             
             // required
-            bodyDocument.String(ParameterName.Query, Minify(query));
+            document.String(ParameterName.Query, Minify(query));
             
-            request.Body = JSON.ToJSON(bodyDocument, ASettings.JsonParameters);
+            request.SetBody(document);
             
             var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
@@ -386,7 +387,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<bool>> DeleteCursor(string cursorID)
         {
-            var request = new Request(HttpMethod.Delete, ApiBaseUri.Cursor, "/" + cursorID);
+            var request = _requestFactory.Create(HttpMethod.Delete, ApiBaseUri.Cursor, "/" + cursorID);
             
             var response = await _connection.Send(request);
             var result = new AResult<bool>(response);

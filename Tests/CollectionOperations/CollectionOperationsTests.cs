@@ -82,8 +82,8 @@ namespace Tests.CollectionOperations
             var collection = db.GetCollection(TestDocumentCollectionName);
 			
             var newDocument = new Dictionary<string, object>()
-                .String("foo", "some string")
-                .Document("bar", new Dictionary<string, object>().String("foo", "string value"));
+                .String("Foo", "some string")
+                .Document("Bar", new Dictionary<string, object>().String("Foo", "string value"));
             
             var doc1Result = await collection
                 .Insert()

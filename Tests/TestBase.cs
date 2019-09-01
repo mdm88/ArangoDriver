@@ -131,12 +131,12 @@ namespace Arango.Tests
         	var db = new ADatabase(Alias);
         	
         	var document1 = new Dictionary<string, object>()
-        		.String("foo", "string value one")
-        		.Int("bar", 1);
+        		.String("Foo", "string value one")
+        		.Int("Bar", 1);
         	
         	var document2 = new Dictionary<string, object>()
-        		.String("foo", "string value two")
-        		.Int("bar", 2);
+        		.String("Foo", "string value two")
+        		.Int("Bar", 2);
         	
         	var createResult1 = db.Document.Create(TestDocumentCollectionName, document1);
         	

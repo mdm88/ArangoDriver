@@ -1,16 +1,16 @@
-﻿using ArangoDriver.External.dictator;
-
-namespace Tests
+﻿namespace Tests
 {
-    public class Dummy
+    public interface IFoo
     {
-        [AliasField("foo")]
+        string Foo { get; set; }
+    }
+    
+    public class Dummy : IFoo
+    {
         public string Foo { get; set; }
         
-        [AliasField("bar")]
         public int Bar { get; set; }
         
-        [AliasField("baz")]
         public int Baz { get; set; }
     }
 }
