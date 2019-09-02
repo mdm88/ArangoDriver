@@ -1090,7 +1090,26 @@ namespace Tests.DocumentOperations
 
             var deleteResult = await collection
                 .Delete()
-                .Delete(documents[0].ID());
+                .ById(documents[0].ID());
+            
+            Assert.AreEqual(202, deleteResult.StatusCode);
+            Assert.IsTrue(deleteResult.Success);
+            Assert.IsTrue(deleteResult.HasValue);
+            Assert.AreEqual(deleteResult.Value.ID(), documents[0].ID());
+            Assert.AreEqual(deleteResult.Value.Key(), documents[0].Key());
+            Assert.AreEqual(deleteResult.Value.Rev(), documents[0].Rev());
+        }
+        
+        [Test]
+        public async Task DeleteDocumentByKey()
+        {   
+            var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
+
+            var documents = await InsertTestData();
+
+            var deleteResult = await collection
+                .Delete()
+                .ByKey(documents[0].Key());
             
             Assert.AreEqual(202, deleteResult.StatusCode);
             Assert.IsTrue(deleteResult.Success);
@@ -1110,7 +1129,7 @@ namespace Tests.DocumentOperations
             var deleteResult = await collection
                 .Delete()
                 .WaitForSync(true)
-                .Delete(documents[0].ID());
+                .ById(documents[0].ID());
             
             Assert.AreEqual(200, deleteResult.StatusCode);
             Assert.IsTrue(deleteResult.Success);
@@ -1130,7 +1149,7 @@ namespace Tests.DocumentOperations
             var deleteResult = await collection
                 .Delete()
                 .IfMatch(documents[0].Rev())
-                .Delete(documents[0].ID());
+                .ById(documents[0].ID());
             
             Assert.AreEqual(202, deleteResult.StatusCode);
             Assert.IsTrue(deleteResult.Success);
@@ -1150,7 +1169,7 @@ namespace Tests.DocumentOperations
             var deleteResult = await collection
                 .Delete()
                 .IfMatch("123456789")
-                .Delete(documents[0].ID());
+                .ById(documents[0].ID());
             
             Assert.AreEqual(412, deleteResult.StatusCode);
             Assert.IsFalse(deleteResult.Success);
@@ -1169,7 +1188,7 @@ namespace Tests.DocumentOperations
             var deleteResult = await collection
                 .Delete()
                 .ReturnOld()
-                .Delete(documents[0].ID());
+                .ById(documents[0].ID());
 
             Assert.AreEqual(202, deleteResult.StatusCode);
             Assert.IsTrue(deleteResult.Success);

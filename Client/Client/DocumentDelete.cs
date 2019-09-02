@@ -61,7 +61,7 @@ namespace ArangoDriver.Client
         /// Deletes specified document.
         /// </summary>
         /// <exception cref="ArgumentException">Specified 'id' value has invalid format.</exception>
-        public async Task<AResult<Dictionary<string, object>>> Delete(string id)
+        public async Task<AResult<Dictionary<string, object>>> ById(string id)
         {
             if (!ADocument.IsID(id))
             {
@@ -103,6 +103,11 @@ namespace ArangoDriver.Client
             _parameters.Clear();
             
             return result;
+        }
+
+        public Task<AResult<Dictionary<string, object>>> ByKey(string key)
+        {
+            return ById(_collection.Name + "/" + key);
         }
 
         #endregion

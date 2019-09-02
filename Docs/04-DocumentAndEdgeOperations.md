@@ -291,6 +291,8 @@ Deletes specified document.
 - `IfMatch(string revision)` - Conditionally operate on document with specified revision.
 - `ReturnOld()` - Determines whether to return additionally the complete previous revision of the changed document under the attribute 'old' in the result.
 
+By Id
+
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
@@ -298,7 +300,26 @@ var collection = db.GetCollection<Dummy>("MyDocumentCollection");
 
 var deleteDocumentResult = collection
     .Delete()
-    .Delete("MyDocumentCollection/123");
+    .ById("MyDocumentCollection/123");
+    
+if (deleteDocumentResult.Success)
+{
+    var id = deleteDocumentResult.Value.String("_id");
+    var key = deleteDocumentResult.Value.String("_key");
+    var revision = deleteDocumentResult.Value.String("_rev");
+}
+```
+
+Or by Key
+
+```csharp
+var db = connection.GetDatabase("myDatabase");
+
+var collection = db.GetCollection<Dummy>("MyDocumentCollection");
+
+var deleteDocumentResult = collection
+    .Delete()
+    .ByKey("123");
     
 if (deleteDocumentResult.Success)
 {
