@@ -7,18 +7,18 @@ using ArangoDriver.Protocol;
 
 namespace ArangoDriver.Client
 {
-    public class DocumentReplace
+    public class DocumentReplace<T> where T : class
     {
         private readonly RequestFactory _requestFactory;
         private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
-        private readonly ACollection _collection;
+        private readonly ACollection<T> _collection;
 
         #region Parameters
         
         /// <summary>
         /// Determines whether or not to wait until data are synchronised to disk. Default value: false.
         /// </summary>
-        public DocumentReplace WaitForSync(bool value)
+        public DocumentReplace<T> WaitForSync(bool value)
         {
             // needs to be string value
             _parameters.String(ParameterName.WaitForSync, value.ToString().ToLower());
@@ -29,7 +29,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Determines whether to '_rev' field in the given document is ignored. If this is set to false, then the '_rev' attribute given in the body document is taken as a precondition. The document is only replaced if the current revision is the one specified.
         /// </summary>
-        public DocumentReplace IgnoreRevs(bool value)
+        public DocumentReplace<T> IgnoreRevs(bool value)
         {
             // needs to be string value
             _parameters.String(ParameterName.IgnoreRevs, value.ToString().ToLower());
@@ -40,7 +40,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Determines whether to return additionally the complete new document under the attribute 'new' in the result.
         /// </summary>
-        public DocumentReplace ReturnNew()
+        public DocumentReplace<T> ReturnNew()
         {
             // needs to be string value
             _parameters.String(ParameterName.ReturnNew, true.ToString().ToLower());
@@ -51,7 +51,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Determines whether to return additionally the complete previous revision of the changed document under the attribute 'old' in the result.
         /// </summary>
-        public DocumentReplace ReturnOld()
+        public DocumentReplace<T> ReturnOld()
         {
             // needs to be string value
             _parameters.String(ParameterName.ReturnOld, true.ToString().ToLower());
@@ -62,7 +62,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Conditionally operate on document with specified revision.
         /// </summary>
-        public DocumentReplace IfMatch(string revision)
+        public DocumentReplace<T> IfMatch(string revision)
         {
             _parameters.String(ParameterName.IfMatch, revision);
         	
@@ -71,7 +71,7 @@ namespace ArangoDriver.Client
 
         #endregion
 
-        internal DocumentReplace(RequestFactory requestFactory, ACollection collection)
+        internal DocumentReplace(RequestFactory requestFactory, ACollection<T> collection)
         {
             _requestFactory = requestFactory;
             _collection = collection;
@@ -83,7 +83,7 @@ namespace ArangoDriver.Client
         /// Completely replaces existing document identified by its handle with new document data.
         /// </summary>
         /// <exception cref="ArgumentException">Specified id value has invalid format.</exception>
-        public async Task<AResult<Dictionary<string, object>>> Document<T>(string id, T document)
+        public async Task<AResult<Dictionary<string, object>>> Document(string id, T document)
         {
             if (!ADocument.IsID(id))
             {
@@ -142,44 +142,15 @@ namespace ArangoDriver.Client
         /// Completely replaces existing edge identified by its handle with new edge data.
         /// </summary>
         /// <exception cref="ArgumentException">Specified document does not contain '_from' and '_to' fields.</exception>
-        public Task<AResult<Dictionary<string, object>>> Edge(string id, Dictionary<string, object> document)
+        public Task<AResult<Dictionary<string, object>>> Edge(string id, T document)
         {
-            if (!document.Has("_from") && !document.Has("_to"))
+            // TODO validate
+            /*if (!document.Has("_from") && !document.Has("_to"))
             {
                 throw new ArgumentException("Specified document does not contain '_from' and '_to' fields.");
-            }
+            }*/
 
             return Document(id, document);
-        }
-
-        /// <summary>
-        /// Completely replaces existing edge identified by its handle with new edge data. This helper method injects 'fromID' and 'toID' fields into given document to construct valid edge document.
-        /// </summary>
-        /// <exception cref="ArgumentException">Specified 'from' or 'to' ID values have invalid format.</exception>
-        public Task<AResult<Dictionary<string, object>>> Edge(string id, string fromId, string toId, Dictionary<string, object> document)
-        {
-            if (!ADocument.IsID(fromId))
-            {
-                throw new ArgumentException("Specified 'from' value (" + fromId + ") has invalid format.");
-            }
-
-            if (!ADocument.IsID(toId))
-            {
-                throw new ArgumentException("Specified 'to' value (" + toId + ") has invalid format.");
-            }
-
-            document.From(fromId);
-            document.To(toId);
-
-            return Document(id, document);
-        }
-
-        /// <summary>
-        /// Completely replaces existing edge identified by its handle with new edge data. This helper method injects 'fromID' and 'toID' fields into given document to construct valid edge document.
-        /// </summary>
-        public Task<AResult<Dictionary<string, object>>> Edge<T>(string id, string fromId, string toId, T obj)
-        {
-            return Edge(id, fromId, toId, Dictator.ToDocument(obj));
         }
 
         #endregion

@@ -79,7 +79,7 @@ namespace Tests.CollectionOperations
 
 			// create documents and test if their key are incremented accordingly
 
-            var collection = db.GetCollection(TestDocumentCollectionName);
+            var collection = db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 			
             var newDocument = new Dictionary<string, object>()
                 .String("Foo", "some string")
@@ -118,7 +118,7 @@ namespace Tests.CollectionOperations
             var createResult = await db.CreateCollection(TestEdgeCollectionName)
                 .Create();
 
-            var getResult = await db.GetCollection(createResult.Value.String("name"))
+            var getResult = await db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
                 .GetInformation();
             
             Assert.AreEqual(200, getResult.StatusCode);
@@ -137,7 +137,7 @@ namespace Tests.CollectionOperations
             var createResult = await db.CreateCollection(TestEdgeCollectionName)
                 .Create();
 
-            var getResult = await db.GetCollection(createResult.Value.String("name"))
+            var getResult = await db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
                 .GetProperties();
             
             Assert.AreEqual(200, getResult.StatusCode);
@@ -162,7 +162,7 @@ namespace Tests.CollectionOperations
             var createResult = await db.CreateCollection(TestEdgeCollectionName)
                 .Create();
 
-            var getResult = await db.GetCollection(createResult.Value.String("name"))
+            var getResult = await db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
                 .GetCount();
             
             Assert.AreEqual(200, getResult.StatusCode);
@@ -188,7 +188,7 @@ namespace Tests.CollectionOperations
             var createResult = await db.CreateCollection(TestEdgeCollectionName)
                 .Create();
 
-            var getResult = await db.GetCollection(createResult.Value.String("name"))
+            var getResult = await db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
                 .GetFigures();
             
             Assert.AreEqual(200, getResult.StatusCode);
@@ -215,7 +215,7 @@ namespace Tests.CollectionOperations
             var createResult = await db.CreateCollection(TestEdgeCollectionName)
                 .Create();
 
-            var getResult = await db.GetCollection(createResult.Value.String("name"))
+            var getResult = await db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
                 .GetRevision();
             
             Assert.AreEqual(200, getResult.StatusCode);
@@ -235,7 +235,7 @@ namespace Tests.CollectionOperations
             var createResult = await db.CreateCollection(TestEdgeCollectionName)
                 .Create();
 
-            var getResult = await db.GetCollection(createResult.Value.String("name"))
+            var getResult = await db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
                 //.WithData(true)
                 //.WithRevisions(true)
                 .GetChecksum();
@@ -260,7 +260,7 @@ namespace Tests.CollectionOperations
                 .Type(ACollectionType.Document)
                 .Create();
             
-            var operationResult = await db.GetCollection(TestDocumentCollectionName)
+            var operationResult = await db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName)
                 .GetAllIndexes();
             
             Assert.AreEqual(200, operationResult.StatusCode);
@@ -280,7 +280,7 @@ namespace Tests.CollectionOperations
             var createResult = await db.CreateCollection(TestEdgeCollectionName)
                 .Create();
 
-            var clearResult = await db.GetCollection(createResult.Value.String("name"))
+            var clearResult = await db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
                 .Truncate();
             
             Assert.AreEqual(200, clearResult.StatusCode);
@@ -404,7 +404,7 @@ namespace Tests.CollectionOperations
             var createResult = await db.CreateCollection(TestEdgeCollectionName)
                 .Create();
 
-            var operationResult = await db.GetCollection(createResult.Value.String("name"))
+            var operationResult = await db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
                 .Rename(TestEdgeCollectionName);
             
             Assert.AreEqual(200, operationResult.StatusCode);

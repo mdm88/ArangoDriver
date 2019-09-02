@@ -7,18 +7,18 @@ using ArangoDriver.Protocol;
 
 namespace ArangoDriver.Client
 {
-    public class DocumentDelete
+    public class DocumentDelete<T> where T : class
     {
         private readonly RequestFactory _requestFactory;
         private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
-        private readonly ACollection _collection;
+        private readonly ACollection<T> _collection;
 
         #region Parameters
         
         /// <summary>
         /// Determines whether or not to wait until data are synchronised to disk. Default value: false.
         /// </summary>
-        public DocumentDelete WaitForSync(bool value)
+        public DocumentDelete<T> WaitForSync(bool value)
         {
             // needs to be string value
             _parameters.String(ParameterName.WaitForSync, value.ToString().ToLower());
@@ -29,7 +29,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Determines whether to return additionally the complete previous revision of the changed document under the attribute 'old' in the result.
         /// </summary>
-        public DocumentDelete ReturnOld()
+        public DocumentDelete<T> ReturnOld()
         {
             // needs to be string value
             _parameters.String(ParameterName.ReturnOld, true.ToString().ToLower());
@@ -40,7 +40,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Conditionally operate on document with specified revision.
         /// </summary>
-        public DocumentDelete IfMatch(string revision)
+        public DocumentDelete<T> IfMatch(string revision)
         {
             _parameters.String(ParameterName.IfMatch, revision);
         	
@@ -49,7 +49,7 @@ namespace ArangoDriver.Client
 
         #endregion
 
-        internal DocumentDelete(RequestFactory requestFactory, ACollection collection)
+        internal DocumentDelete(RequestFactory requestFactory, ACollection<T> collection)
         {
             _requestFactory = requestFactory;
             _collection = collection;

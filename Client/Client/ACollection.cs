@@ -7,7 +7,7 @@ using ArangoDriver.Protocol;
 
 namespace ArangoDriver.Client
 {
-    public class ACollection
+    public class ACollection<T> where T : class
     {
         private readonly RequestFactory _requestFactory;
         private readonly ADatabase _connection;
@@ -325,9 +325,9 @@ namespace ArangoDriver.Client
         /// Must call Document() or Edge() to confirm
         /// </summary>
         /// <returns>DocumentCreate</returns>
-        public DocumentCreate Insert()
+        public DocumentCreate<T> Insert()
         {
-            return new DocumentCreate(_requestFactory, this);
+            return new DocumentCreate<T>(_requestFactory, this);
         }
         
         /// <summary>
@@ -380,7 +380,7 @@ namespace ArangoDriver.Client
         /// Retrieves specified document.
         /// </summary>
         /// <exception cref="ArgumentException">Specified 'id' value has invalid format.</exception>
-        public async Task<AResult<T>> Get<T>(string id)
+        public async Task<AResult<T>> Get(string id)
         {
             if (!ADocument.IsID(id))
             {
@@ -423,7 +423,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves all documents.
         /// </summary>
-        public async Task<AResult<List<T>>> GetAll<T>()
+        public async Task<AResult<List<T>>> GetAll()
         {
             AQuery query = new AQuery(_requestFactory, _connection).Aql("FOR x IN " + _collectionName + " RETURN x");
 
@@ -478,9 +478,9 @@ namespace ArangoDriver.Client
         /// Must call Update() method to confirm
         /// </summary>
         /// <returns>DocumentUpdate</returns>
-        public DocumentUpdate Update()
+        public DocumentUpdate<T> Update()
         {
-            return new DocumentUpdate(_requestFactory, this);
+            return new DocumentUpdate<T>(_requestFactory, this);
         }
 
         /// <summary>
@@ -488,9 +488,9 @@ namespace ArangoDriver.Client
         /// Must call Document() or Edge() to confirm
         /// </summary>
         /// <returns>DocumentReplace</returns>
-        public DocumentReplace Replace()
+        public DocumentReplace<T> Replace()
         {
-            return new DocumentReplace(_requestFactory, this);
+            return new DocumentReplace<T>(_requestFactory, this);
         }
         
         /// <summary>
@@ -498,9 +498,9 @@ namespace ArangoDriver.Client
         /// Must call Delete() method to confirm
         /// </summary>
         /// <returns>DocumentDelete</returns>
-        public DocumentDelete Delete()
+        public DocumentDelete<T> Delete()
         {
-            return new DocumentDelete(_requestFactory, this);
+            return new DocumentDelete<T>(_requestFactory, this);
         }
         
         #endregion

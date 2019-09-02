@@ -65,7 +65,7 @@ namespace ArangoDriver.Client
         public async Task<AResult<bool>> CreateDatabase(string databaseName, List<AUser> users)
         {
             var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Database, "");
-            var document = new DatabaseCreate()
+            var document = new DatabaseCreateRequest()
             {
                 Name = databaseName,
                 Users = users

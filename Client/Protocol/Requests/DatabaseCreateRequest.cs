@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace ArangoDriver.Protocol.Requests
 {
-    internal class DatabaseCreate
+    internal class DatabaseCreateRequest
     {
         [JsonProperty(PropertyName = "name")]
         public string Name { get; set; }

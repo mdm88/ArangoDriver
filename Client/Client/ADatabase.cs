@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
+using ArangoDriver.Protocol.Responses;
 
 namespace ArangoDriver.Client
 {
@@ -116,9 +116,9 @@ namespace ArangoDriver.Client
             return new CollectionBuilder(_requestFactory, this, name);
         }
 
-        public ACollection GetCollection(string name)
+        public ACollection<T> GetCollection<T>(string name) where T : class
         {
-            return new ACollection(_requestFactory, this, name);
+            return new ACollection<T>(_requestFactory, this, name);
         }
         
         /// <summary>
@@ -134,10 +134,10 @@ namespace ArangoDriver.Client
             switch (response.StatusCode)
             {
                 case 200:
-                    var body = response.ParseBody<Dictionary<string, object>>();
+                    var body = response.ParseBody<CollectionsGetAllResponse>();
                     
                     result.Success = (body != null);
-                    result.Value = body.List<Dictionary<string, object>>("result");
+                    result.Value = body?.Result;
                     break;
                 case 400:
                 case 403:
