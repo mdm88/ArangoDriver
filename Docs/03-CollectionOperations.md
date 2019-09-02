@@ -67,7 +67,7 @@ Retrieves basic information about specified collection.
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = await db.GetCollection("MyDocumentCollection").Get();
+var getCollectionResult = await db.GetCollection<Foo>("MyDocumentCollection").Get();
 
 if (getCollectionResult.Success)
 {
@@ -86,7 +86,7 @@ Retrieves basic information with additional properties about specified collectio
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = await db.GetCollection("MyDocumentCollection").GetProperties();
+var getCollectionResult = await db.GetCollection<Foo>("MyDocumentCollection").GetProperties();
 
 if (getCollectionResult.Success)
 {
@@ -111,7 +111,7 @@ Retrieves basic information with additional properties and document count in spe
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = await db.GetCollection("MyDocumentCollection").GetCount();
+var getCollectionResult = await db.GetCollection<Foo>("MyDocumentCollection").GetCount();
 
 if (getCollectionResult.Success)
 {
@@ -137,7 +137,7 @@ Retrieves basic information with additional properties, document count and figur
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = await db.GetCollection("MyDocumentCollection").GetFigures();
+var getCollectionResult = await db.GetCollection<Foo>("MyDocumentCollection").GetFigures();
 
 if (getCollectionResult.Success)
 {
@@ -164,7 +164,7 @@ Retrieves basic information and revision ID of specified collection.
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = await db.GetCollection("MyDocumentCollection").GetRevision();
+var getCollectionResult = await db.GetCollection<Foo>("MyDocumentCollection").GetRevision();
 
 if (getCollectionResult.Success)
 {
@@ -189,7 +189,7 @@ Applicable optional parameters available through fluent API:
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = await db.GetCollection("MyDocumentCollection").GetChecksum();
+var getCollectionResult = await db.GetCollection<Foo>("MyDocumentCollection").GetChecksum();
 
 if (getCollectionResult.Success)
 {
@@ -210,7 +210,7 @@ Retrieves indexes in specified collection.
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = await db.GetCollection("MyDocumentCollection").GetAllIndexes();
+var getCollectionResult = await db.GetCollection<Foo>("MyDocumentCollection").GetAllIndexes();
 
 if (getIndexesResult.Success)
 {
@@ -228,7 +228,7 @@ Removes all documents from specified collection.
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = await db.GetCollection("MyDocumentCollection").Truncate();
+var getCollectionResult = await db.GetCollection<Foo>("MyDocumentCollection").Truncate();
 
 if (truncateCollectionResult.Success)
 {
@@ -280,7 +280,7 @@ Renames specified collection.
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var getCollectionResult = await db.GetCollection("MyDocumentCollection").Rename("MyNewCollection");
+var getCollectionResult = await db.GetCollection<Foo>("MyDocumentCollection").Rename("MyNewCollection");
 
 if (renameCollectionResult.Success)
 {

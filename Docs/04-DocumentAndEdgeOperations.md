@@ -27,7 +27,7 @@ Applicable optional parameters available through fluent API:
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var collection = db.GetCollection("MyDocumentCollection");
+var collection = db.GetCollection<Dummy>("MyDocumentCollection");
 
 var dummy = new Dummy();
 dummy.Foo = "foo string value";
@@ -53,7 +53,7 @@ Documents can be created with custom `_key` field value within the collection wh
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var collection = db.GetCollection("MyDocumentCollection");
+var collection = db.GetCollection<Dictionary<string, object>>("MyDocumentCollection");
 
 var document = new Dictionary<string, object>()
     .String("_key", "1234-5678")
@@ -82,7 +82,7 @@ Creates new edge within specified collection between two document vertices in cu
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var collection = db.GetCollection("MyDocumentCollection");
+var collection = db.GetCollection<Dummy>("MyDocumentCollection");
 
 var dummy = new Dummy();
 dummy.Foo = "foo string value";
@@ -114,7 +114,7 @@ Applicable optional parameters available through fluent API:
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var collection = db.GetCollection("MyDocumentCollection");
+var collection = db.GetCollection<Dummy>("MyDocumentCollection");
 
 var checkDocumentResult = collection
     .Check("MyDocumentCollection/123");
@@ -137,10 +137,10 @@ Applicable optional parameters available through fluent API:
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var collection = db.GetCollection("MyDocumentCollection");
+var collection = db.GetCollection<Dummy>("MyDocumentCollection");
 
 var getDocumentResult = collection
-    .Get<Dummy>("MyDocumentCollection/123");
+    .Get("MyDocumentCollection/123");
     
 if (getDocumentResult.Success)
 {
@@ -154,10 +154,10 @@ Retrieve all collection documents
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var collection = db.GetCollection("MyDocumentCollection");
+var collection = db.GetCollection<Dummy>("MyDocumentCollection");
 
 var getDocumentResult = collection
-    .GetAll<Dummy>();
+    .GetAll();
     
 if (getDocumentResult.Success)
 {
@@ -173,7 +173,7 @@ Retrieves list of edges from specified edge type collection to specified documen
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var collection = db.GetCollection("MyDocumentCollection");
+var collection = db.GetCollection<Dummy>("MyDocumentCollection");
 
 var getEdgesResult = collection
     .GetEdges("MyDocumentCollection/123", ADirection.In);
@@ -207,7 +207,7 @@ Applicable optional parameters available through fluent API:
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var collection = db.GetCollection("MyDocumentCollection");
+var collection = db.GetCollection<Dummy>("MyDocumentCollection");
 
 var dummy = new Dummy();
 dummy.Foo = "some other new string";
@@ -240,7 +240,7 @@ Applicable optional parameters available through fluent API:
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var collection = db.GetCollection("MyDocumentCollection");
+var collection = db.GetCollection<Dummy>("MyDocumentCollection");
 
 var dummy = new Dummy();
 dummy.Foo = "some other new string";
@@ -265,7 +265,7 @@ Completely replaces existing edge identified by its handle with new edge data. T
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var collection = db.GetCollection("MyDocumentCollection");
+var collection = db.GetCollection<Dummy>("MyDocumentCollection");
 
 var dummy = new Dummy();
 dummy.Foo = "some other new string";
@@ -294,7 +294,7 @@ Deletes specified document.
 ```csharp
 var db = connection.GetDatabase("myDatabase");
 
-var collection = db.GetCollection("MyDocumentCollection");
+var collection = db.GetCollection<Dummy>("MyDocumentCollection");
 
 var deleteDocumentResult = collection
     .Delete()
