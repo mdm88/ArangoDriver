@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
+using ArangoDriver.Protocol.Responses;
 
 namespace ArangoDriver.Client
 {
@@ -83,7 +84,7 @@ namespace ArangoDriver.Client
         /// Completely replaces existing document identified by its handle with new document data.
         /// </summary>
         /// <exception cref="ArgumentException">Specified id value has invalid format.</exception>
-        public async Task<AResult<Dictionary<string, object>>> Document(string id, T document)
+        public async Task<AResult<T>> Document(string id, T document)
         {
             if (!ADocument.IsID(id))
             {
@@ -106,19 +107,25 @@ namespace ArangoDriver.Client
             request.SetBody(document);
             
             var response = await _collection.Send(request);
-            var result = new AResult<Dictionary<string, object>>(response);
+            var result = new AResult<T>(response);
             
             switch (response.StatusCode)
             {
                 case 201:
                 case 202:
-                    var body = response.ParseBody<Dictionary<string, object>>();
+                    T body;
+                    if (_parameters.ContainsKey(ParameterName.ReturnNew) && (string)_parameters[ParameterName.ReturnNew] == "true")
+                        body = response.ParseBody<DocumentCreateResponse<T>>()?.New;
+                    else if (_parameters.ContainsKey(ParameterName.ReturnOld) && (string)_parameters[ParameterName.ReturnOld] == "true")
+                        body = response.ParseBody<DocumentCreateResponse<T>>()?.Old;
+                    else
+                        body = response.ParseBody<T>();
                     
                     result.Success = (body != null);
                     result.Value = body;
                     break;
                 case 412:
-                    body = response.ParseBody<Dictionary<string, object>>();
+                    body = response.ParseBody<T>();
                     
                     result.Value = body;
                     break;
@@ -142,7 +149,7 @@ namespace ArangoDriver.Client
         /// Completely replaces existing edge identified by its handle with new edge data.
         /// </summary>
         /// <exception cref="ArgumentException">Specified document does not contain '_from' and '_to' fields.</exception>
-        public Task<AResult<Dictionary<string, object>>> Edge(string id, T document)
+        public Task<AResult<T>> Edge(string id, T document)
         {
             // TODO validate
             /*if (!document.Has("_from") && !document.Has("_to"))

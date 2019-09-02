@@ -15,5 +15,8 @@ namespace ArangoDriver.Protocol.Responses
         
         [JsonProperty(PropertyName = "new")]
         public T New { get; set; }
+        
+        [JsonProperty(PropertyName = "old")]
+        public T Old { get; set; }
     }
 }

@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
+using ArangoDriver.Protocol.Responses;
 
 namespace ArangoDriver.Client
 {
@@ -104,7 +105,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Updates existing document identified by its handle with new document data.
         /// </summary>
-        public async Task<AResult<Dictionary<string, object>>> Update(string id, T document)
+        public async Task<AResult<T>> Document(string id, T document)
         {
             if (!ADocument.IsID(id))
             {
@@ -131,19 +132,25 @@ namespace ArangoDriver.Client
             request.SetBody(document);
             
             var response = await _collection.Send(request);
-            var result = new AResult<Dictionary<string, object>>(response);
+            var result = new AResult<T>(response);
 
             switch (response.StatusCode)
             {
                 case 201:
                 case 202:
-                    var body = response.ParseBody<Dictionary<string, object>>();
+                    T body;
+                    if (_parameters.ContainsKey(ParameterName.ReturnNew) && (string)_parameters[ParameterName.ReturnNew] == "true")
+                        body = response.ParseBody<DocumentCreateResponse<T>>()?.New;
+                    else if (_parameters.ContainsKey(ParameterName.ReturnOld) && (string)_parameters[ParameterName.ReturnOld] == "true")
+                        body = response.ParseBody<DocumentCreateResponse<T>>()?.Old;
+                    else
+                        body = response.ParseBody<T>();
                     
                     result.Success = (body != null);
                     result.Value = body;
                     break;
                 case 412:
-                    body = response.ParseBody<Dictionary<string, object>>();
+                    body = response.ParseBody<T>();
                     
                     result.Value = body;
                     break;
