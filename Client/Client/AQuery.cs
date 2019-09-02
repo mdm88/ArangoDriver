@@ -86,14 +86,6 @@ namespace ArangoDriver.Client
         #region Retrieve list result (POST)
         
         /// <summary>
-        /// Retrieves result value as list of documents.
-        /// </summary>
-        public async Task<AResult<List<Dictionary<string, object>>>> ToDocuments()
-        {
-            return await ToList<Dictionary<string, object>>();
-        }
-        
-        /// <summary>
         /// Retrieves result value as list of objects.
         /// </summary>
         public async Task<AResult<List<T>>> ToList<T>()

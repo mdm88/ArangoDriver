@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Arango.Tests;
@@ -140,7 +141,7 @@ namespace Tests.DocumentOperations
             Assert.IsTrue(createResult.Value.IsString("_rev"));
             
             var getResult = await _collection
-                .Get(createResult.Value.ID());
+                .Get<Dictionary<string, object>>(createResult.Value.ID());
             
             Assert.AreEqual(getResult.Value.ID(), createResult.Value.ID());
             Assert.AreEqual(getResult.Value.Key(), createResult.Value.Key());
@@ -309,7 +310,7 @@ namespace Tests.DocumentOperations
             var documents = await InsertTestData();
 
             var getResult = await _collection
-                .Get(documents[0].ID());
+                .Get<Dictionary<string, object>>(documents[0].ID());
             
             Assert.AreEqual(200, getResult.StatusCode);
             Assert.IsTrue(getResult.Success);
@@ -434,9 +435,9 @@ namespace Tests.DocumentOperations
             Assert.AreEqual(updateResult.Value.ID(), documents[0].ID());
             Assert.AreEqual(updateResult.Value.Key(), documents[0].Key());
             Assert.AreNotEqual(updateResult.Value.Rev(), documents[0].Rev());
-            
+
             var getResult = await _collection
-                .Get(updateResult.Value.ID());
+                .Get<Dictionary<string, object>>(updateResult.Value.ID());
             
             Assert.AreEqual(getResult.Value.ID(), updateResult.Value.ID());
             Assert.AreEqual(getResult.Value.Key(), updateResult.Value.Key());
@@ -521,7 +522,7 @@ namespace Tests.DocumentOperations
             Assert.AreNotEqual(updateResult.Value.Rev(), documents[0].Rev());
             
             var getResult = await _collection
-                .Get(updateResult.Value.ID());
+                .Get<Dictionary<string, object>>(updateResult.Value.ID());
             
             Assert.AreEqual(getResult.Value.ID(), updateResult.Value.ID());
             Assert.AreEqual(getResult.Value.Key(), updateResult.Value.Key());
@@ -584,7 +585,7 @@ namespace Tests.DocumentOperations
             Assert.AreNotEqual(updateResult.Value.Rev(), documents[0].Rev());
             
             var getResult = await _collection
-                .Get(updateResult.Value.ID());
+                .Get<Dictionary<string, object>>(updateResult.Value.ID());
             
             Assert.AreEqual(getResult.Value.ID(), updateResult.Value.ID());
             Assert.AreEqual(getResult.Value.Key(), updateResult.Value.Key());
@@ -651,7 +652,7 @@ namespace Tests.DocumentOperations
             Assert.AreNotEqual(updateResult.Value.Rev(), newDocument.Rev());
             
             var getResult = await _collection
-                .Get(updateResult.Value.ID());
+                .Get<Dictionary<string, object>>(updateResult.Value.ID());
             
             Assert.AreEqual(getResult.Value.ID(), updateResult.Value.ID());
             Assert.AreEqual(getResult.Value.Key(), updateResult.Value.Key());
@@ -695,7 +696,7 @@ namespace Tests.DocumentOperations
             Assert.AreNotEqual(updateResult.Value.Rev(), newDocument.Rev());
             
             var getResult = await _collection
-                .Get(updateResult.Value.ID());
+                .Get<Dictionary<string, object>>(updateResult.Value.ID());
             
             Assert.AreEqual(getResult.Value.ID(), updateResult.Value.ID());
             Assert.AreEqual(getResult.Value.Key(), updateResult.Value.Key());
@@ -739,7 +740,7 @@ namespace Tests.DocumentOperations
             Assert.AreNotEqual(updateResult.Value.Rev(), newDocument.Rev());
             
             var getResult = await _collection
-                .Get(updateResult.Value.ID());
+                .Get<Dictionary<string, object>>(updateResult.Value.ID());
             
             Assert.AreEqual(getResult.Value.ID(), updateResult.Value.ID());
             Assert.AreEqual(getResult.Value.Key(), updateResult.Value.Key());
@@ -775,7 +776,7 @@ namespace Tests.DocumentOperations
             Assert.AreNotEqual(updateResult.Value.Rev(), documents[0].Rev());
             
             var getResult = await _collection
-                .Get(updateResult.Value.ID());
+                .Get<Dictionary<string, object>>(updateResult.Value.ID());
             
             Assert.AreEqual(getResult.Value.ID(), updateResult.Value.ID());
             Assert.AreEqual(getResult.Value.Key(), updateResult.Value.Key());
@@ -813,7 +814,7 @@ namespace Tests.DocumentOperations
             Assert.AreNotEqual(replaceResult.Value.Rev(), documents[0].Rev());
             
             var getResult = await _collection
-                .Get(replaceResult.Value.ID());
+                .Get<Dictionary<string, object>>(replaceResult.Value.ID());
             
             Assert.AreEqual(getResult.Value.ID(), replaceResult.Value.ID());
             Assert.AreEqual(getResult.Value.Key(), replaceResult.Value.Key());
@@ -895,7 +896,7 @@ namespace Tests.DocumentOperations
             Assert.AreNotEqual(replaceResult.Value.Rev(), documents[0].Rev());
             
             var getResult = await _collection
-                .Get(replaceResult.Value.ID());
+                .Get<Dictionary<string, object>>(replaceResult.Value.ID());
             
             Assert.AreEqual(getResult.Value.ID(), replaceResult.Value.ID());
             Assert.AreEqual(getResult.Value.Key(), replaceResult.Value.Key());
@@ -956,7 +957,7 @@ namespace Tests.DocumentOperations
             Assert.AreNotEqual(replaceResult.Value.Rev(), documents[0].Rev());
             
             var getResult = await _collection
-                .Get(replaceResult.Value.ID());
+                .Get<Dictionary<string, object>>(replaceResult.Value.ID());
             
             Assert.AreEqual(getResult.Value.ID(), replaceResult.Value.ID());
             Assert.AreEqual(getResult.Value.Key(), replaceResult.Value.Key());
@@ -1013,7 +1014,7 @@ namespace Tests.DocumentOperations
             Assert.AreNotEqual(replaceResult.Value.Rev(), documents[0].Rev());
             
             var getResult = await _collection
-                .Get(replaceResult.Value.ID());
+                .Get<Dictionary<string, object>>(replaceResult.Value.ID());
             
             Assert.AreEqual(getResult.Value.ID(), replaceResult.Value.ID());
             Assert.AreEqual(getResult.Value.Key(), replaceResult.Value.Key());

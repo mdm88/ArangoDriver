@@ -149,6 +149,23 @@ if (getDocumentResult.Success)
 }
 ```
 
+Retrieve all collection documents
+
+```csharp
+var db = connection.GetDatabase("myDatabase");
+
+var collection = db.GetCollection("MyDocumentCollection");
+
+var getDocumentResult = collection
+    .GetAll<Dummy>();
+    
+if (getDocumentResult.Success)
+{
+    var foo = getDocumentResult.Value[0].Foo;
+    var bar = getDocumentResult.Value[0].Bar;
+}
+```
+
 ## Retrieve vertex edges
 
 Retrieves list of edges from specified edge type collection to specified document vertex with given direction.

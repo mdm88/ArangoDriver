@@ -27,7 +27,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves basic information about specified collection.
         /// </summary>
-        public async Task<AResult<Dictionary<string, object>>> Get()
+        public async Task<AResult<Dictionary<string, object>>> GetInformation()
         {
             var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName);
 
@@ -421,11 +421,13 @@ namespace ArangoDriver.Client
         }
 
         /// <summary>
-        /// Retrieves specified document.
+        /// Retrieves all documents.
         /// </summary>
-        public Task<AResult<Dictionary<string, object>>> Get(string id)
+        public async Task<AResult<List<T>>> GetAll<T>()
         {
-            return Get<Dictionary<string, object>>(id);
+            AQuery query = new AQuery(_requestFactory, _connection).Aql("FOR x IN " + _collectionName + " RETURN x");
+
+            return await query.ToList<T>();
         }
 
         /// <summary>

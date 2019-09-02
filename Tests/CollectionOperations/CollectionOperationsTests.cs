@@ -119,7 +119,7 @@ namespace Tests.CollectionOperations
                 .Create();
 
             var getResult = await db.GetCollection(createResult.Value.String("name"))
-                .Get();
+                .GetInformation();
             
             Assert.AreEqual(200, getResult.StatusCode);
             Assert.IsTrue(getResult.Success);
