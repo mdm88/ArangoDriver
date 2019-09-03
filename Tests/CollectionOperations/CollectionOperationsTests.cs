@@ -157,29 +157,18 @@ namespace Tests.CollectionOperations
         }
         
         [Test]
-        public async Task Should_get_collection_count()
+        public async Task CountDocuments()
         {
             var createResult = await db.CreateCollection(TestEdgeCollectionName)
                 .Create();
 
             var getResult = await db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
-                .GetCount();
+                .Count();
             
             Assert.AreEqual(200, getResult.StatusCode);
             Assert.IsTrue(getResult.Success);
             Assert.IsTrue(getResult.HasValue);
-            Assert.AreEqual(createResult.Value.String("id"), getResult.Value.String("id"));
-            Assert.AreEqual(createResult.Value.String("name"), getResult.Value.String("name"));
-            Assert.AreEqual(createResult.Value.Bool("isSystem"), getResult.Value.Bool("isSystem"));
-            //Assert.AreEqual(createResult.Value.Bool("isVolatile"), getResult.Value.Bool("isVolatile"));
-            Assert.AreEqual(createResult.Value.Int("status"), getResult.Value.Int("status"));
-            Assert.AreEqual(createResult.Value.Int("type"), getResult.Value.Int("type"));
-            Assert.AreEqual(createResult.Value.Bool("waitForSync"), getResult.Value.Bool("waitForSync"));
-            //Assert.IsTrue(getResult.Value.Bool("doCompact"));
-            //Assert.IsTrue(getResult.Value.Long("journalSize") > 1);
-            Assert.AreEqual(AKeyGeneratorType.Traditional, getResult.Value.Enum<AKeyGeneratorType>("keyOptions.type"));
-            Assert.AreEqual(true, getResult.Value.Bool("keyOptions.allowUserKeys"));
-            Assert.AreEqual(0, getResult.Value.Long("count"));
+            Assert.AreEqual(0, getResult.Value);
         }
         
         [Test]

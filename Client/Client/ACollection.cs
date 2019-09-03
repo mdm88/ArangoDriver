@@ -80,34 +80,6 @@ namespace ArangoDriver.Client
         }
         
         /// <summary>
-        /// Retrieves basic information with additional properties and document count in specified collection.
-        /// </summary>
-        public async Task<AResult<Dictionary<string, object>>> GetCount()
-        {
-            var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/count");
-
-            var response = await _connection.Send(request);
-            var result = new AResult<Dictionary<string, object>>(response);
-            
-            switch (response.StatusCode)
-            {
-                case 200:
-                    var body = response.ParseBody<Dictionary<string, object>>();
-                    
-                    result.Success = (body != null);
-                    result.Value = body;
-                    break;
-                case 400:
-                case 404:
-                default:
-                    // Arango error
-                    break;
-            }
-            
-            return result;
-        }
-        
-        /// <summary>
         /// Retrieves basic information with additional properties, document count and figures in specified collection.
         /// </summary>
         public async Task<AResult<Dictionary<string, object>>> GetFigures()
@@ -321,6 +293,34 @@ namespace ArangoDriver.Client
         #region Documents and Edges
 
         /// <summary>
+        /// Retrieves basic information with additional properties and document count in specified collection.
+        /// </summary>
+        public async Task<AResult<long>> Count()
+        {
+            var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/count");
+
+            var response = await _connection.Send(request);
+            var result = new AResult<long>(response);
+            
+            switch (response.StatusCode)
+            {
+                case 200:
+                    var body = response.ParseBody<Dictionary<string, object>>();
+                    
+                    result.Success = (body != null);
+                    result.Value = body.Long("count");
+                    break;
+                case 400:
+                case 404:
+                default:
+                    // Arango error
+                    break;
+            }
+            
+            return result;
+        }
+
+        /// <summary>
         /// Creates new document or edge within specified collection in current database context.
         /// Must call Document() or Edge() to confirm
         /// </summary>
@@ -334,90 +334,18 @@ namespace ArangoDriver.Client
         /// Checks for existence of specified document.
         /// </summary>
         /// <exception cref="ArgumentException">Specified 'id' value has invalid format.</exception>
-        public async Task<AResult<string>> Check(string id)
+        public DocumentCheck<T> Check()
         {
-            if (!ADocument.IsID(id))
-            {
-                throw new ArgumentException("Specified 'id' value (" + id + ") has invalid format.");
-            }
-            
-            var request = _requestFactory.Create(HttpMethod.Head, ApiBaseUri.Document, "/" + id);
-            
-            // optional
-            //request.TrySetHeaderParameter(ParameterName.IfMatch, _parameters);
-            // optional: If revision is different -> HTTP 200. If revision is identical -> HTTP 304.
-            //request.TrySetHeaderParameter(ParameterName.IfNoneMatch, _parameters);
-            
-            var response = await _connection.Send(request);
-            var result = new AResult<string>(response);
-            
-            switch (response.StatusCode)
-            {
-                case 200:
-                    if ((response.Headers.ETag.Tag ?? "").Trim().Length > 0)
-                    {
-                        result.Value = response.Headers.ETag.Tag?.Replace("\"", "");
-                        result.Success = (result.Value != null);
-                    }
-                    break;
-                case 304:
-                case 412:
-                    if ((response.Headers.ETag.Tag ?? "").Trim().Length > 0)
-                    {
-                        result.Value = response.Headers.ETag.Tag?.Replace("\"", "");
-                    }
-                    break;
-                case 404:
-                default:
-                    // Arango error
-                    break;
-            }
-            
-            return result;
+            return new DocumentCheck<T>(_requestFactory, this);
         }
 
         /// <summary>
         /// Retrieves specified document.
         /// </summary>
         /// <exception cref="ArgumentException">Specified 'id' value has invalid format.</exception>
-        public async Task<AResult<T>> Get(string id)
+        public DocumentGet<T> Get()
         {
-            if (!ADocument.IsID(id))
-            {
-                throw new ArgumentException("Specified 'id' value (" + id + ") has invalid format.");
-            }
-            
-            var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Document, "/" + id);
-            
-            // optional
-            //request.TrySetHeaderParameter(ParameterName.IfMatch, _parameters);
-            // optional: If revision is different -> HTTP 200. If revision is identical -> HTTP 304.
-            //request.TrySetHeaderParameter(ParameterName.IfNoneMatch, _parameters);
-            
-            var response = await _connection.Send(request);
-            var result = new AResult<T>(response);
-            
-            switch (response.StatusCode)
-            {
-                case 200:
-                    var body = response.ParseBody<T>();
-                    
-                    result.Success = (body != null);
-                    result.Value = body;
-                    break;
-                case 412:
-                    body = response.ParseBody<T>();
-                    
-                    result.Value = body;
-                    break;
-                case 304:
-                case 404:
-                default:
-                    // Arango error
-                    break;
-            }
-            
-            return result;
+            return new DocumentGet<T>(_requestFactory, this);
         }
 
         /// <summary>
