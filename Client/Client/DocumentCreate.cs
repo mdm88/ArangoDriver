@@ -47,10 +47,12 @@ namespace ArangoDriver.Client
             _collection = collection;
         }
 
+        #region Document
+        
         /// <summary>
         /// Creates new document within specified collection in current database context.
         /// </summary>
-        private async Task<AResult<T>> Insert(T document)
+        public async Task<AResult<T>> Document(T document)
         {
             var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Document, "/" + _collection.Name);
             
@@ -90,10 +92,28 @@ namespace ArangoDriver.Client
         }
         
         /// <summary>
-        /// Creates new document within specified collection in current database context.
+        /// Creates multiple new document within specified collection in current database context.
         /// </summary>
-        private async Task<AResult<List<T>>> InsertMany(IEnumerable<T> document)
+        public async Task<AResult<List<T>>> Documents(IEnumerable<T> document)
         {
+            List<T> documents = document.ToList();
+            if (documents.Count == 1)
+            {
+                AResult<T> resultSingle = await Document(documents.First());
+
+                return new AResult<List<T>>()
+                {
+                    StatusCode = resultSingle.StatusCode,
+                    Success = resultSingle.Success,
+                    Error = resultSingle.Error,
+                    Extra = resultSingle.Extra,
+                    Value = new List<T>()
+                    {
+                        resultSingle.Value
+                    }
+                };
+            }
+            
             var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Document, "/" + _collection.Name);
             
             // optional
@@ -101,7 +121,7 @@ namespace ArangoDriver.Client
             // optional
             request.TrySetQueryStringParameter(ParameterName.ReturnNew, _parameters);
 
-            request.SetBody(document);
+            request.SetBody(documents);
             
             var response = await _collection.Send(request);
             var result = new AResult<List<T>>(response);
@@ -131,24 +151,6 @@ namespace ArangoDriver.Client
             return result;
         }
         
-        #region Document
-        
-        /// <summary>
-        /// Creates new document within specified collection in current database context.
-        /// </summary>
-        public Task<AResult<T>> Document(T document)
-        {
-            return Insert(document);
-        }
-        
-        /// <summary>
-        /// Creates multiple new document within specified collection in current database context.
-        /// </summary>
-        public Task<AResult<List<T>>> Documents(IEnumerable<T> document)
-        {
-            return InsertMany(document);
-        }
-        
         #endregion
 
         #region Edge
@@ -165,7 +167,7 @@ namespace ArangoDriver.Client
                 throw new ArgumentException("Specified document does not contain '_from' and '_to' fields.");
             }*/
 
-            return Insert(document);
+            return Document(document);
         }
 
         #endregion
