@@ -880,6 +880,41 @@ namespace Tests.DocumentOperations
         }
 
         [Test]
+        public async Task ReplaceDocumentMultiple()
+        {
+            var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
+
+            var documents = await InsertTestData();
+
+            var document = new Dictionary<string, object>()
+                .String("Foo", "some other new string")
+                .Int("Baz", 54321);
+         
+            var replaceResult = await collection
+                .Replace()
+                .Documents(documents);
+            
+            Assert.AreEqual(202, replaceResult.StatusCode);
+            Assert.IsTrue(replaceResult.Success);
+            Assert.IsTrue(replaceResult.HasValue);
+            Assert.AreEqual(replaceResult.Value[0].ID(), documents[0].ID());
+            Assert.AreEqual(replaceResult.Value[0].Key(), documents[0].Key());
+            Assert.AreNotEqual(replaceResult.Value[0].Rev(), documents[0].Rev());
+            Assert.AreEqual(replaceResult.Value[1].ID(), documents[1].ID());
+            Assert.AreEqual(replaceResult.Value[1].Key(), documents[1].Key());
+            Assert.AreNotEqual(replaceResult.Value[1].Rev(), documents[1].Rev());
+            
+            var getResult = await collection
+                .Get()
+                .ById(replaceResult.Value[0].ID());
+            
+            Assert.AreEqual(getResult.Value.ID(), replaceResult.Value[0].ID());
+            Assert.AreEqual(getResult.Value.Key(), replaceResult.Value[0].Key());
+            Assert.AreEqual(getResult.Value.Rev(), replaceResult.Value[0].Rev());
+            Assert.AreNotEqual(getResult.Value.Rev(), documents[1].Rev());
+        }
+        
+        [Test]
         public async Task ReplaceDocumentWithReturnOld()
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
