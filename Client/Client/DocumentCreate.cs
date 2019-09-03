@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
@@ -109,8 +110,11 @@ namespace ArangoDriver.Client
             {
                 case 201:
                 case 202:
-                    
-                    var body = response.ParseBody<List<T>>();
+                    List<T> body;
+                    if (_parameters.ContainsKey(ParameterName.ReturnNew) && (string)_parameters[ParameterName.ReturnNew] == "true")
+                        body = response.ParseBody<List<DocumentCreateResponse<T>>>().Select(e => e.New).ToList();
+                    else
+                        body = response.ParseBody<List<T>>();
                     
                     result.Success = (body != null);
                     result.Value = body;
