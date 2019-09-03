@@ -5,6 +5,8 @@ namespace ArangoDriver.Client
     public enum AKeyGeneratorType
     {
         Traditional,
-        Autoincrement
+        Autoincrement,
+        UUID,
+        Padded
     }
 }

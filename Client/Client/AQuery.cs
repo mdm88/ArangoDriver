@@ -199,7 +199,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves result value as single generic object.
         /// </summary>
-        public async Task<AResult<T>> ToObject<T>()
+        public async Task<AResult<T>> ToObject<T>() where T : class
         {
             var listResult = await ToList<T>();
             var result = new AResult<T>();
@@ -213,11 +213,11 @@ namespace ArangoDriver.Client
             {
                 if (listResult.Value.Count > 0)
                 {
-                    result.Value = (T)listResult.Value[0];
+                    result.Value = listResult.Value[0];
                 }
                 else
                 {
-                    result.Value = (T)Activator.CreateInstance(typeof(T));
+                    result.Value = null;
                 }
             }
             
