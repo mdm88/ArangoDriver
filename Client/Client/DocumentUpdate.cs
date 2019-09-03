@@ -105,7 +105,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Updates existing document identified by its handle with new document data.
         /// </summary>
-        public async Task<AResult<T>> Document(string id, T document)
+        public async Task<AResult<T>> DocumentById(string id, T document)
         {
             if (!ADocument.IsID(id))
             {
@@ -164,6 +164,11 @@ namespace ArangoDriver.Client
             _parameters.Clear();
             
             return result;
+        }
+
+        public Task<AResult<T>> DocumentByKey(string key, T document)
+        {
+            return DocumentById(_collection.Name + "/" + key, document);
         }
         
         #endregion

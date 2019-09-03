@@ -84,7 +84,7 @@ namespace ArangoDriver.Client
         /// Completely replaces existing document identified by its handle with new document data.
         /// </summary>
         /// <exception cref="ArgumentException">Specified id value has invalid format.</exception>
-        public async Task<AResult<T>> Document(string id, T document)
+        public async Task<AResult<T>> DocumentById(string id, T document)
         {
             if (!ADocument.IsID(id))
             {
@@ -141,6 +141,11 @@ namespace ArangoDriver.Client
             return result;
         }
 
+        public Task<AResult<T>> DocumentByKey(string key, T document)
+        {
+            return DocumentById(_collection.Name + "/" + key, document);
+        }
+
         #endregion
 
         #region Edge
@@ -149,7 +154,7 @@ namespace ArangoDriver.Client
         /// Completely replaces existing edge identified by its handle with new edge data.
         /// </summary>
         /// <exception cref="ArgumentException">Specified document does not contain '_from' and '_to' fields.</exception>
-        public Task<AResult<T>> Edge(string id, T document)
+        public Task<AResult<T>> EdgeById(string id, T document)
         {
             // TODO validate
             /*if (!document.Has("_from") && !document.Has("_to"))
@@ -157,7 +162,12 @@ namespace ArangoDriver.Client
                 throw new ArgumentException("Specified document does not contain '_from' and '_to' fields.");
             }*/
 
-            return Document(id, document);
+            return DocumentById(id, document);
+        }
+
+        public Task<AResult<T>> EdgeByKey(string key, T document)
+        {
+            return EdgeById(_collection.Name + "/" + key, document);
         }
 
         #endregion
