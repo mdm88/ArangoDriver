@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
+using ArangoDriver.Protocol.Requests;
 
 namespace ArangoDriver.Client
 {
@@ -91,21 +92,23 @@ namespace ArangoDriver.Client
         public async Task<AResult<List<T>>> ToList<T>()
         {
             var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Cursor, "");
-            var document = new Dictionary<string, object>();
+            var document = new QueryRequest()
+            {
+                Query = _query.ToString()
+            };
             
-            // required
-            document.String(ParameterName.Query, _query.ToString());
             // optional
-            Request.TrySetBodyParameter(ParameterName.Count, _parameters, document);
+            if (_parameters.Has(ParameterName.Count))
+                document.Count = _parameters.Bool(ParameterName.Count);
             // optional
-            Request.TrySetBodyParameter(ParameterName.BatchSize, _parameters, document);
+            if (_parameters.Has(ParameterName.BatchSize))
+                document.BatchSize = _parameters.Int(ParameterName.BatchSize);
             // optional
-            Request.TrySetBodyParameter(ParameterName.TTL, _parameters, document);
+            if (_parameters.Has(ParameterName.TTL))
+                document.TTL = _parameters.Int(ParameterName.TTL);
             // optional
             if (_bindVars.Count > 0)
-            {
-                document.Document(ParameterName.BindVars, _bindVars);
-            }
+                document.BindVars = _bindVars;
             
             // TODO: options parameter
             
