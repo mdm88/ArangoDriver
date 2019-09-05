@@ -8,6 +8,7 @@ using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 using ArangoDriver.Protocol.Requests;
 using ArangoDriver.Serialization;
+using Newtonsoft.Json;
 
 namespace ArangoDriver.Client
 {
@@ -17,7 +18,7 @@ namespace ArangoDriver.Client
     public class AConnection
     {
         private readonly HttpClient _httpClient;
-        private readonly IJsonSerializer _jsonSerializer;
+        private readonly JsonNetSerializer _jsonSerializer;
         private readonly RequestFactory _requestFactory;
         
         private readonly string _username;
@@ -37,6 +38,11 @@ namespace ArangoDriver.Client
             _httpClient = new HttpClient();
             _jsonSerializer = new JsonNetSerializer();
             _requestFactory = new RequestFactory(_jsonSerializer);
+        }
+
+        public void RegisterSerializer(JsonConverter converter)
+        {
+            _jsonSerializer.RegisterSerializer(converter);
         }
         
         #region Databases

@@ -22,6 +22,11 @@ namespace ArangoDriver.Serialization
                 }
             };
         }
+
+        public void RegisterSerializer(JsonConverter converter)
+        {
+            _settings.Converters.Add(converter);
+        }
         
         public string Serialize<T>(T obj)
         {
