@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 
 namespace ArangoDriver.Serialization
 {
@@ -17,8 +19,7 @@ namespace ArangoDriver.Serialization
                 MetadataPropertyHandling = MetadataPropertyHandling.ReadAhead,
                 Converters = new List<JsonConverter>()
                 {
-                    new DictionaryConverter(),
-                    //new ListConverter()
+                    new DictionaryConverter()
                 }
             };
         }
@@ -56,33 +57,6 @@ namespace ArangoDriver.Serialization
             public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
             {
                 if (reader.TokenType == JsonToken.StartObject
-                    || reader.TokenType == JsonToken.Null)
-                    return base.ReadJson(reader, objectType, existingValue, serializer);
-
-                // if the next token is not an object
-                // then fall back on standard deserializer (strings, numbers etc.)
-                return serializer.Deserialize(reader);
-            }
-        }
-        
-        private class ListConverter : CustomCreationConverter<IList<object>>
-        {
-            public override IList<object> Create(Type objectType)
-            {
-                return new List<object>();
-            }
-
-            public override bool CanConvert(Type objectType)
-            {
-                // in addition to handling ICollection<object>
-                // we want to handle the deserialization of dict value
-                // which is of type object
-                return objectType == typeof(object) || base.CanConvert(objectType);
-            }
-
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-            {
-                if (reader.TokenType == JsonToken.StartArray
                     || reader.TokenType == JsonToken.Null)
                     return base.ReadJson(reader, objectType, existingValue, serializer);
 
