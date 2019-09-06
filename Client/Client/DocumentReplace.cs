@@ -180,7 +180,9 @@ namespace ArangoDriver.Client
             {
                 case 201:
                 case 202:
-                    // TODO check for errors
+                    response.Headers.TryGetValues("X-Arango-Error-Codes", out var values);
+                    if (values != null && values.Any())
+                        throw new MultipleException();
                     
                     List<T> body;
                     if (_parameters.ContainsKey(ParameterName.ReturnNew) && (string)_parameters[ParameterName.ReturnNew] == "true")

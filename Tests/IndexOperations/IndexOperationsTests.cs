@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Arango.Tests;
 using ArangoDriver.Client;
+using ArangoDriver.Exceptions;
 using ArangoDriver.External.dictator;
 using NUnit.Framework;
 
@@ -210,6 +211,126 @@ namespace Tests.IndexOperations
             Assert.IsTrue(deleteResult.HasValue);
             Assert.IsTrue(deleteResult.Value.IsID("id"));
             Assert.AreEqual(createResult.Value.String("id"), deleteResult.Value.String("id"));
+        }
+        
+
+        [Test]
+        public async Task UniqueConstraintOk()
+        {
+            var collection = _db.GetCollection<Dummy>(TestDocumentCollectionName);
+            
+            var indexResult = await collection.Index
+                .New(AIndexType.Hash)
+                .Unique(true)
+                .Fields("Foo")
+                .Create();
+            
+            Assert.AreEqual(201, indexResult.StatusCode);
+            Assert.IsTrue(indexResult.Success);
+            
+            // First Doc
+            var doc1 = new Dummy()
+            {
+                Foo = "asd",
+                Bar = 1
+            };
+            var createResult = await collection.Insert().Document(doc1);
+            
+            Assert.AreEqual(202, createResult.StatusCode);
+            Assert.IsTrue(createResult.Success);
+            
+            // Second Doc
+            var doc2 = new Dummy()
+            {
+                Foo = "gfd",
+                Bar = 1
+            };
+            createResult = await collection.Insert().Document(doc2);
+            
+            Assert.AreEqual(202, createResult.StatusCode);
+            Assert.IsTrue(createResult.Success);
+        }
+
+        [Test]
+        public async Task UniqueConstraintViolation()
+        {
+            var collection = _db.GetCollection<Dummy>(TestDocumentCollectionName);
+            
+            var indexResult = await collection.Index
+                .New(AIndexType.Hash)
+                .Unique(true)
+                .Fields("Foo")
+                .Create();
+            
+            Assert.AreEqual(201, indexResult.StatusCode);
+            Assert.IsTrue(indexResult.Success);
+            
+            // First Doc
+            var doc1 = new Dummy()
+            {
+                Foo = "asd",
+                Bar = 1
+            };
+            var createResult = await collection.Insert().Document(doc1);
+            
+            Assert.AreEqual(202, createResult.StatusCode);
+            Assert.IsTrue(createResult.Success);
+            
+            // Duplicated
+            Assert.ThrowsAsync<UniqueConstraintViolationException>(() =>
+            {
+                var doc3 = new Dummy()
+                {
+                    Foo = "asd",
+                    Bar = 2
+                };
+                return collection.Insert().Document(doc3);
+            });
+        }
+
+        [Test]
+        public async Task UniqueConstraintViolationMulti()
+        {
+            var collection = _db.GetCollection<Dummy>(TestDocumentCollectionName);
+            
+            var indexResult = await collection.Index
+                .New(AIndexType.Hash)
+                .Unique(true)
+                .Fields("Foo")
+                .Create();
+            
+            Assert.AreEqual(201, indexResult.StatusCode);
+            Assert.IsTrue(indexResult.Success);
+            
+            // First Doc
+            var doc1 = new Dummy()
+            {
+                Foo = "asd",
+                Bar = 1
+            };
+            var createResult = await collection.Insert().Document(doc1);
+            
+            Assert.AreEqual(202, createResult.StatusCode);
+            Assert.IsTrue(createResult.Success);
+            
+            // Duplicated
+            Assert.ThrowsAsync<MultipleException>(() =>
+            {
+                var dup = new List<Dummy>()
+                {
+                    new Dummy()
+                    {
+                        Foo = "asd",
+                        Bar = 2
+                    },
+                    new Dummy()
+                    {
+                        Foo = "wer",
+                        Bar = 2
+                    }
+                };
+                return collection.Insert().Documents(dup);
+            });
         }
     }
 }

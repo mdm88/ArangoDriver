@@ -101,7 +101,15 @@ namespace ArangoDriver.Client
             List<T> documents = document.ToList();
             if (documents.Count == 1)
             {
-                AResult<T> resultSingle = await Document(documents.First());
+                AResult<T> resultSingle;
+                try
+                {
+                    resultSingle = await Document(documents.First());
+                }
+                catch (UniqueConstraintViolationException e)
+                {
+                    throw new MultipleException();
+                }
 
                 return new AResult<List<T>>()
                 {
@@ -132,7 +140,9 @@ namespace ArangoDriver.Client
             {
                 case 201:
                 case 202:
-                    // TODO check for errors
+                    response.Headers.TryGetValues("X-Arango-Error-Codes", out var values);
+                    if (values != null && values.Any())
+                        throw new MultipleException();
                     
                     List<T> body;
                     if (_parameters.ContainsKey(ParameterName.ReturnNew) && (string)_parameters[ParameterName.ReturnNew] == "true")

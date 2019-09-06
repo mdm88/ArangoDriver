@@ -1,6 +1,6 @@
 namespace ArangoDriver.Exceptions
 {
-    public class AggregationException : ArangoException
+    public class MultipleException : ArangoException
     {
         
     }
