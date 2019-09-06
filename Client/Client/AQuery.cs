@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 using ArangoDriver.Protocol.Requests;
+using ArangoDriver.Protocol.Responses;
 
 namespace ArangoDriver.Client
 {
@@ -169,40 +170,11 @@ namespace ArangoDriver.Client
         #endregion
         
         #region Retrieve single result (POST)
-
-        /// <summary>
-        /// Retrieves result value as single document.
-        /// </summary>
-        public async Task<AResult<Dictionary<string, object>>> ToDocument()
-        {
-            var type = typeof(Dictionary<string, object>);
-            var listResult = await ToList<Dictionary<string, object>>();
-            var result = new AResult<Dictionary<string, object>>();
-            
-            result.StatusCode = listResult.StatusCode;
-            result.Success = listResult.Success;
-            result.Extra = listResult.Extra;
-            result.Error = listResult.Error;
-            
-            if (listResult.Success)
-            {
-                if (listResult.Value.Count > 0)
-                {
-                    result.Value = (Dictionary<string, object>)Convert.ChangeType(listResult.Value[0], type);
-                }
-                else
-                {
-                    result.Value = new Dictionary<string, object>();
-                }
-            }
-            
-            return result;
-        }
         
         /// <summary>
         /// Retrieves result value as single generic object.
         /// </summary>
-        public async Task<AResult<T>> ToObject<T>() where T : class
+        public async Task<AResult<T>> ToObject<T>()
         {
             var listResult = await ToList<T>();
             var result = new AResult<T>();
@@ -220,7 +192,7 @@ namespace ArangoDriver.Client
                 }
                 else
                 {
-                    result.Value = null;
+                    result.Value = default;
                 }
             }
             
@@ -230,29 +202,9 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Retrieves result value as single object.
         /// </summary>
-        public async Task<AResult<object>> ToObject()
+        public Task<AResult<object>> ToObject()
         {
-            var listResult = await ToList<object>();
-            var result = new AResult<object>();
-            
-            result.StatusCode = listResult.StatusCode;
-            result.Success = listResult.Success;
-            result.Extra = listResult.Extra;
-            result.Error = listResult.Error;
-            
-            if (listResult.Success)
-            {
-                if (listResult.Value.Count > 0)
-                {
-                    result.Value = listResult.Value[0];
-                }
-                else
-                {
-                    result.Value = new object();
-                }
-            }
-            
-            return result;
+            return ToObject<object>();
         }
 
         #endregion
@@ -349,13 +301,18 @@ namespace ArangoDriver.Client
             switch (response.StatusCode)
             {
                 case 200:
-                    var body = response.ParseBody<Dictionary<string, object>>();
+                    var body = response.ParseBody<QueryParseResponse>();
                     
                     result.Success = (body != null);
                     
                     if (result.Success)
                     {
-                        result.Value = body.CloneExcept("code", "error");
+                        result.Value = new Dictionary<string, object>()
+                        {
+                            {"collections", body.Collections},
+                            {"bindVars", body.BindVars},
+                            {"ast", body.Ast}
+                        };
                     }
                     break;
                 case 400:

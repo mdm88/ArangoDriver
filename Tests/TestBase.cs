@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using ArangoDriver.Client;
+using ArangoDriver.External.dictator;
 using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
 
@@ -66,6 +68,35 @@ namespace Arango.Tests
         public static bool IsSecured { get; set; }
         public static string UserName { get; set; }
         public static string Password { get; set; }
+        
+        
+        protected async Task<List<Dictionary<string, object>>> InsertTestData(ADatabase db)
+        {
+	        var collection = db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
+
+	        var documents = new List<Dictionary<string, object>>();
+         	
+	        var document1 = new Dictionary<string, object>()
+		        .String("Foo", "string value one")
+		        .Int("Bar", 1);
+        	
+	        var document2 = new Dictionary<string, object>()
+		        .String("Foo", "string value two")
+		        .Int("Bar", 2);
+        	
+	        var createResult1 = await collection.Insert().Document(document1);
+        	
+	        document1.Merge(createResult1.Value);
+        	
+	        var createResult2 = await collection.Insert().Document(document2);
+        	
+	        document2.Merge(createResult2.Value);
+        	
+	        documents.Add(document1);
+	        documents.Add(document2);
+        	
+	        return documents;
+        }
         
         /*static Database()
         {

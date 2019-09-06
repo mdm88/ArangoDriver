@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <PackageId>ArangoDriver</PackageId>
-        <Version>0.3.18</Version>
+        <Version>0.3.19</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <RootNamespace>ArangoDriver</RootNamespace>
     </PropertyGroup>

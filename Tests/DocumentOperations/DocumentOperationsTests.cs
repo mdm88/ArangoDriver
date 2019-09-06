@@ -24,34 +24,6 @@ namespace Tests.DocumentOperations
                 .Type(ACollectionType.Document)
                 .Create();
         }
-
-        private async Task<List<Dictionary<string, object>>> InsertTestData()
-        {
-            var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
-
-            var documents = new List<Dictionary<string, object>>();
-         	
-            var document1 = new Dictionary<string, object>()
-                .String("Foo", "string value one")
-                .Int("Bar", 1);
-        	
-            var document2 = new Dictionary<string, object>()
-                .String("Foo", "string value two")
-                .Int("Bar", 2);
-        	
-            var createResult1 = await collection.Insert().Document(document1);
-        	
-            document1.Merge(createResult1.Value);
-        	
-            var createResult2 = await collection.Insert().Document(document2);
-        	
-            document2.Merge(createResult2.Value);
-        	
-            documents.Add(document1);
-            documents.Add(document2);
-        	
-            return documents;
-        }
         
         #region Create operations
         
@@ -242,7 +214,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
             
             var checkResult = await collection
                 .Check()
@@ -324,7 +296,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var getResult = await collection
                 .Get()
@@ -418,7 +390,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dummy>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var getResult = await collection
                 .Get()
@@ -441,7 +413,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var document = new Dictionary<string, object>()
                 .String("Foo", "some other new string")
@@ -480,7 +452,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var document = new Dictionary<string, object>()
                 .String("Foo", "some other new string")
@@ -505,7 +477,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var document = new Dictionary<string, object>()
                 .String("Foo", "some other new string")
@@ -530,7 +502,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var document = new Dictionary<string, object>()
                 .String("Foo", "some other new string")
@@ -570,7 +542,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var document = new Dictionary<string, object>()
                 .ID(documents[0].ID())
@@ -598,7 +570,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var document = new Dictionary<string, object>()
                 .String("Foo", "some other new string")
@@ -638,7 +610,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var document = new Dictionary<string, object>()
                 .String("Foo", "some other new string")
@@ -804,7 +776,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dummy>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var dummy = new Dummy();
             dummy.Foo = "some other new string";
@@ -846,7 +818,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var document = new Dictionary<string, object>()
                 .String("Foo", "some other new string")
@@ -884,7 +856,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var document = new Dictionary<string, object>()
                 .String("Foo", "some other new string")
@@ -919,7 +891,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var document = new Dictionary<string, object>()
                 .String("Foo", "some other new string")
@@ -943,7 +915,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var document = new Dictionary<string, object>()
                 .String("Foo", "some other new string")
@@ -967,7 +939,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var document = new Dictionary<string, object>()
                 .String("Foo", "some other new string")
@@ -1006,7 +978,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var document = new Dictionary<string, object>()
                 .ID(documents[0].ID())
@@ -1033,7 +1005,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var document = new Dictionary<string, object>()
                 .String("Foo", "some other new string")
@@ -1072,7 +1044,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var document = new Dictionary<string, object>()
                 .String("Foo", "some other new string")
@@ -1096,7 +1068,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dummy>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var dummy = new Dummy();
             dummy.Foo = "some other new string";
@@ -1136,7 +1108,7 @@ namespace Tests.DocumentOperations
         {   
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var deleteResult = await collection
                 .Delete()
@@ -1155,7 +1127,7 @@ namespace Tests.DocumentOperations
         {   
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var deleteResult = await collection
                 .Delete()
@@ -1174,7 +1146,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var deleteResult = await collection
                 .Delete()
@@ -1194,7 +1166,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var deleteResult = await collection
                 .Delete()
@@ -1214,7 +1186,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var deleteResult = await collection
                 .Delete()
@@ -1233,7 +1205,7 @@ namespace Tests.DocumentOperations
         {
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
-            var documents = await InsertTestData();
+            var documents = await InsertTestData(_db);
 
             var deleteResult = await collection
                 .Delete()
