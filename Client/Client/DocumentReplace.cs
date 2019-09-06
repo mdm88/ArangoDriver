@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using ArangoDriver.Exceptions;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 using ArangoDriver.Protocol.Responses;
@@ -126,15 +127,13 @@ namespace ArangoDriver.Client
                     result.Value = body;
                     break;
                 case 412:
-                    body = response.ParseBody<T>();
+                    var rev = response.ParseBody<Dictionary<string, object>>().String("_rev");
                     
-                    result.Value = body;
-                    break;
-                case 400:
+                    throw new VersionCheckViolationException(rev);
                 case 404:
+                    throw new CollectionNotFoundException();
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             _parameters.Clear();
@@ -181,6 +180,8 @@ namespace ArangoDriver.Client
             {
                 case 201:
                 case 202:
+                    // TODO check for errors
+                    
                     List<T> body;
                     if (_parameters.ContainsKey(ParameterName.ReturnNew) && (string)_parameters[ParameterName.ReturnNew] == "true")
                         body = response.ParseBody<List<DocumentCreateResponse<T>>>().Select(e => e.New).ToList();
@@ -192,16 +193,10 @@ namespace ArangoDriver.Client
                     result.Success = (body != null);
                     result.Value = body;
                     break;
-                case 412:
-                    body = response.ParseBody<List<T>>();
-                    
-                    result.Value = body;
-                    break;
-                case 400:
                 case 404:
+                    throw new CollectionNotFoundException();
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             _parameters.Clear();

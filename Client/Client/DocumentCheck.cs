@@ -1,7 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using ArangoDriver.Exceptions;
 using ArangoDriver.Protocol;
 
 namespace ArangoDriver.Client
@@ -49,15 +49,11 @@ namespace ArangoDriver.Client
                     }
                     break;
                 case 412:
-                    if ((response.Headers.ETag.Tag ?? "").Trim().Length > 0)
-                    {
-                        result.Value = response.Headers.ETag.Tag?.Replace("\"", "");
-                    }
-                    break;
+                    throw new VersionCheckViolationException(response.Headers.ETag.Tag?.Replace("\"", ""));
                 case 404:
+                    throw new CollectionNotFoundException();
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             return result;

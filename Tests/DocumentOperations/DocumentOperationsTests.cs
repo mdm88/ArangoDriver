@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Arango.Tests;
 using ArangoDriver.Client;
+using ArangoDriver.Exceptions;
 using ArangoDriver.External.dictator;
 using NUnit.Framework;
 
@@ -617,17 +618,15 @@ namespace Tests.DocumentOperations
                 .Int("Bar", 54321)
                 .Int("Baz", 12345);
          
-            var updateResult = await collection
-                .Update()
-                .IfMatch("123456789")
-                .DocumentById(documents[0].ID(), document);
+            var exception = Assert.ThrowsAsync<VersionCheckViolationException>(() =>
+            {
+                return collection
+                    .Update()
+                    .IfMatch("123456789")
+                    .DocumentById(documents[0].ID(), document);
+            });
             
-            Assert.AreEqual(412, updateResult.StatusCode);
-            Assert.IsFalse(updateResult.Success);
-            Assert.IsTrue(updateResult.HasValue);
-            Assert.AreEqual(updateResult.Value.ID(), documents[0].ID());
-            Assert.AreEqual(updateResult.Value.Key(), documents[0].Key());
-            Assert.AreEqual(updateResult.Value.Rev(), documents[0].Rev());
+            Assert.AreEqual(exception.Version, documents[0].Rev());
         }
         
         [Test]
@@ -1050,17 +1049,15 @@ namespace Tests.DocumentOperations
                 .String("Foo", "some other new string")
                 .Int("Baz", 54321);
             
-            var replaceResult = await collection
-                .Replace()
-                .IfMatch("123456789")
-                .DocumentById(documents[0].ID(), document);
+            var exception = Assert.ThrowsAsync<VersionCheckViolationException>(() =>
+            {
+                return collection
+                    .Replace()
+                    .IfMatch("123456789")
+                    .DocumentById(documents[0].ID(), document);
+            });
             
-            Assert.AreEqual(412, replaceResult.StatusCode);
-            Assert.IsFalse(replaceResult.Success);
-            Assert.IsTrue(replaceResult.HasValue);
-            Assert.AreEqual(replaceResult.Value.ID(), documents[0].ID());
-            Assert.AreEqual(replaceResult.Value.Key(), documents[0].Key());
-            Assert.AreEqual(replaceResult.Value.Rev(), documents[0].Rev());
+            Assert.AreEqual(exception.Version, documents[0].Rev());
         }
         
         [Test]
@@ -1188,16 +1185,15 @@ namespace Tests.DocumentOperations
 
             var documents = await InsertTestData(_db);
 
-            var deleteResult = await collection
-                .Delete()
-                .IfMatch("123456789")
-                .ById(documents[0].ID());
+            var exception = Assert.ThrowsAsync<VersionCheckViolationException>(() =>
+            {
+                return collection
+                    .Delete()
+                    .IfMatch("123456789")
+                    .ById(documents[0].ID());
+            });
             
-            Assert.AreEqual(412, deleteResult.StatusCode);
-            Assert.IsFalse(deleteResult.Success);
-            Assert.AreEqual(deleteResult.Value.ID(), documents[0].ID());
-            Assert.AreEqual(deleteResult.Value.Key(), documents[0].Key());
-            Assert.AreEqual(deleteResult.Value.Rev(), documents[0].Rev());
+            Assert.AreEqual(exception.Version, documents[0].Rev());
         }
 
         [Test]

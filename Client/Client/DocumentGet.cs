@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using ArangoDriver.Exceptions;
+using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 
 namespace ArangoDriver.Client
@@ -40,21 +43,20 @@ namespace ArangoDriver.Client
             switch (response.StatusCode)
             {
                 case 200:
+                case 304:
                     var body = response.ParseBody<T>();
                     
                     result.Success = (body != null);
                     result.Value = body;
                     break;
                 case 412:
-                    body = response.ParseBody<T>();
+                    var rev = response.ParseBody<Dictionary<string, object>>().String("_rev");
                     
-                    result.Value = body;
-                    break;
-                case 304:
+                    throw new VersionCheckViolationException(rev);
                 case 404:
+                    throw new CollectionNotFoundException();
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             return result;

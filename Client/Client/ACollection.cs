@@ -298,6 +298,16 @@ namespace ArangoDriver.Client
         #region Documents and Edges
 
         /// <summary>
+        /// Retrieves all documents.
+        /// </summary>
+        public async Task<AResult<List<T>>> GetAll()
+        {
+            AQuery query = new AQuery(_requestFactory, _connection).Aql("FOR x IN " + _collectionName + " RETURN x");
+
+            return await query.ToList<T>();
+        }
+        
+        /// <summary>
         /// Retrieves basic information with additional properties and document count in specified collection.
         /// </summary>
         public async Task<AResult<long>> Count()
@@ -351,16 +361,6 @@ namespace ArangoDriver.Client
         public DocumentGet<T> Get()
         {
             return new DocumentGet<T>(_requestFactory, this);
-        }
-
-        /// <summary>
-        /// Retrieves all documents.
-        /// </summary>
-        public async Task<AResult<List<T>>> GetAll()
-        {
-            AQuery query = new AQuery(_requestFactory, _connection).Aql("FOR x IN " + _collectionName + " RETURN x");
-
-            return await query.ToList<T>();
         }
 
         /// <summary>

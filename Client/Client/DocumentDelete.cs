@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using ArangoDriver.Exceptions;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 
@@ -90,14 +91,13 @@ namespace ArangoDriver.Client
                     result.Value = body;
                     break;
                 case 412:
-                    body = response.ParseBody<Dictionary<string, object>>();
+                    var rev = response.ParseBody<Dictionary<string, object>>().String("_rev");
                     
-                    result.Value = body;
-                    break;
+                    throw new VersionCheckViolationException(rev);
                 case 404:
+                    throw new CollectionNotFoundException();
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             _parameters.Clear();
@@ -111,5 +111,7 @@ namespace ArangoDriver.Client
         }
 
         #endregion
+        
+        // TODO falta la version multiple
     }
 }

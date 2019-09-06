@@ -414,7 +414,7 @@ namespace Tests.QueryOperations
         }
         
         [Test]
-        public async Task Should_minify_query()
+        public void Should_minify_query()
         {
             var singleLineQuery = AQuery.Minify(@"
             FOR item IN MyDocumentCollection

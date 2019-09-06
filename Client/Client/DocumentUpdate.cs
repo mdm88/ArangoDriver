@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using ArangoDriver.Exceptions;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 using ArangoDriver.Protocol.Responses;
@@ -150,15 +151,13 @@ namespace ArangoDriver.Client
                     result.Value = body;
                     break;
                 case 412:
-                    body = response.ParseBody<T>();
+                    var rev = response.ParseBody<Dictionary<string, object>>().String("_rev");
                     
-                    result.Value = body;
-                    break;
-                case 400:
+                    throw new VersionCheckViolationException(rev);
                 case 404:
+                    throw new CollectionNotFoundException();
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             _parameters.Clear();
@@ -171,6 +170,32 @@ namespace ArangoDriver.Client
             return DocumentById(_collection.Name + "/" + key, document);
         }
         
+        // TODO agregar version multiple
+        
+        #endregion
+
+        #region Edge
+
+        /// <summary>
+        /// Completely replaces existing edge identified by its handle with new edge data.
+        /// </summary>
+        /// <exception cref="ArgumentException">Specified document does not contain '_from' and '_to' fields.</exception>
+        public Task<AResult<T>> EdgeById(string id, T document)
+        {
+            // TODO validate
+            /*if (!document.Has("_from") && !document.Has("_to"))
+            {
+                throw new ArgumentException("Specified document does not contain '_from' and '_to' fields.");
+            }*/
+
+            return DocumentById(id, document);
+        }
+
+        public Task<AResult<T>> EdgeByKey(string key, T document)
+        {
+            return EdgeById(_collection.Name + "/" + key, document);
+        }
+
         #endregion
     }
 }
