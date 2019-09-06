@@ -10,14 +10,14 @@ namespace Tests.CollectionOperations
     [TestFixture()]
     public class CollectionOperationsTests : TestBase
     {
-        private ADatabase db;
+        private ADatabase _db;
         
         [SetUp]
         public async Task Setup()
         {
             await Connection.CreateDatabase(TestDatabaseGeneral);
 
-            db = Connection.GetDatabase(TestDatabaseGeneral);
+            _db = Connection.GetDatabase(TestDatabaseGeneral);
         }
         
         #region Create operations
@@ -25,7 +25,7 @@ namespace Tests.CollectionOperations
         [Test]
         public async Task Should_create_document_collection()
         {
-            var createResult = await db.CreateCollection(TestDocumentCollectionName).Create();
+            var createResult = await _db.CreateCollection(TestDocumentCollectionName).Create();
 
             Assert.AreEqual(200, createResult.StatusCode);
             Assert.IsTrue(createResult.Success);
@@ -42,7 +42,7 @@ namespace Tests.CollectionOperations
         [Test]
         public async Task Should_create_edge_collection()
         {
-            var createResult = await db.CreateCollection(TestEdgeCollectionName)
+            var createResult = await _db.CreateCollection(TestEdgeCollectionName)
                 .Type(ACollectionType.Edge)
                 .Create();
 
@@ -61,7 +61,7 @@ namespace Tests.CollectionOperations
         [Test]
         public async Task Should_create_autoincrement_collection()
         {
-            var createResult = await db.CreateCollection(TestDocumentCollectionName)
+            var createResult = await _db.CreateCollection(TestDocumentCollectionName)
                 .KeyGeneratorType(AKeyGeneratorType.Autoincrement)
                 .Create();
             
@@ -79,7 +79,7 @@ namespace Tests.CollectionOperations
 
 			// create documents and test if their key are incremented accordingly
 
-            var collection = db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
+            var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 			
             var newDocument = new Dictionary<string, object>()
                 .String("Foo", "some string")
@@ -115,10 +115,10 @@ namespace Tests.CollectionOperations
         [Test]
         public async Task Should_get_collection()
         {
-            var createResult = await db.CreateCollection(TestEdgeCollectionName)
+            var createResult = await _db.CreateCollection(TestEdgeCollectionName)
                 .Create();
 
-            var getResult = await db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
+            var getResult = await _db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
                 .GetInformation();
             
             Assert.AreEqual(200, getResult.StatusCode);
@@ -134,10 +134,10 @@ namespace Tests.CollectionOperations
         [Test]
         public async Task Should_get_collection_properties()
         {
-            var createResult = await db.CreateCollection(TestEdgeCollectionName)
+            var createResult = await _db.CreateCollection(TestEdgeCollectionName)
                 .Create();
 
-            var getResult = await db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
+            var getResult = await _db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
                 .GetProperties();
             
             Assert.AreEqual(200, getResult.StatusCode);
@@ -159,10 +159,10 @@ namespace Tests.CollectionOperations
         [Test]
         public async Task CountDocuments()
         {
-            var createResult = await db.CreateCollection(TestEdgeCollectionName)
+            var createResult = await _db.CreateCollection(TestEdgeCollectionName)
                 .Create();
 
-            var getResult = await db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
+            var getResult = await _db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
                 .Count();
             
             Assert.AreEqual(200, getResult.StatusCode);
@@ -174,10 +174,10 @@ namespace Tests.CollectionOperations
         [Test]
         public async Task Should_get_collection_figures()
         {
-            var createResult = await db.CreateCollection(TestEdgeCollectionName)
+            var createResult = await _db.CreateCollection(TestEdgeCollectionName)
                 .Create();
 
-            var getResult = await db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
+            var getResult = await _db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
                 .GetFigures();
             
             Assert.AreEqual(200, getResult.StatusCode);
@@ -201,10 +201,10 @@ namespace Tests.CollectionOperations
         [Test]
         public async Task Should_get_collection_revision()
         {
-            var createResult = await db.CreateCollection(TestEdgeCollectionName)
+            var createResult = await _db.CreateCollection(TestEdgeCollectionName)
                 .Create();
 
-            var getResult = await db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
+            var getResult = await _db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
                 .GetRevision();
             
             Assert.AreEqual(200, getResult.StatusCode);
@@ -221,10 +221,10 @@ namespace Tests.CollectionOperations
         [Test]
         public async Task Should_get_collection_cehcksum()
         {
-            var createResult = await db.CreateCollection(TestEdgeCollectionName)
+            var createResult = await _db.CreateCollection(TestEdgeCollectionName)
                 .Create();
 
-            var getResult = await db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
+            var getResult = await _db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
                 //.WithData(true)
                 //.WithRevisions(true)
                 .GetChecksum();
@@ -244,12 +244,12 @@ namespace Tests.CollectionOperations
         [Test]
         public async Task Should_get_all_indexes_in_collection()
         {
-            var createResult = await db
+            var createResult = await _db
                 .CreateCollection(TestDocumentCollectionName)
                 .Type(ACollectionType.Document)
                 .Create();
             
-            var operationResult = await db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName)
+            var operationResult = await _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName)
                 .GetAllIndexes();
             
             Assert.AreEqual(200, operationResult.StatusCode);
@@ -266,10 +266,10 @@ namespace Tests.CollectionOperations
         [Test]
         public async Task Should_truncate_collection()
         {
-            var createResult = await db.CreateCollection(TestEdgeCollectionName)
+            var createResult = await _db.CreateCollection(TestEdgeCollectionName)
                 .Create();
 
-            var clearResult = await db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
+            var clearResult = await _db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
                 .Truncate();
             
             Assert.AreEqual(200, clearResult.StatusCode);
@@ -390,10 +390,10 @@ namespace Tests.CollectionOperations
         [Test]
         public async Task Should_rename_collection()
         {
-            var createResult = await db.CreateCollection(TestEdgeCollectionName)
+            var createResult = await _db.CreateCollection(TestEdgeCollectionName)
                 .Create();
 
-            var operationResult = await db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
+            var operationResult = await _db.GetCollection<Dictionary<string, object>>(createResult.Value.String("name"))
                 .Rename(TestEdgeCollectionName);
             
             Assert.AreEqual(200, operationResult.StatusCode);
@@ -413,10 +413,10 @@ namespace Tests.CollectionOperations
         [Test]
         public async Task Should_delete_collection()
         {
-            var createResult = await db.CreateCollection(TestEdgeCollectionName)
+            var createResult = await _db.CreateCollection(TestEdgeCollectionName)
                 .Create();
 
-            var deleteResult = await db.DropCollection(createResult.Value.String("name"));
+            var deleteResult = await _db.DropCollection(createResult.Value.String("name"));
             
             Assert.AreEqual(200, deleteResult.StatusCode);
             Assert.IsTrue(deleteResult.Success);

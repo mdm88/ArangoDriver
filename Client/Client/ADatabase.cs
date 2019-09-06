@@ -15,57 +15,27 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Provides access to AQL user function management operations in current database context.
         /// </summary>
-        public AFunction Function
-        {
-            get
-            {
-                return new AFunction(_requestFactory, this);
-            }
-        }
-        
+        public AFunction Function => new AFunction(_requestFactory, this);
+
         /// <summary>
         /// Provides access to index operations in current database context.
         /// </summary>
-        public AIndex Index
-        {
-            get
-            {
-                return new AIndex(_requestFactory, this);
-            }
-        }
-        
+        public AIndex Index => new AIndex(_requestFactory, this);
+
         /// <summary>
         /// Provides access to query operations in current database context.
         /// </summary>
-        public AQuery Query
-        {
-            get
-            {
-                return new AQuery(_requestFactory, this);
-            }
-        }
-        
+        public AQuery Query => new AQuery(_requestFactory, this);
+
         /// <summary>
         /// Provides access to transaction operations in current database context.
         /// </summary>
-        public ATransaction Transaction
-        {
-            get
-            {
-                return new ATransaction(_requestFactory, this);
-            }
-        }
+        public ATransaction Transaction => new ATransaction(_requestFactory, this);
 
         /// <summary>
         /// Provides access to foxx services in current database context.
         /// </summary>
-        public AFoxx Foxx
-        {
-            get
-            {
-                return new AFoxx(_requestFactory, this);
-            }
-        }
+        public AFoxx Foxx => new AFoxx(_requestFactory, this);
 
         /// <summary>
         /// Initializes new database context to perform operations on remote database identified by specified alias.

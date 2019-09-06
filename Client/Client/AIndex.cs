@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
+using ArangoDriver.Protocol.Requests;
+using ArangoDriver.Protocol.Responses;
 
 namespace ArangoDriver.Client
 {
@@ -92,35 +95,31 @@ namespace ArangoDriver.Client
         public async Task<AResult<Dictionary<string, object>>> Create(string collectionName)
         {
             var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Index, "");
-            var document = new Dictionary<string, object>();
+            var document = new IndexCreateRequest();
             
             // required
             request.QueryString.Add(ParameterName.Collection, collectionName);
             
             // required
-            document.String(ParameterName.Type, _parameters.String(ParameterName.Type));
+            document.Type = _parameters.String(ParameterName.Type);
+            document.Fields = _parameters.Array<string>(ParameterName.Fields).ToList();
             
             switch (_parameters.Enum<AIndexType>(ParameterName.Type))
             {
                 case AIndexType.Fulltext:
-                    Request.TrySetBodyParameter(ParameterName.Fields, _parameters, document);
-                    Request.TrySetBodyParameter(ParameterName.MinLength, _parameters, document);
+                    if (_parameters.Has(ParameterName.MinLength))
+                        document.MinLength = _parameters.Int(ParameterName.MinLength);
                     break;
                 case AIndexType.Geo:
-                    Request.TrySetBodyParameter(ParameterName.Fields, _parameters, document);
-                    Request.TrySetBodyParameter(ParameterName.GeoJson, _parameters, document);
+                    if (_parameters.Has(ParameterName.GeoJson))
+                        document.GeoJson = _parameters.Bool(ParameterName.GeoJson);
                     break;
                 case AIndexType.Hash:
-                    Request.TrySetBodyParameter(ParameterName.Fields, _parameters, document);
-                    Request.TrySetBodyParameter(ParameterName.Sparse, _parameters, document);
-                    Request.TrySetBodyParameter(ParameterName.Unique, _parameters, document);
-                    break;
                 case AIndexType.Skiplist:
-                    Request.TrySetBodyParameter(ParameterName.Fields, _parameters, document);
-                    Request.TrySetBodyParameter(ParameterName.Sparse, _parameters, document);
-                    Request.TrySetBodyParameter(ParameterName.Unique, _parameters, document);
-                    break;
-                default:
+                    if (_parameters.Has(ParameterName.Sparse))
+                        document.Sparse = _parameters.Bool(ParameterName.Sparse);
+                    if (_parameters.Has(ParameterName.Unique))
+                        document.Unique = _parameters.Bool(ParameterName.Unique);
                     break;
             }
             
@@ -133,10 +132,22 @@ namespace ArangoDriver.Client
             {
                 case 200:
                 case 201:
-                    var body = response.ParseBody<Dictionary<string, object>>();
+                    var body = response.ParseBody<IndexCreateResponse>();
                     
                     result.Success = (body != null);
-                    result.Value = body;
+                    result.Value = new Dictionary<string, object>()
+                    {
+                        {"id", body.Id},
+                        {"name", body.Name},
+                        {"type", body.Type},
+                        {"fields", body.Fields},
+                        {"minLength", body.MinLength},
+                        {"geoJson", body.GeoJson},
+                        {"sparse", body.Sparse},
+                        {"unique", body.Unique},
+                        {"isNewlyCreated", body.IsNewlyCreated},
+                        {"selectivityEstimate", body.SelectivityEstimate}
+                    };
                     break;
                 case 400:
                 case 404:
@@ -173,10 +184,22 @@ namespace ArangoDriver.Client
             switch (response.StatusCode)
             {
                 case 200:
-                    var body = response.ParseBody<Dictionary<string, object>>();
+                    var body = response.ParseBody<IndexCreateResponse>();
                     
                     result.Success = (body != null);
-                    result.Value = body;
+                    result.Value = new Dictionary<string, object>()
+                    {
+                        {"id", body.Id},
+                        {"name", body.Name},
+                        {"type", body.Type},
+                        {"fields", body.Fields},
+                        {"minLength", body.MinLength},
+                        {"geoJson", body.GeoJson},
+                        {"sparse", body.Sparse},
+                        {"unique", body.Unique},
+                        {"isNewlyCreated", body.IsNewlyCreated},
+                        {"selectivityEstimate", body.SelectivityEstimate}
+                    };
                     break;
                 case 404:
                 default:
