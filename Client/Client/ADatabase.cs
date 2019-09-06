@@ -18,11 +18,6 @@ namespace ArangoDriver.Client
         public AFunction Function => new AFunction(_requestFactory, this);
 
         /// <summary>
-        /// Provides access to index operations in current database context.
-        /// </summary>
-        public AIndex Index => new AIndex(_requestFactory, this);
-
-        /// <summary>
         /// Provides access to query operations in current database context.
         /// </summary>
         public AQuery Query => new AQuery(_requestFactory, this);

@@ -15,6 +15,11 @@ namespace ArangoDriver.Client
 
         public string Name => _collectionName;
 
+        /// <summary>
+        /// Provides access to index operations in current database context.
+        /// </summary>
+        public AIndex<T> Index => new AIndex<T>(_requestFactory, this);
+
         internal ACollection(RequestFactory requestFactory, ADatabase connection, string collectionName)
         {
             _requestFactory = requestFactory;
