@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using ArangoDriver.Exceptions;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 using ArangoDriver.Protocol.Requests;
@@ -153,11 +154,11 @@ namespace ArangoDriver.Client
                     }
                     break;
                 case 400:
+                    throw new QueryInvalidException();
                 case 404:
-                case 405:
+                    throw new CollectionNotFoundException();
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             _parameters.Clear();
@@ -269,10 +270,10 @@ namespace ArangoDriver.Client
                         }
                     }
                     break;
-                case 400:
                 case 404:
+                    throw new QueryCursorNotFoundException();
                 default:
-                    break;
+                    throw new ArangoException();
             }
             
             return result;
@@ -316,9 +317,9 @@ namespace ArangoDriver.Client
                     }
                     break;
                 case 400:
+                    throw new QueryInvalidException();
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             _parameters.Clear();
@@ -353,11 +354,10 @@ namespace ArangoDriver.Client
                         result.Value = true;
                     }
                     break;
-                case 400:
                 case 404:
+                    throw new QueryCursorNotFoundException();
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             _parameters.Clear();

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Arango.Tests;
 using ArangoDriver.Client;
+using ArangoDriver.Exceptions;
 using ArangoDriver.External.dictator;
 using NUnit.Framework;
 
@@ -438,14 +439,11 @@ namespace Tests.QueryOperations
                 .ToList<object>();
 
             Assert.IsTrue(queryResult.Extra.IsString("id"));
-            
-            var deleteCursorResult = await _db.Query
-                .DeleteCursor(queryResult.Extra.String("id"));
-            
-            Assert.AreEqual(404, deleteCursorResult.StatusCode);
-            Assert.IsFalse(deleteCursorResult.Success);
-            Assert.IsTrue(deleteCursorResult.HasValue);
-            Assert.IsFalse(deleteCursorResult.Value);
+
+            Assert.ThrowsAsync<QueryCursorNotFoundException>(() =>
+            {
+                return _db.Query.DeleteCursor(queryResult.Extra.String("id"));
+            });
         }
     }
 }

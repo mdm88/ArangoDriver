@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using ArangoDriver.Exceptions;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 
@@ -48,9 +49,9 @@ namespace ArangoDriver.Client
                     result.Value = body;
                     break;
                 case 404:
+                    throw new CollectionNotFoundException();
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             return result;
@@ -74,11 +75,10 @@ namespace ArangoDriver.Client
                     result.Success = (body != null);
                     result.Value = body;
                     break;
-                case 400:
                 case 404:
+                    throw new CollectionNotFoundException();
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             return result;
@@ -102,11 +102,10 @@ namespace ArangoDriver.Client
                     result.Success = (body != null);
                     result.Value = body;
                     break;
-                case 400:
                 case 404:
+                    throw new CollectionNotFoundException();
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             return result;
@@ -130,11 +129,10 @@ namespace ArangoDriver.Client
                     result.Success = (body != null);
                     result.Value = body;
                     break;
-                case 400:
                 case 404:
+                    throw new CollectionNotFoundException();
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             return result;
@@ -163,11 +161,10 @@ namespace ArangoDriver.Client
                     result.Success = (body != null);
                     result.Value = body;
                     break;
-                case 400:
                 case 404:
+                    throw new CollectionNotFoundException();
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             return result;
@@ -195,9 +192,9 @@ namespace ArangoDriver.Client
                     result.Value = body;
                     break;
                 case 404:
+                    throw new CollectionNotFoundException();
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             return result;
@@ -221,9 +218,10 @@ namespace ArangoDriver.Client
                     result.Success = (body != null);
                     result.Value = body;
                     break;
+                case 404:
+                    throw new CollectionNotFoundException();
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             return result;
@@ -285,9 +283,10 @@ namespace ArangoDriver.Client
                     result.Success = (body != null);
                     result.Value = body;
                     break;
+                case 404:
+                    throw new CollectionNotFoundException();
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             return result;
@@ -325,11 +324,10 @@ namespace ArangoDriver.Client
                     result.Success = (body != null);
                     result.Value = body.Long("count");
                     break;
-                case 400:
                 case 404:
+                    throw new CollectionNotFoundException();
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             return result;

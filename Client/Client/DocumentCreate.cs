@@ -106,7 +106,7 @@ namespace ArangoDriver.Client
                 {
                     resultSingle = await Document(documents.First());
                 }
-                catch (UniqueConstraintViolationException e)
+                catch (UniqueConstraintViolationException)
                 {
                     throw new MultipleException();
                 }
