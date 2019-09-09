@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Http;
 using System.Threading.Tasks;
+using ArangoDriver.Expressions;
 using ArangoDriver.Protocol;
 using ArangoDriver.Protocol.Requests;
 using ArangoDriver.Protocol.Responses;
@@ -35,6 +38,16 @@ namespace ArangoDriver.Client
 	        _create.Fields = values.ToList();
         	
         	return this;
+        }
+
+        /// <summary>
+        /// Determines an array of attribute paths in the collection with hash, fulltext, geo or skiplist indexes.
+        /// </summary>
+        public IndexBuilder<T> Fields(params Expression<Func<T, object>>[] values)
+        {
+	        _create.Fields = values.Select(x => new FieldExpression<T>(x).Field).ToList();
+
+	        return this;
         }
         
         /// <summary>
