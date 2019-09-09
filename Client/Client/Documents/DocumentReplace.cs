@@ -10,8 +10,8 @@ using ArangoDriver.Protocol.Responses;
 
 namespace ArangoDriver.Client
 {
-    public class DocumentUpdate<T> where T : class
-    {   
+    public class DocumentReplace<T> where T : class
+    {
         private readonly RequestFactory _requestFactory;
         private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
         private readonly ACollection<T> _collection;
@@ -21,7 +21,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Determines whether or not to wait until data are synchronised to disk. Default value: false.
         /// </summary>
-        public DocumentUpdate<T> WaitForSync(bool value)
+        public DocumentReplace<T> WaitForSync(bool value)
         {
             // needs to be string value
             _parameters.String(ParameterName.WaitForSync, value.ToString().ToLower());
@@ -30,31 +30,9 @@ namespace ArangoDriver.Client
         }
 
         /// <summary>
-        /// Determines whether to keep any attributes from existing document that are contained in the patch document which contains null value. Default value: true.
-        /// </summary>
-        public DocumentUpdate<T> KeepNull(bool value)
-        {
-            // needs to be string value
-            _parameters.String(ParameterName.KeepNull, value.ToString().ToLower());
-        	
-            return this;
-        }
-        
-        /// <summary>
-        /// Determines whether the value in the patch document will overwrite the existing document's value. Default value: true.
-        /// </summary>
-        public DocumentUpdate<T> MergeObjects(bool value)
-        {
-            // needs to be string value
-            _parameters.String(ParameterName.MergeObjects, value.ToString().ToLower());
-        	
-            return this;
-        }
-
-        /// <summary>
         /// Determines whether to '_rev' field in the given document is ignored. If this is set to false, then the '_rev' attribute given in the body document is taken as a precondition. The document is only replaced if the current revision is the one specified.
         /// </summary>
-        public DocumentUpdate<T> IgnoreRevs(bool value)
+        public DocumentReplace<T> IgnoreRevs(bool value)
         {
             // needs to be string value
             _parameters.String(ParameterName.IgnoreRevs, value.ToString().ToLower());
@@ -65,7 +43,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Determines whether to return additionally the complete new document under the attribute 'new' in the result.
         /// </summary>
-        public DocumentUpdate<T> ReturnNew()
+        public DocumentReplace<T> ReturnNew()
         {
             // needs to be string value
             _parameters.String(ParameterName.ReturnNew, true.ToString().ToLower());
@@ -76,7 +54,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Determines whether to return additionally the complete previous revision of the changed document under the attribute 'old' in the result.
         /// </summary>
-        public DocumentUpdate<T> ReturnOld()
+        public DocumentReplace<T> ReturnOld()
         {
             // needs to be string value
             _parameters.String(ParameterName.ReturnOld, true.ToString().ToLower());
@@ -87,7 +65,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Conditionally operate on document with specified revision.
         /// </summary>
-        public DocumentUpdate<T> IfMatch(string revision)
+        public DocumentReplace<T> IfMatch(string revision)
         {
             _parameters.String(ParameterName.IfMatch, revision);
         	
@@ -96,32 +74,29 @@ namespace ArangoDriver.Client
 
         #endregion
 
-        internal DocumentUpdate(RequestFactory requestFactory, ACollection<T> collection)
+        internal DocumentReplace(RequestFactory requestFactory, ACollection<T> collection)
         {
             _requestFactory = requestFactory;
             _collection = collection;
         }
         
-        #region Update
-
+        #region Document
+        
         /// <summary>
-        /// Updates existing document identified by its handle with new document data.
+        /// Completely replaces existing document identified by its handle with new document data.
         /// </summary>
+        /// <exception cref="ArgumentException">Specified id value has invalid format.</exception>
         public async Task<AResult<T>> DocumentById(string id, T document)
         {
-            if (!ADocument.IsID(id))
+            if (!Helpers.IsID(id))
             {
                 throw new ArgumentException("Specified 'id' value (" + id + ") has invalid format.");
             }
             
-            var request = _requestFactory.Create(HttpMethod.Patch, ApiBaseUri.Document, "/" + id);
+            var request = _requestFactory.Create(HttpMethod.Put, ApiBaseUri.Document, "/" + id);
             
             // optional
             request.TrySetQueryStringParameter(ParameterName.WaitForSync, _parameters);
-            // optional
-            request.TrySetQueryStringParameter(ParameterName.KeepNull, _parameters);
-            // optional
-            request.TrySetQueryStringParameter(ParameterName.MergeObjects, _parameters);
             // optional
             request.TrySetQueryStringParameter(ParameterName.IgnoreRevs, _parameters);
             // optional
@@ -130,12 +105,12 @@ namespace ArangoDriver.Client
             request.TrySetQueryStringParameter(ParameterName.ReturnOld, _parameters);
             // optional
             request.TrySetHeaderParameter(ParameterName.IfMatch, _parameters);
-
+            
             request.SetBody(document);
             
             var response = await _collection.Send(request);
             var result = new AResult<T>(response);
-
+            
             switch (response.StatusCode)
             {
                 case 201:
@@ -183,14 +158,10 @@ namespace ArangoDriver.Client
                 throw new ArgumentException("Specified 'id' value (" + id + ") has invalid format.");
             }*/
             
-            var request = _requestFactory.Create(HttpMethod.Patch, ApiBaseUri.Document, "/" + _collection.Name);
+            var request = _requestFactory.Create(HttpMethod.Put, ApiBaseUri.Document, "/" + _collection.Name);
             
             // optional
             request.TrySetQueryStringParameter(ParameterName.WaitForSync, _parameters);
-            // optional
-            request.TrySetQueryStringParameter(ParameterName.KeepNull, _parameters);
-            // optional
-            request.TrySetQueryStringParameter(ParameterName.MergeObjects, _parameters);
             // optional
             request.TrySetQueryStringParameter(ParameterName.IgnoreRevs, _parameters);
             // optional
@@ -234,7 +205,7 @@ namespace ArangoDriver.Client
             
             return result;
         }
-        
+
         #endregion
 
         #region Edge
@@ -260,5 +231,6 @@ namespace ArangoDriver.Client
         }
 
         #endregion
+
     }
 }

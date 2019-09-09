@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using ArangoDriver.Exceptions;
 using ArangoDriver.Protocol;
 using ArangoDriver.Protocol.Responses;
 
@@ -62,11 +63,10 @@ namespace ArangoDriver.Client
                     result.Success = (body != null);
                     result.Value = body?.Result;
                     break;
-                case 400:
                 case 404:
+                    throw new DatabaseNotFoundException();
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             return result;
@@ -104,11 +104,8 @@ namespace ArangoDriver.Client
                     result.Success = (body != null);
                     result.Value = body?.Result;
                     break;
-                case 400:
-                case 403:
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             return result;
@@ -135,11 +132,10 @@ namespace ArangoDriver.Client
                     result.Success = (body != null);
                     result.Value = body;
                     break;
-                case 400:
                 case 404:
+                    throw new CollectionNotFoundException();
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
             
             return result;

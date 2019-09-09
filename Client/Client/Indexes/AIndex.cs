@@ -31,7 +31,7 @@ namespace ArangoDriver.Client
         /// <exception cref="ArgumentException">Specified id value has invalid format.</exception>
         public async Task<AResult<Dictionary<string, object>>> Get(string id)
         {
-            if (!ADocument.IsID(id))
+            if (!Helpers.IsID(id))
             {
                 throw new ArgumentException("Specified id value (" + id + ") has invalid format.");
             }
@@ -76,7 +76,7 @@ namespace ArangoDriver.Client
         /// <exception cref="ArgumentException">Specified id value has invalid format.</exception>
         public async Task<AResult<Dictionary<string, object>>> Delete(string id)
         {
-            if (!ADocument.IsID(id))
+            if (!Helpers.IsID(id))
             {
                 throw new ArgumentException("Specified id value (" + id + ") has invalid format.");
             }

@@ -27,7 +27,7 @@ namespace ArangoDriver.Client
             {
                 id = External.dictator.DictionaryExtensions.String(dictionary, "_id");
                 
-                if (!ADocument.IsID(id))
+                if (!Helpers.IsID(id))
                 {
                     id = null;
                 }
@@ -46,7 +46,7 @@ namespace ArangoDriver.Client
         /// <exception cref="ArgumentException">Specified id value has invalid format.</exception>
         public static Dictionary<string, object> ID(this Dictionary<string, object> dictionary, string id)
         {
-            if (!ADocument.IsID(id))
+            if (!Helpers.IsID(id))
             {
                 throw new ArgumentException("Specified id value (" + id + ") has invalid format.");
             }
@@ -79,7 +79,7 @@ namespace ArangoDriver.Client
             {
                 key = External.dictator.DictionaryExtensions.String(dictionary, "_key");
                 
-                if (!ADocument.IsKey(key))
+                if (!Helpers.IsKey(key))
                 {
                     key = null;
                 }
@@ -98,7 +98,7 @@ namespace ArangoDriver.Client
         /// <exception cref="ArgumentException">Specified key value has invalid format.</exception>
         public static Dictionary<string, object> Key(this Dictionary<string, object> dictionary, string key)
         {
-            if (!ADocument.IsKey(key))
+            if (!Helpers.IsKey(key))
             {
                 throw new ArgumentException("Specified key value (" + key + ") has invalid format.");
             }
@@ -131,7 +131,7 @@ namespace ArangoDriver.Client
             {
                 rev = External.dictator.DictionaryExtensions.String(dictionary, "_rev");
                 
-                if (!ADocument.IsRev(rev))
+                if (!Helpers.IsRev(rev))
                 {
                     rev = null;
                 }
@@ -150,7 +150,7 @@ namespace ArangoDriver.Client
         /// <exception cref="ArgumentException">Specified rev value has invalid format.</exception>
         public static Dictionary<string, object> Rev(this Dictionary<string, object> dictionary, string rev)
         {
-            if (!ADocument.IsRev(rev))
+            if (!Helpers.IsRev(rev))
             {
                 throw new ArgumentException("Specified rev value (" + rev + ") has invalid format.");
             }   
@@ -183,7 +183,7 @@ namespace ArangoDriver.Client
             {
                 from = External.dictator.DictionaryExtensions.String(dictionary, "_from");
 
-                if (!ADocument.IsID(from))
+                if (!Helpers.IsID(from))
                 {
                     from = null;
                 }
@@ -202,7 +202,7 @@ namespace ArangoDriver.Client
         /// <exception cref="ArgumentException">Specified id value has invalid format.</exception>
         public static Dictionary<string, object> From(this Dictionary<string, object> dictionary, string id)
         {
-            if (!ADocument.IsID(id))
+            if (!Helpers.IsID(id))
             {
                 throw new ArgumentException("Specified id value (" + id + ") has invalid format.");
             }
@@ -235,7 +235,7 @@ namespace ArangoDriver.Client
             {
                 to = External.dictator.DictionaryExtensions.String(dictionary, "_to");
 
-                if (!ADocument.IsID(to))
+                if (!Helpers.IsID(to))
                 {
                     to = null;
                 }
@@ -254,7 +254,7 @@ namespace ArangoDriver.Client
         /// <exception cref="ArgumentException">Specified id value has invalid format.</exception>
         public static Dictionary<string, object> To(this Dictionary<string, object> dictionary, string id)
         {
-            if (!ADocument.IsID(id))
+            if (!Helpers.IsID(id))
             {
                 throw new ArgumentException("Specified id value (" + id + ") has invalid format.");
             }
@@ -279,7 +279,7 @@ namespace ArangoDriver.Client
                 
                 if (fieldValue is string)
                 {
-                    return ADocument.IsID((string)fieldValue);
+                    return Helpers.IsID((string)fieldValue);
                 }
             }
             catch (Exception)
@@ -303,7 +303,7 @@ namespace ArangoDriver.Client
                 
                 if (fieldValue is string)
                 {
-                    return ADocument.IsKey((string)fieldValue);
+                    return Helpers.IsKey((string)fieldValue);
                 }
             }
             catch (Exception)

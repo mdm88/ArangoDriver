@@ -367,7 +367,7 @@ namespace ArangoDriver.Client
         /// <exception cref="ArgumentException">Specified 'startVertexID' value has invalid format.</exception>
         public async Task<AResult<List<Dictionary<string, object>>>> GetEdges(string startVertexID, ADirection direction)
         {
-            if (!ADocument.IsID(startVertexID))
+            if (!Helpers.IsID(startVertexID))
             {
                 throw new ArgumentException("Specified 'startVertexID' value (" + startVertexID + ") has invalid format.");
             }
