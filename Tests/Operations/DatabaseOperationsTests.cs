@@ -3,10 +3,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Arango.Tests;
 using ArangoDriver.Client;
+using ArangoDriver.Exceptions;
 using ArangoDriver.External.dictator;
 using NUnit.Framework;
 
-namespace Tests.DatabaseOperations
+namespace Tests.Operations
 {
     public class DatabaseOperationsTests : TestBase
     {   
@@ -111,14 +112,11 @@ namespace Tests.DatabaseOperations
         public async Task Should_fail_create_already_existing_database()
         {
             await Connection.CreateDatabase(TestDatabaseGeneral);
-            
-            var createResult = await Connection.CreateDatabase(TestDatabaseGeneral);
 
-            Assert.AreEqual(409, createResult.StatusCode);
-            Assert.IsFalse(createResult.Success);
-            Assert.IsTrue(createResult.HasValue);
-            Assert.IsFalse(createResult.Value);
-            //Assert.IsNotNull(createResult.Error);
+            Assert.ThrowsAsync<DatabaseAlreadyExistsException>(() =>
+            {
+                return Connection.CreateDatabase(TestDatabaseGeneral);
+            });
         }
         
         [Test]

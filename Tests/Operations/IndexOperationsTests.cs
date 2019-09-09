@@ -6,7 +6,7 @@ using ArangoDriver.Exceptions;
 using ArangoDriver.External.dictator;
 using NUnit.Framework;
 
-namespace Tests.IndexOperations
+namespace Tests.Operations
 {
     [TestFixture]
     public class IndexOperationsTests : TestBase

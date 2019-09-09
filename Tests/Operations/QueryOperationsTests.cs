@@ -7,7 +7,7 @@ using ArangoDriver.Exceptions;
 using ArangoDriver.External.dictator;
 using NUnit.Framework;
 
-namespace Tests.QueryOperations
+namespace Tests.Operations
 {
     [TestFixture]
     public class QueryOperationsTests : TestBase

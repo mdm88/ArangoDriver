@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using ArangoDriver.Client;
 using ArangoDriver.External.dictator;
@@ -30,8 +31,21 @@ namespace Arango.Tests
 	    [TearDown]
 	    public async Task Teardown()
 	    {
-		    await Connection.DropDatabase(TestDatabaseOneTime);
-		    await Connection.DropDatabase(TestDatabaseGeneral);
+		    try
+		    {
+			    await Connection.DropDatabase(TestDatabaseOneTime);
+		    }
+		    catch
+		    {
+		    }
+
+		    try
+		    {
+			    await Connection.DropDatabase(TestDatabaseGeneral);
+		    }
+		    catch
+		    {
+		    }
 	    }
 	    
 	    //private static AConnection _connection;

@@ -5,7 +5,7 @@ using ArangoDriver.Client;
 using ArangoDriver.External.dictator;
 using NUnit.Framework;
 
-namespace Tests.CollectionOperations
+namespace Tests.Operations
 {
     [TestFixture()]
     public class CollectionOperationsTests : TestBase
