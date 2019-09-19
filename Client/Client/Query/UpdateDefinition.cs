@@ -6,9 +6,9 @@ using ArangoDriver.Expressions;
 
 namespace ArangoDriver.Client
 {
-    public static class UpdateBuilder
+    public static class UpdateBuilder<T>
     {
-        public static UpdateDefinition<T> Update<T>(string alias, string collectionName)
+        public static UpdateDefinition<T> Update(string alias, string collectionName)
         {
             return new UpdateDefinition<T>(alias, collectionName);
         }
@@ -43,11 +43,24 @@ namespace ArangoDriver.Client
 
             return this;
         }
-        public UpdateDefinition<T> Set(Expression<Func<T, object>> field, object value)
+        public UpdateDefinition<T> Set<TV>(Expression<Func<T, TV>> field, TV value)
         {
-            var expression = new FieldExpression<T>(field);
+            var expression = new FieldExpression<T, TV>(field);
             
             return Set(expression.Field, value);
+        }
+
+        public UpdateDefinition<T> Inc(string alias, string field, double value)
+        {
+            _updates.Add(field + ": " + alias + "." + field + value.ToString("+0;-#"));
+
+            return this;
+        }
+        public UpdateDefinition<T> Inc(Expression<Func<T, double>> field, double value)
+        {
+            var expression = new FieldExpression<T, double>(field);
+            
+            return Inc(expression.Name, expression.Field, value);
         }
 
         public bool IsEmpty()

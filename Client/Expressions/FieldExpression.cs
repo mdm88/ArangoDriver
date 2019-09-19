@@ -5,12 +5,12 @@ using Newtonsoft.Json;
 
 namespace ArangoDriver.Expressions
 {
-    internal class FieldExpression<T>
+    internal class FieldExpression<T, TV>
     {
         public string Field { get; }
         public string Name { get; }
         
-        public FieldExpression(Expression<Func<T, object>> expression)
+        public FieldExpression(Expression<Func<T, TV>> expression)
         {
             Field = "";
             Name = expression.Parameters.First().Name;

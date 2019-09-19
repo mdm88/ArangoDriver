@@ -43,9 +43,9 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Determines an array of attribute paths in the collection with hash, fulltext, geo or skiplist indexes.
         /// </summary>
-        public IndexBuilder<T> Fields(params Expression<Func<T, object>>[] values)
+        public IndexBuilder<T> Fields<TV>(params Expression<Func<T, TV>>[] values)
         {
-	        _create.Fields = values.Select(x => new FieldExpression<T>(x).Field).ToList();
+	        _create.Fields = values.Select(x => new FieldExpression<T, TV>(x).Field).ToList();
 
 	        return this;
         }

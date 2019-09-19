@@ -27,7 +27,7 @@ namespace Tests.QueryBuilder
         {
             AQuery query = _db.Query
                 .Aql("FOR x IN " + TestDocumentCollectionName)
-                .Filter(FilterBuilder.Equals<Dummy>( x => x.Foo, "asd"));
+                .Filter(FilterBuilder<Dummy>.Eq( x => x.Foo, "asd"));
             
             Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " FILTER x.Foo = @var0", query.Query);
             Assert.AreEqual("asd", query.BindVars["var0"]);

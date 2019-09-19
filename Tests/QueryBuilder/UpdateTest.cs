@@ -25,7 +25,21 @@ namespace Tests.QueryBuilder
         [Test]
         public void SimpleTest()
         {
-            UpdateDefinition<Dummy> upd = UpdateBuilder.Update<Dummy>("x", TestDocumentCollectionName)
+            UpdateDefinition<Dummy> upd = UpdateBuilder<Dummy>.Update("x", TestDocumentCollectionName)
+                .Set(x => x.Foo, "asdf");
+            
+            AQuery query = _db.Query
+                .Aql("FOR x IN " + TestDocumentCollectionName)
+                .Update(upd);
+
+            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { Foo: @set0 } IN " + TestDocumentCollectionName, query.Query);
+            Assert.AreEqual("asdf", query.BindVars["set0"]);
+        }
+        
+        [Test]
+        public void MultipleTest()
+        {
+            UpdateDefinition<Dummy> upd = UpdateBuilder<Dummy>.Update("x", TestDocumentCollectionName)
                 .Set(x => x.Foo, "asdf")
                 .Set(x => x.Id, "1235");
             
@@ -36,6 +50,34 @@ namespace Tests.QueryBuilder
             Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { Foo: @set0, _id: @set1 } IN " + TestDocumentCollectionName, query.Query);
             Assert.AreEqual("asdf", query.BindVars["set0"]);
             Assert.AreEqual("1235", query.BindVars["set1"]);
+        }
+        
+        [Test]
+        public void IncTest()
+        {
+            UpdateDefinition<Dummy> upd = UpdateBuilder<Dummy>.Update("x", TestDocumentCollectionName)
+                .Inc(x => x.Bar, 38);
+            
+            AQuery query = _db.Query
+                .Aql("FOR x IN " + TestDocumentCollectionName)
+                .Update(upd);
+
+            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { Bar: x.Bar+38 } IN " + TestDocumentCollectionName, query.Query);
+            Assert.IsEmpty(query.BindVars);
+        }
+        
+        [Test]
+        public void IncNegativeTest()
+        {
+            UpdateDefinition<Dummy> upd = UpdateBuilder<Dummy>.Update("x", TestDocumentCollectionName)
+                .Inc(x => x.Bar, -5);
+            
+            AQuery query = _db.Query
+                .Aql("FOR x IN " + TestDocumentCollectionName)
+                .Update(upd);
+
+            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { Bar: x.Bar-5 } IN " + TestDocumentCollectionName, query.Query);
+            Assert.IsEmpty(query.BindVars);
         }
     }
 }

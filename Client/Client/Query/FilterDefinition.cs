@@ -5,25 +5,81 @@ using ArangoDriver.Expressions;
 
 namespace ArangoDriver.Client
 {
-    public static class FilterBuilder
+    public static class FilterBuilder<T>
     {
         private static int _vars = 0;
         
-        public static FilterDefinition Equals(string field, object value)
+        public static FilterDefinition Eq(string field, object value)
         {
             string var = "var" + _vars++;
             string expression = "FILTER " + field + " = @" + var;
 
             return new FilterDefinition(expression, new Dictionary<string, object>() {{var, value}});
         }
-        public static FilterDefinition Equals<T>(Expression<Func<T, object>> field, object value)
+        public static FilterDefinition Eq<TV>(Expression<Func<T, TV>> field, TV value)
         {
-            var expression = new FieldExpression<T>(field);
+            var expression = new FieldExpression<T, TV>(field);
             
-            return Equals(expression.Name + "." + expression.Field, value);
+            return Eq(expression.Name + "." + expression.Field, value);
+        }
+        
+        public static FilterDefinition Gt(string field, object value)
+        {
+            string var = "var" + _vars++;
+            string expression = "FILTER " + field + " > @" + var;
+
+            return new FilterDefinition(expression, new Dictionary<string, object>() {{var, value}});
+        }
+        public static FilterDefinition Gt<TV>(Expression<Func<T, TV>> field, TV value)
+        {
+            var expression = new FieldExpression<T, TV>(field);
+            
+            return Gt(expression.Name + "." + expression.Field, value);
+        }
+        
+        public static FilterDefinition Gte(string field, object value)
+        {
+            string var = "var" + _vars++;
+            string expression = "FILTER " + field + " >= @" + var;
+
+            return new FilterDefinition(expression, new Dictionary<string, object>() {{var, value}});
+        }
+        public static FilterDefinition Gte<TV>(Expression<Func<T, TV>> field, TV value)
+        {
+            var expression = new FieldExpression<T, TV>(field);
+            
+            return Gte(expression.Name + "." + expression.Field, value);
+        }
+        
+        public static FilterDefinition Lt(string field, object value)
+        {
+            string var = "var" + _vars++;
+            string expression = "FILTER " + field + " < @" + var;
+
+            return new FilterDefinition(expression, new Dictionary<string, object>() {{var, value}});
+        }
+        public static FilterDefinition Lt<TV>(Expression<Func<T, TV>> field, TV value)
+        {
+            var expression = new FieldExpression<T, TV>(field);
+            
+            return Lt(expression.Name + "." + expression.Field, value);
+        }
+        
+        public static FilterDefinition Lte(string field, object value)
+        {
+            string var = "var" + _vars++;
+            string expression = "FILTER " + field + " <= @" + var;
+
+            return new FilterDefinition(expression, new Dictionary<string, object>() {{var, value}});
+        }
+        public static FilterDefinition Lte<TV>(Expression<Func<T, TV>> field, TV value)
+        {
+            var expression = new FieldExpression<T, TV>(field);
+            
+            return Lte(expression.Name + "." + expression.Field, value);
         }
 
-        public static FilterDefinition In(string field, List<object> values)
+        public static FilterDefinition In<TV>(string field, IEnumerable<TV> values)
         {
             string expression = "FILTER " + field + " IN [";
             
@@ -41,9 +97,9 @@ namespace ArangoDriver.Client
             
             return new FilterDefinition(expression, vars);
         }
-        public static FilterDefinition In<T>(string item, Expression<Func<T, object>> field, List<object> values)
+        public static FilterDefinition In<TV>(Expression<Func<T, TV>> field, IEnumerable<TV> values)
         {
-            var expression = new FieldExpression<T>(field);
+            var expression = new FieldExpression<T, TV>(field);
             
             return In(expression.Name + "." + expression.Field, values);
         }

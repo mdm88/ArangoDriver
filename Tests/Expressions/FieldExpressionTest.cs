@@ -21,7 +21,7 @@ namespace Tests.Expressions
         [Test]
         public void SimpleTest()
         {
-            var expression = new FieldExpression<Dummy>(x => x.Foo);
+            var expression = new FieldExpression<Dummy, string>(x => x.Foo);
             
             Assert.AreEqual("Foo", expression.Field);
         }
@@ -29,7 +29,7 @@ namespace Tests.Expressions
         [Test]
         public void ComplexTest()
         {
-            var expression = new FieldExpression<Complex>(x => x.dum.Bar);
+            var expression = new FieldExpression<Complex, int>(x => x.dum.Bar);
             
             Assert.AreEqual("dum.Bar", expression.Field);
         }
@@ -37,7 +37,7 @@ namespace Tests.Expressions
         [Test]
         public void InterfaceTest()
         {
-            var expression = new FieldExpression<IComplex>(x => x.dum.Bar);
+            var expression = new FieldExpression<IComplex, int>(x => x.dum.Bar);
             
             Assert.AreEqual("dum.Bar", expression.Field);
         }
@@ -45,7 +45,7 @@ namespace Tests.Expressions
         [Test]
         public void RenamedTest()
         {
-            var expression = new FieldExpression<Complex>(x => x.asd.Bar);
+            var expression = new FieldExpression<Complex, int>(x => x.asd.Bar);
             
             Assert.AreEqual("renamed.Bar", expression.Field);
         }
@@ -53,7 +53,7 @@ namespace Tests.Expressions
         [Test]
         public void VariableNameTest()
         {
-            var expression = new FieldExpression<Dummy>(x => x.Foo);
+            var expression = new FieldExpression<Dummy, string>(x => x.Foo);
             
             Assert.AreEqual("x", expression.Name);
         }
