@@ -49,5 +49,13 @@ namespace Tests.Expressions
             
             Assert.AreEqual("renamed.Bar", expression.Field);
         }
+
+        [Test]
+        public void VariableNameTest()
+        {
+            var expression = new FieldExpression<Dummy>(x => x.Foo);
+            
+            Assert.AreEqual("x", expression.Name);
+        }
     }
 }

@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using ArangoDriver.Exceptions;
+using ArangoDriver.Expressions;
 using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 using ArangoDriver.Protocol.Requests;
@@ -25,6 +28,9 @@ namespace ArangoDriver.Client
             _connection = connection;
         }
         
+        public string Query => _query.ToString();
+        public Dictionary<string, object> BindVars => _bindVars;
+
         #region Parameters
         
         /// <summary>
@@ -86,7 +92,48 @@ namespace ArangoDriver.Client
         
         #endregion
         
-        #region Retrieve list result (POST)
+        #region QueryBuilder
+
+        public AQuery For(string collectionName, string alias)
+        {
+            Aql("FOR " + alias + " IN " + collectionName);
+
+            return this;
+        }
+        
+        public AQuery Filter(FilterDefinition definition)
+        {
+            Aql(definition.Expression);
+            definition.Values.ToList().ForEach(x => _bindVars[x.Key] = x.Value);
+            
+            return this;
+        }
+
+        public AQuery Update<T>(UpdateDefinition<T> definition)
+        {
+            Aql(definition.Expression);
+            definition.Values.ToList().ForEach(x => _bindVars[x.Key] = x.Value);
+            
+            return this;
+        }
+
+        public AQuery Limit(int quantity)
+        {
+            Aql("LIMIT " + quantity);
+
+            return this;
+        }
+
+        public AQuery Return(string alias)
+        {
+            Aql("RETURN " + alias);
+
+            return this;
+        }
+        
+        #endregion
+        
+        #region Operation
         
         /// <summary>
         /// Retrieves result value as list of objects.
@@ -168,10 +215,6 @@ namespace ArangoDriver.Client
             return result;
         }
         
-        #endregion
-        
-        #region Retrieve single result (POST)
-        
         /// <summary>
         /// Retrieves result value as single generic object.
         /// </summary>
@@ -208,10 +251,6 @@ namespace ArangoDriver.Client
             return ToObject<object>();
         }
 
-        #endregion
-
-        #region Retrieve non-query result (POST)
-
         /// <summary>
         /// Retrieves result which does not contain value. This can be used to execute non-query operations where only success information is relevant.
         /// </summary>
@@ -228,10 +267,6 @@ namespace ArangoDriver.Client
 
             return result;
         }
-
-        #endregion
-
-        #region More results in cursor (PUT)
 
         internal async Task<AResult<List<T>>> Put<T>(string cursorID)
         {
@@ -279,10 +314,6 @@ namespace ArangoDriver.Client
             return result;
         }
         
-        #endregion
-        
-        #region Parse (POST)
-
         /// <summary>
         /// Analyzes specified AQL query.
         /// </summary>
@@ -329,10 +360,6 @@ namespace ArangoDriver.Client
             return result;
         }
         
-        #endregion
-        
-        #region Delete cursor (DELETE)
-
         // TODO: check docs - https://docs.arangodb.com/HttpAqlQuery/index.html
         // in docs status code is 200 and it isn't clear what is returned in data
         /// <summary>

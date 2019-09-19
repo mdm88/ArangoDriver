@@ -8,10 +8,12 @@ namespace ArangoDriver.Expressions
     internal class FieldExpression<T>
     {
         public string Field { get; }
+        public string Name { get; }
         
         public FieldExpression(Expression<Func<T, object>> expression)
         {
             Field = "";
+            Name = expression.Parameters.First().Name;
             
             MemberExpression e = expression.Body as MemberExpression ?? (expression.Body as UnaryExpression)?.Operand as MemberExpression;
             while (e != null)
