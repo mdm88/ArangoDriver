@@ -6,15 +6,12 @@ using ArangoDriver.Expressions;
 namespace ArangoDriver.Client
 {
     public static class FilterBuilder<T>
-    {
-        private static int _vars = 0;
-        
+    {   
         public static FilterDefinition Eq(string field, object value)
         {
-            string var = "var" + _vars++;
-            string expression = "FILTER " + field + " = @" + var;
+            string expression = "FILTER " + field + " = @{0}";
 
-            return new FilterDefinition(expression, new Dictionary<string, object>() {{var, value}});
+            return new FilterDefinition(expression, new List<object>() {value});
         }
         public static FilterDefinition Eq<TV>(Expression<Func<T, TV>> field, TV value)
         {
@@ -25,10 +22,9 @@ namespace ArangoDriver.Client
         
         public static FilterDefinition Gt(string field, object value)
         {
-            string var = "var" + _vars++;
-            string expression = "FILTER " + field + " > @" + var;
+            string expression = "FILTER " + field + " > @{0}";
 
-            return new FilterDefinition(expression, new Dictionary<string, object>() {{var, value}});
+            return new FilterDefinition(expression, new List<object>() {value});
         }
         public static FilterDefinition Gt<TV>(Expression<Func<T, TV>> field, TV value)
         {
@@ -39,10 +35,9 @@ namespace ArangoDriver.Client
         
         public static FilterDefinition Gte(string field, object value)
         {
-            string var = "var" + _vars++;
-            string expression = "FILTER " + field + " >= @" + var;
+            string expression = "FILTER " + field + " >= @{0}";
 
-            return new FilterDefinition(expression, new Dictionary<string, object>() {{var, value}});
+            return new FilterDefinition(expression, new List<object>() {value});
         }
         public static FilterDefinition Gte<TV>(Expression<Func<T, TV>> field, TV value)
         {
@@ -53,10 +48,9 @@ namespace ArangoDriver.Client
         
         public static FilterDefinition Lt(string field, object value)
         {
-            string var = "var" + _vars++;
-            string expression = "FILTER " + field + " < @" + var;
+            string expression = "FILTER " + field + " < @{0}";
 
-            return new FilterDefinition(expression, new Dictionary<string, object>() {{var, value}});
+            return new FilterDefinition(expression, new List<object>() {value});
         }
         public static FilterDefinition Lt<TV>(Expression<Func<T, TV>> field, TV value)
         {
@@ -67,10 +61,9 @@ namespace ArangoDriver.Client
         
         public static FilterDefinition Lte(string field, object value)
         {
-            string var = "var" + _vars++;
-            string expression = "FILTER " + field + " <= @" + var;
+            string expression = "FILTER " + field + " <= @{0}";
 
-            return new FilterDefinition(expression, new Dictionary<string, object>() {{var, value}});
+            return new FilterDefinition(expression, new List<object>() {value});
         }
         public static FilterDefinition Lte<TV>(Expression<Func<T, TV>> field, TV value)
         {
@@ -83,14 +76,13 @@ namespace ArangoDriver.Client
         {
             string expression = "FILTER " + field + " IN [";
             
-            Dictionary<string, object> vars = new Dictionary<string, object>();
+            List<object> vars = new List<object>();
+            int i = 0;
             foreach (object value in values)
             {
-                string var = "var" + _vars++;
-
-                expression += "@" + var + ",";
+                expression += "@{" + i++ + "},";
                 
-                vars.Add(var, value);
+                vars.Add(value);
             }
             
             expression = expression.Substring(0, expression.Length - 1) + "]";
@@ -108,9 +100,9 @@ namespace ArangoDriver.Client
     public class FilterDefinition
     {
         internal string Expression { get; }
-        internal Dictionary<string, object> Values { get; }
+        internal List<object> Values { get; }
         
-        public FilterDefinition(string expression, Dictionary<string, object> values)
+        public FilterDefinition(string expression, List<object> values)
         {
             Expression = expression;
             Values = values;

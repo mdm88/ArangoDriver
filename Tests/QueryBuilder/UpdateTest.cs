@@ -32,8 +32,8 @@ namespace Tests.QueryBuilder
                 .Aql("FOR x IN " + TestDocumentCollectionName)
                 .Update(upd);
 
-            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { Foo: @set0 } IN " + TestDocumentCollectionName, query.Query);
-            Assert.AreEqual("asdf", query.BindVars["set0"]);
+            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { Foo: @var0 } IN " + TestDocumentCollectionName, query.Query);
+            Assert.AreEqual("asdf", query.BindVars["var0"]);
         }
         
         [Test]
@@ -47,9 +47,9 @@ namespace Tests.QueryBuilder
                 .Aql("FOR x IN " + TestDocumentCollectionName)
                 .Update(upd);
 
-            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { Foo: @set0, _id: @set1 } IN " + TestDocumentCollectionName, query.Query);
-            Assert.AreEqual("asdf", query.BindVars["set0"]);
-            Assert.AreEqual("1235", query.BindVars["set1"]);
+            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { Foo: @var0, _id: @var1 } IN " + TestDocumentCollectionName, query.Query);
+            Assert.AreEqual("asdf", query.BindVars["var0"]);
+            Assert.AreEqual("1235", query.BindVars["var1"]);
         }
         
         [Test]

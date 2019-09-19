@@ -94,25 +94,50 @@ namespace ArangoDriver.Client
         
         #region QueryBuilder
 
+        private int _anonymousBindedVars = 0;
+        private string BindVar(object value)
+        {
+            string var = "var" + _anonymousBindedVars++;
+
+            BindVar(var, value);
+
+            return var;
+        }
+        
+
         public AQuery For(string collectionName, string alias)
         {
             Aql("FOR " + alias + " IN " + collectionName);
 
             return this;
         }
-        
+
         public AQuery Filter(FilterDefinition definition)
         {
-            Aql(definition.Expression);
-            definition.Values.ToList().ForEach(x => _bindVars[x.Key] = x.Value);
+            string expression = definition.Expression;
+            int i = 0;
+            foreach (object value in definition.Values)
+            {
+                string bindedVar = BindVar(value);
+                expression = expression.Replace("{" + i++ + "}", bindedVar);
+            }
+
+            Aql(expression);
             
             return this;
         }
 
         public AQuery Update<T>(UpdateDefinition<T> definition)
         {
-            Aql(definition.Expression);
-            definition.Values.ToList().ForEach(x => _bindVars[x.Key] = x.Value);
+            string expression = definition.Expression;
+            int i = 0;
+            foreach (object value in definition.Values)
+            {
+                string bindedVar = BindVar(value);
+                expression = expression.Replace("{" + i++ + "}", bindedVar);
+            }
+            
+            Aql(expression);
             
             return this;
         }
