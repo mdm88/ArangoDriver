@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Arango.Tests;
 using ArangoDriver.Client;
@@ -29,7 +30,7 @@ namespace Tests.QueryBuilder
                 .Aql("FOR x IN " + TestDocumentCollectionName)
                 .Filter(FilterBuilder<Dummy>.Eq( x => x.Foo, "asd"));
             
-            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " FILTER x.Foo = @var0", query.Query);
+            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " FILTER x.Foo == @var0", query.Query);
             Assert.AreEqual("asd", query.BindVars["var0"]);
         }
         
@@ -44,6 +45,19 @@ namespace Tests.QueryBuilder
             Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " FILTER x.Baz < @var0 FILTER x.Bar >= @var1", query.Query);
             Assert.AreEqual(50, query.BindVars["var0"]);
             Assert.AreEqual(1, query.BindVars["var1"]);
+        }
+        
+        [Test]
+        public void TypeTest()
+        {
+            Type dummyType = typeof(Dummy);
+            
+            AQuery query = _db.Query
+                .Aql("FOR x IN " + TestDocumentCollectionName)
+                .Filter(FilterBuilder<Dummy>.Eq(x => x.GetType(), dummyType));
+            
+            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " FILTER x.$type == @var0", query.Query);
+            Assert.AreEqual(dummyType.FullName + ", "  + dummyType.Assembly.GetName().Name, query.BindVars["var0"]);
         }
     }
 }

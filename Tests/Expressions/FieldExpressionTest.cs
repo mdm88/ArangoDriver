@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using ArangoDriver.Expressions;
 using Newtonsoft.Json;
 using NUnit.Framework;
@@ -12,6 +15,8 @@ namespace Tests.Expressions
             
             [JsonProperty(PropertyName = "renamed")]
             public Dummy asd { get; set; }
+            
+            public List<Dummy> list { get; set; }
         }
         public interface IComplex
         {
@@ -56,6 +61,22 @@ namespace Tests.Expressions
             var expression = new FieldExpression<Dummy, string>(x => x.Foo);
             
             Assert.AreEqual("x", expression.Name);
+        }
+
+        [Test]
+        public void CountExpressionTest()
+        {
+            var expression = new FilterFieldExpression<Complex, int>(x => x.list.Count());
+            
+            Assert.AreEqual("COUNT(x.list)", expression.Field);
+        }
+
+        [Test]
+        public void TypeExpressionTest()
+        {
+            var expression = new FilterFieldExpression<Complex, Type>(x => x.GetType());
+            
+            Assert.AreEqual("x.$type", expression.Field);
         }
     }
 }
