@@ -73,37 +73,9 @@ namespace ArangoDriver.Protocol
             return uri.ToString();
         }
         
-        internal void TrySetHeaderParameter(string parameterName, Dictionary<string, object> parameters)
-        {
-            if (parameters.ContainsKey(parameterName))
-            {
-                string value = (string)parameters[parameterName];
-                if (parameterName == ParameterName.IfMatch)
-                    value = "\"" + value + "\"";
-                
-                Headers.Add(parameterName, value);
-            }
-        }
-        
-        internal void TrySetQueryStringParameter(string parameterName, Dictionary<string, object> parameters)
-        {
-            if (parameters.ContainsKey(parameterName))
-            {
-                QueryString.Add(parameterName, (string)parameters[parameterName]);
-            }
-        }
-
         internal void SetBody<T>(T obj)
         {
             Body = _jsonSerializer.Serialize(obj);
-        }
-        
-        internal static void TrySetBodyParameter(string parameterName, Dictionary<string, object> source, Dictionary<string, object> destination)
-        {
-            if (source.ContainsKey(parameterName))
-            {
-                destination[parameterName] = source[parameterName];
-            }
         }
     }
 }

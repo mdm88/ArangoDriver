@@ -72,16 +72,6 @@ namespace Arango.Tests
 	    public static string TestDocumentCollectionName { get; } = "testDocumentCollection";
 	    public static string TestEdgeCollectionName { get; } = "testEdgeCollection";
 
-        public static string Alias { get; set; }
-        public static string SystemAlias { get; set; }
-
-        public static string Hostname { get; set; }
-        public static int Port { get; set; }
-        public static bool IsSecured { get; set; }
-        public static string UserName { get; set; }
-        public static string Password { get; set; }
-        
-        
         protected async Task<List<Dictionary<string, object>>> InsertTestData(ADatabase db)
         {
 	        var collection = db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);

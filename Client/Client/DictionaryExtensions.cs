@@ -9,14 +9,6 @@ namespace ArangoDriver.Client
         #region Field _id
         
         /// <summary>
-        /// Checks if `_id` field is present and has valid format.
-        /// </summary>
-        public static bool HasID(this Dictionary<string, object> dictionary)
-        {
-            return !string.IsNullOrEmpty(ID(dictionary));
-        }
-        
-        /// <summary>
         /// Retrieves value of `_id` field. If the field is missing or has invalid format null value is returned.
         /// </summary>
         public static string ID(this Dictionary<string, object> dictionary)
@@ -59,14 +51,6 @@ namespace ArangoDriver.Client
         #endregion
         
         #region Field _key
-        
-        /// <summary>
-        /// Checks if `_key` field is present and has valid format.
-        /// </summary>
-        public static bool HasKey(this Dictionary<string, object> dictionary)
-        {
-            return !string.IsNullOrEmpty(Key(dictionary));
-        }
         
         /// <summary>
         /// Retrieves value of `_key` field. If the field is missing or has invalid format null value is returned.
@@ -113,14 +97,6 @@ namespace ArangoDriver.Client
         #region Field _rev
         
         /// <summary>
-        /// Checks if `_rev` field is present and has valid format.
-        /// </summary>
-        public static bool HasRev(this Dictionary<string, object> dictionary)
-        {
-            return !string.IsNullOrEmpty(Rev(dictionary));
-        }
-        
-        /// <summary>
         /// Retrieves value of `_rev` field. If the field is missing or has invalid format null value is returned.
         /// </summary>
         public static string Rev(this Dictionary<string, object> dictionary)
@@ -165,14 +141,6 @@ namespace ArangoDriver.Client
         #region Field _from
 
         /// <summary>
-        /// Checks if `_from` field is present and has valid format.
-        /// </summary>
-        public static bool HasFrom(this Dictionary<string, object> dictionary)
-        {
-            return !string.IsNullOrEmpty(From(dictionary));
-        }
-
-        /// <summary>
         /// Retrieves value of `_from` field. If the field is missing or has invalid format null value is returned.
         /// </summary>
         public static string From(this Dictionary<string, object> dictionary)
@@ -215,14 +183,6 @@ namespace ArangoDriver.Client
         #endregion
 
         #region Field _to
-
-        /// <summary>
-        /// Checks if `_to` field is present and has valid format.
-        /// </summary>
-        public static bool HasTo(this Dictionary<string, object> dictionary)
-        {
-            return !string.IsNullOrEmpty(To(dictionary));
-        }
 
         /// <summary>
         /// Retrieves value of `_to` field. If the field is missing or has invalid format null value is returned.
@@ -280,30 +240,6 @@ namespace ArangoDriver.Client
                 if (fieldValue is string)
                 {
                     return Helpers.IsID((string)fieldValue);
-                }
-            }
-            catch (Exception)
-            {
-                isValid = false;
-            }
-            
-            return isValid;
-        }
-        
-        /// <summary>
-        /// Checks if specified field path has valid document key value.
-        /// </summary>
-        public static bool IsKey(this Dictionary<string, object> dictionary, string fieldPath)
-        {
-            var isValid = false;
-            
-            try
-            {
-                var fieldValue = dictionary[fieldPath];
-                
-                if (fieldValue is string)
-                {
-                    return Helpers.IsKey((string)fieldValue);
                 }
             }
             catch (Exception)

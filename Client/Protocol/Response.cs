@@ -14,39 +14,10 @@ namespace ArangoDriver.Protocol
         internal HttpResponseHeaders Headers { get; set; }
         internal string Body { get; set; }
         internal BodyType BodyType { get; set; }
-        //internal Exception Exception { get; set; }
-        //internal AEerror Error { get; set; }
 
         public Response(IJsonSerializer jsonSerializer)
         {
             _jsonSerializer = jsonSerializer;
-        }
-        
-        internal void GetBodyDataType()
-        {            
-            if (string.IsNullOrEmpty(Body))
-            {
-                BodyType = BodyType.Null;
-            }
-            else
-            {
-                var trimmedBody = Body.Trim();
-
-                switch (trimmedBody[0])
-                {
-                    // body contains JSON array
-                    case '[':
-                        BodyType = BodyType.List;
-                        break;
-                    // body contains JSON object
-                    case '{':
-                        BodyType = BodyType.Document;
-                        break;
-                    default:
-                        BodyType = BodyType.Primitive;
-                        break;
-                }
-            }
         }
 
         internal T ParseBody<T>()
