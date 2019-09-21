@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using ArangoDriver.External.dictator;
+using ArangoDriver.Exceptions;
 using ArangoDriver.Protocol;
 
 namespace ArangoDriver.Client
@@ -9,11 +9,13 @@ namespace ArangoDriver.Client
     public class ATransaction
     {
         private readonly RequestFactory _requestFactory;
-        readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
         readonly ADatabase _connection;
         readonly List<string> _readCollections = new List<string>();
         readonly List<string> _writeCollections = new List<string>();
         readonly Dictionary<string, object> _transactionParams = new Dictionary<string, object>();
+
+        private bool? _waitForSync;
+        private int? _lockTimeout;
         
         internal ATransaction(RequestFactory requestFactory, ADatabase connection)
         {
@@ -48,8 +50,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public ATransaction WaitForSync(bool value)
         {
-            // needs to be string value
-            _parameters.String(ParameterName.WaitForSync, value.ToString().ToLower());
+            _waitForSync = value;
         	
         	return this;
         }
@@ -59,7 +60,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public ATransaction LockTimeout(int value)
         {
-            _parameters.Int(ParameterName.LockTimeout, value);
+            _lockTimeout = value;
         	
         	return this;
         }
@@ -69,7 +70,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public ATransaction Param(string key, object value)
         {
-            _transactionParams.Object(key, value);
+            _transactionParams.Add(key, value);
             
             return this;
         }
@@ -85,25 +86,27 @@ namespace ArangoDriver.Client
             var document = new Dictionary<string, object>();
             
             // required
-            document.String(ParameterName.Action, action);
+            document.Add(ParameterName.Action, action);
             // required
             if (_readCollections.Count > 0)
             {
-                document.List(ParameterName.Collections + ".read", _readCollections);
+                document.Add(ParameterName.Collections + ".read", _readCollections);
             }
             // required
             if (_writeCollections.Count > 0)
             {
-                document.List(ParameterName.Collections + ".write", _writeCollections);
+                document.Add(ParameterName.Collections + ".write", _writeCollections);
             }
             // optional
-            Request.TrySetBodyParameter(ParameterName.WaitForSync, _parameters, document);
+            if (_waitForSync.HasValue)
+                document.Add(ParameterName.WaitForSync, _waitForSync.Value);
             // optional
-            Request.TrySetBodyParameter(ParameterName.LockTimeout, _parameters, document);
+            if (_lockTimeout.HasValue)
+                document.Add(ParameterName.LockTimeout, _lockTimeout.Value);
             // optional
             if (_transactionParams.Count > 0)
             {
-                document.Document(ParameterName.Params, _transactionParams);
+                document.Add(ParameterName.Params, _transactionParams);
             }
 
             request.SetBody(document);
@@ -124,14 +127,8 @@ namespace ArangoDriver.Client
                 case 409:
                 case 500:
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
-            
-            _parameters.Clear();
-            _readCollections.Clear();
-            _writeCollections.Clear();
-            _transactionParams.Clear();
             
             return result;
         }

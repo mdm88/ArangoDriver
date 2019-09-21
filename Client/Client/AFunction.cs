@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 
 namespace ArangoDriver.Client
@@ -9,8 +8,11 @@ namespace ArangoDriver.Client
     public class AFunction
     {
         private readonly RequestFactory _requestFactory;
-        readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
         readonly ADatabase _connection;
+
+        private bool? _isDeterministic;
+        private string _namespace;
+        private bool? _group;
         
         internal AFunction(RequestFactory requestFactory, ADatabase connection)
         {
@@ -25,7 +27,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public AFunction IsDeterministic(bool value)
         {
-            _parameters.Bool(ParameterName.IsDeterministic, value);
+            _isDeterministic = value;
             
             return this;
         }
@@ -35,7 +37,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public AFunction Namespace(string value)
         {
-            _parameters.String(ParameterName.Namespace, value);
+            _namespace = value;
             
             return this;
         }
@@ -45,7 +47,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public AFunction Group(bool value)
         {
-            _parameters.String(ParameterName.Group, value.ToString().ToLower());
+            _group = value;
             
             return this;
         }
@@ -63,11 +65,12 @@ namespace ArangoDriver.Client
             var document = new Dictionary<string, object>();
             
             // required
-            document.String(ParameterName.Name, name);
+            document.Add(ParameterName.Name, name);
             // required
-            document.String(ParameterName.Code, code);
+            document.Add(ParameterName.Code, code);
             // optional
-            Request.TrySetBodyParameter(ParameterName.IsDeterministic, _parameters, document);
+            if (_isDeterministic.HasValue)
+                document.Add(ParameterName.IsDeterministic, _isDeterministic.Value.ToString().ToLower());
             
             request.SetBody(document);
             
@@ -87,8 +90,6 @@ namespace ArangoDriver.Client
                     break;
             }
             
-            _parameters.Clear();
-            
             return result;
         }
         
@@ -104,7 +105,8 @@ namespace ArangoDriver.Client
             var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.AqlFunction, "");
             
             // optional
-            request.TrySetQueryStringParameter(ParameterName.Namespace, _parameters);
+            if (!string.IsNullOrEmpty(_namespace))
+                request.QueryString.Add(ParameterName.Namespace, _namespace);
             
             var response = await _connection.Send(request);
             var result = new AResult<List<Dictionary<string, object>>>(response);
@@ -123,8 +125,6 @@ namespace ArangoDriver.Client
                     break;
             }
             
-            _parameters.Clear();
-            
             return result;
         }
         
@@ -140,7 +140,8 @@ namespace ArangoDriver.Client
             var request = _requestFactory.Create(HttpMethod.Delete, ApiBaseUri.AqlFunction, "/" + name);
             
             // optional
-            request.TrySetQueryStringParameter(ParameterName.Group, _parameters);
+            if (_group.HasValue)
+                request.QueryString.Add(ParameterName.Group, _group.Value.ToString().ToLower());
             
             var response = await _connection.Send(request);
             var result = new AResult<bool>(response);
@@ -157,8 +158,6 @@ namespace ArangoDriver.Client
                     // Arango error
                     break;
             }
-            
-            _parameters.Clear();
             
             return result;
         }

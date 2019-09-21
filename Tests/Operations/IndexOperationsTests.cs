@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Arango.Tests;
 using ArangoDriver.Client;
 using ArangoDriver.Exceptions;
-using ArangoDriver.External.dictator;
 using NUnit.Framework;
 
 namespace Tests.Operations
@@ -40,14 +39,14 @@ namespace Tests.Operations
             Assert.IsTrue(createResult.Success);
             Assert.IsTrue(createResult.HasValue);
             Assert.IsTrue(createResult.Value.IsID("id"));
-            Assert.AreEqual(AIndexType.Fulltext, createResult.Value.Enum<AIndexType>("type"));
-            Assert.IsFalse(createResult.Value.Bool("unique"));
-            Assert.IsTrue(createResult.Value.Bool("sparse"));
+            Assert.AreEqual(AIndexType.Fulltext.ToString().ToLower(), createResult.Value["type"]);
+            Assert.IsFalse((bool) createResult.Value["unique"]);
+            Assert.IsTrue((bool) createResult.Value["sparse"]);
             
-            Assert.AreEqual(1, createResult.Value.Size("fields"));
-            new List<string> { "Foo" }.ForEach(field => Assert.IsTrue(createResult.Value.List<string>("fields").Contains(field)));
+            Assert.AreEqual(1, ((List<string>)createResult.Value["fields"]).Count);
+            new List<string> { "Foo" }.ForEach(field => Assert.IsTrue(((List<string>)createResult.Value["fields"]).Contains(field)));
             
-            Assert.IsTrue(createResult.Value.Bool("isNewlyCreated"));
+            Assert.IsTrue((bool) createResult.Value["isNewlyCreated"]);
         }
         
         [Test]
@@ -62,14 +61,14 @@ namespace Tests.Operations
             Assert.IsTrue(createResult.Success);
             Assert.IsTrue(createResult.HasValue);
             Assert.IsTrue(createResult.Value.IsID("id"));
-            Assert.AreEqual("geo", createResult.Value.String("type"));
-            Assert.IsFalse(createResult.Value.Bool("unique"));
-            Assert.IsTrue(createResult.Value.Bool("sparse"));
+            Assert.AreEqual("geo", createResult.Value["type"]);
+            Assert.IsFalse((bool) createResult.Value["unique"]);
+            Assert.IsTrue((bool) createResult.Value["sparse"]);
             
-            Assert.AreEqual(1, createResult.Value.Size("fields"));
-            new List<string> { "Foo" }.ForEach(field => Assert.IsTrue(createResult.Value.List<string>("fields").Contains(field)));
+            Assert.AreEqual(1, ((List<string>)createResult.Value["fields"]).Count);
+            new List<string> { "Foo" }.ForEach(field => Assert.IsTrue(((List<string>)createResult.Value["fields"]).Contains(field)));
             
-            Assert.IsTrue(createResult.Value.Bool("isNewlyCreated"));
+            Assert.IsTrue((bool) createResult.Value["isNewlyCreated"]);
         }
         
         [Test]
@@ -85,15 +84,15 @@ namespace Tests.Operations
             Assert.IsTrue(createResult.Success);
             Assert.IsTrue(createResult.HasValue);
             Assert.IsTrue(createResult.Value.IsID("id"));
-            Assert.AreEqual(AIndexType.Hash, createResult.Value.Enum<AIndexType>("type"));
-            Assert.IsTrue(createResult.Value.Bool("unique"));
-            Assert.IsFalse(createResult.Value.Bool("sparse"));
-            Assert.AreEqual(1, createResult.Value.Int("selectivityEstimate"));
+            Assert.AreEqual(AIndexType.Hash.ToString().ToLower(), createResult.Value["type"]);
+            Assert.IsTrue((bool) createResult.Value["unique"]);
+            Assert.IsFalse((bool) createResult.Value["sparse"]);
+            Assert.AreEqual(1, createResult.Value["selectivityEstimate"]);
             
-            Assert.AreEqual(2, createResult.Value.Size("fields"));
-            new List<string> { "Foo", "Bar" }.ForEach(field => Assert.IsTrue(createResult.Value.List<string>("fields").Contains(field)));
+            Assert.AreEqual(2, ((List<string>)createResult.Value["fields"]).Count);
+            new List<string> { "Foo", "Bar" }.ForEach(field => Assert.IsTrue(((List<string>)createResult.Value["fields"]).Contains(field)));
             
-            Assert.IsTrue(createResult.Value.Bool("isNewlyCreated"));
+            Assert.IsTrue((bool) createResult.Value["isNewlyCreated"]);
         }
         
         [Test]
@@ -109,14 +108,14 @@ namespace Tests.Operations
             Assert.IsTrue(createResult.Success);
             Assert.IsTrue(createResult.HasValue);
             Assert.IsTrue(createResult.Value.IsID("id"));
-            Assert.AreEqual(AIndexType.Skiplist, createResult.Value.Enum<AIndexType>("type"));
-            Assert.IsFalse(createResult.Value.Bool("unique"));
-            Assert.IsFalse(createResult.Value.Bool("sparse"));
+            Assert.AreEqual(AIndexType.Skiplist.ToString().ToLower(), createResult.Value["type"]);
+            Assert.IsFalse((bool) createResult.Value["unique"]);
+            Assert.IsFalse((bool) createResult.Value["sparse"]);
             
-            Assert.AreEqual(2, createResult.Value.Size("fields"));
-            new List<string> { "Foo", "Bar" }.ForEach(field => Assert.IsTrue(createResult.Value.List<string>("fields").Contains(field)));
+            Assert.AreEqual(2, ((List<string>)createResult.Value["fields"]).Count);
+            new List<string> { "Foo", "Bar" }.ForEach(field => Assert.IsTrue(((List<string>)createResult.Value["fields"]).Contains(field)));
             
-            Assert.IsTrue(createResult.Value.Bool("isNewlyCreated"));
+            Assert.IsTrue((bool) createResult.Value["isNewlyCreated"]);
         }
         
         [Test]
@@ -132,15 +131,15 @@ namespace Tests.Operations
             Assert.IsTrue(createResult.Success);
             Assert.IsTrue(createResult.HasValue);
             Assert.IsTrue(createResult.Value.IsID("id"));
-            Assert.AreEqual(AIndexType.Hash, createResult.Value.Enum<AIndexType>("type"));
-            Assert.IsTrue(createResult.Value.Bool("unique"));
-            Assert.IsFalse(createResult.Value.Bool("sparse"));
-            Assert.AreEqual(1, createResult.Value.Int("selectivityEstimate"));
+            Assert.AreEqual(AIndexType.Hash.ToString().ToLower(), createResult.Value["type"]);
+            Assert.IsTrue((bool) createResult.Value["unique"]);
+            Assert.IsFalse((bool) createResult.Value["sparse"]);
+            Assert.AreEqual(1, createResult.Value["selectivityEstimate"]);
             
-            Assert.AreEqual(2, createResult.Value.Size("fields"));
-            new List<string> { "Foo", "Bar" }.ForEach(field => Assert.IsTrue(createResult.Value.List<string>("fields").Contains(field)));
+            Assert.AreEqual(2, ((List<string>)createResult.Value["fields"]).Count);
+            new List<string> { "Foo", "Bar" }.ForEach(field => Assert.IsTrue(((List<string>)createResult.Value["fields"]).Contains(field)));
             
-            Assert.IsTrue(createResult.Value.Bool("isNewlyCreated"));
+            Assert.IsTrue((bool) createResult.Value["isNewlyCreated"]);
             
             var recreateResult = await _collection.Index
                 .New(AIndexType.Hash)
@@ -152,15 +151,15 @@ namespace Tests.Operations
             Assert.IsTrue(recreateResult.Success);
             Assert.IsTrue(recreateResult.HasValue);
             Assert.IsTrue(recreateResult.Value.IsID("id"));
-            Assert.AreEqual(AIndexType.Hash, recreateResult.Value.Enum<AIndexType>("type"));
-            Assert.IsTrue(recreateResult.Value.Bool("unique"));
-            Assert.IsFalse(recreateResult.Value.Bool("sparse"));
-            Assert.AreEqual(1, recreateResult.Value.Int("selectivityEstimate"));
+            Assert.AreEqual(AIndexType.Hash.ToString().ToLower(), recreateResult.Value["type"]);
+            Assert.IsTrue((bool) recreateResult.Value["unique"]);
+            Assert.IsFalse((bool) recreateResult.Value["sparse"]);
+            Assert.AreEqual(1, recreateResult.Value["selectivityEstimate"]);
             
-            Assert.AreEqual(2, recreateResult.Value.Size("fields"));
-            new List<string> { "Foo", "Bar" }.ForEach(field => Assert.IsTrue(recreateResult.Value.List<string>("fields").Contains(field)));
+            Assert.AreEqual(2, ((List<string>)createResult.Value["fields"]).Count);
+            new List<string> { "Foo", "Bar" }.ForEach(field => Assert.IsTrue(((List<string>)createResult.Value["fields"]).Contains(field)));
             
-            Assert.IsFalse(recreateResult.Value.Bool("isNewlyCreated"));
+            Assert.IsFalse((bool) recreateResult.Value["isNewlyCreated"]);
         }
         
         [Test]
@@ -176,19 +175,19 @@ namespace Tests.Operations
             Assert.IsTrue(createResult.Success);
             
             var getResult = await _collection.Index
-                .Get(createResult.Value.String("id"));
+                .Get((string)createResult.Value["id"]);
             
             Assert.AreEqual(200, getResult.StatusCode);
             Assert.IsTrue(getResult.Success);
             Assert.IsTrue(getResult.HasValue);
             Assert.IsTrue(getResult.Value.IsID("id"));
-            Assert.AreEqual(createResult.Value.String("id"), getResult.Value.String("id"));
-            Assert.AreEqual(AIndexType.Hash, getResult.Value.Enum<AIndexType>("type"));
-            Assert.IsTrue(getResult.Value.Bool("unique"));
-            Assert.IsFalse(getResult.Value.Bool("sparse"));
+            Assert.AreEqual(createResult.Value["id"], getResult.Value["id"]);
+            Assert.AreEqual(AIndexType.Hash.ToString().ToLower(), getResult.Value["type"]);
+            Assert.IsTrue((bool) getResult.Value["unique"]);
+            Assert.IsFalse((bool) getResult.Value["sparse"]);
             
-            Assert.AreEqual(2, getResult.Value.Size("fields"));
-            new List<string> { "Foo", "Bar" }.ForEach(field => Assert.IsTrue(getResult.Value.List<string>("fields").Contains(field)));
+            Assert.AreEqual(2, ((List<string>)createResult.Value["fields"]).Count);
+            new List<string> { "Foo", "Bar" }.ForEach(field => Assert.IsTrue(((List<string>)createResult.Value["fields"]).Contains(field)));
         }
         
         [Test]
@@ -204,13 +203,13 @@ namespace Tests.Operations
             Assert.IsTrue(createResult.Success);
             
             var deleteResult = await _collection.Index
-                .Delete(createResult.Value.String("id"));
+                .Delete((string) createResult.Value["id"]);
             
             Assert.AreEqual(200, deleteResult.StatusCode);
             Assert.IsTrue(deleteResult.Success);
             Assert.IsTrue(deleteResult.HasValue);
             Assert.IsTrue(deleteResult.Value.IsID("id"));
-            Assert.AreEqual(createResult.Value.String("id"), deleteResult.Value.String("id"));
+            Assert.AreEqual(createResult.Value["id"], deleteResult.Value["id"]);
         }
         
 

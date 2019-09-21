@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using ArangoDriver.Exceptions;
-using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
+using ArangoDriver.Protocol.Requests;
 
 namespace ArangoDriver.Client
 {
@@ -267,8 +267,10 @@ namespace ArangoDriver.Client
         public async Task<AResult<Dictionary<string, object>>> Rename(string newCollectionName)
         {
             var request = _requestFactory.Create(HttpMethod.Put, ApiBaseUri.Collection, "/" + _collectionName + "/rename");
-            var document = new Dictionary<string, object>()
-                .String(ParameterName.Name, newCollectionName);
+            var document = new CollectionCreateRequest()
+            {
+                Name = newCollectionName
+            };
             
             request.SetBody(document);
             
@@ -322,7 +324,9 @@ namespace ArangoDriver.Client
                     var body = response.ParseBody<Dictionary<string, object>>();
                     
                     result.Success = (body != null);
-                    result.Value = body.Long("count");
+                    
+                    if (body != null)
+                        result.Value = (long) body["count"];
                     break;
                 case 404:
                     throw new CollectionNotFoundException();
@@ -389,9 +393,9 @@ namespace ArangoDriver.Client
 
                     result.Success = (body != null);
 
-                    if (result.Success)
+                    if (body != null)
                     {
-                        result.Value = body.List<Dictionary<string, object>>("edges");
+                        result.Value = body["edges"] as List<Dictionary<string, object>>;
                     }
                     break;
                 case 400:

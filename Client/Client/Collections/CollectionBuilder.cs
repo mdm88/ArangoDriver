@@ -1,23 +1,26 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using ArangoDriver.External.dictator;
+using ArangoDriver.Exceptions;
 using ArangoDriver.Protocol;
+using ArangoDriver.Protocol.Requests;
 
 namespace ArangoDriver.Client
 {
     public class CollectionBuilder
     {
 	    private readonly RequestFactory _requestFactory;
-        private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
         private readonly ADatabase _connection;
-        private readonly string _collectionName;
+        private readonly CollectionCreateRequest _parameters;
         
         internal CollectionBuilder(RequestFactory requestFactory, ADatabase connection, string collectionName)
         {
 	        _requestFactory = requestFactory;
             _connection = connection;
-            _collectionName = collectionName;
+            _parameters = new CollectionCreateRequest()
+            {
+	            Name = collectionName
+            };
         }
         
         #region Parameters
@@ -27,8 +30,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public CollectionBuilder Type(ACollectionType value)
         {
-            // set enum format explicitely to override global setting
-            _parameters.Enum(ParameterName.Type, value, EnumFormat.Integer);
+            _parameters.Type = (int)value;
         	
         	return this;
         }
@@ -38,7 +40,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public CollectionBuilder WaitForSync(bool value)
         {
-            _parameters.Bool(ParameterName.WaitForSync, value);
+            _parameters.WaitForSync = value;
         	
         	return this;
         }
@@ -48,7 +50,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public CollectionBuilder JournalSize(long value)
         {
-            _parameters.Long(ParameterName.JournalSize, value);
+            _parameters.JournalSize = value;
         	
         	return this;
         }
@@ -58,7 +60,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public CollectionBuilder DoCompact(bool value)
         {
-            _parameters.Bool(ParameterName.DoCompact, value);
+            _parameters.DoCompact = value;
         	
         	return this;
         }
@@ -68,7 +70,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public CollectionBuilder IsSystem(bool value)
         {
-            _parameters.Bool(ParameterName.IsSystem, value);
+            _parameters.IsSystem = value;
         	
         	return this;
         }
@@ -78,7 +80,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public CollectionBuilder IsVolatile(bool value)
         {
-            _parameters.Bool(ParameterName.IsVolatile, value);
+            _parameters.IsVolatile = value;
         	
         	return this;
         }
@@ -90,8 +92,11 @@ namespace ArangoDriver.Client
         /// </summary>
         public CollectionBuilder KeyGeneratorType(AKeyGeneratorType value)
         {
+	        if (_parameters.KeyOptions == null)
+		        _parameters.KeyOptions = new KeyOptions();
+
             // needs to be in string format - set enum format explicitely to override global setting
-            _parameters.Enum(ParameterName.KeyOptionsType, value.ToString().ToLower(), EnumFormat.String);
+            _parameters.KeyOptions.Type = value.ToString().ToLower();
         	
         	return this;
         }
@@ -101,7 +106,10 @@ namespace ArangoDriver.Client
         /// </summary>
         public CollectionBuilder AllowUserKeys(bool value)
         {
-            _parameters.Bool(ParameterName.KeyOptionsAllowUserKeys, value);
+	        if (_parameters.KeyOptions == null)
+		        _parameters.KeyOptions = new KeyOptions();
+
+            _parameters.KeyOptions.AllowUserKeys = value;
         	
         	return this;
         }
@@ -111,7 +119,10 @@ namespace ArangoDriver.Client
         /// </summary>
         public CollectionBuilder KeyIncrement(long value)
         {
-            _parameters.Long(ParameterName.KeyOptionsIncrement, value);
+	        if (_parameters.KeyOptions == null)
+		        _parameters.KeyOptions = new KeyOptions();
+
+            _parameters.KeyOptions.Increment = value;
         	
         	return this;
         }
@@ -121,7 +132,10 @@ namespace ArangoDriver.Client
         /// </summary>
         public CollectionBuilder KeyOffset(long value)
         {
-            _parameters.Long(ParameterName.KeyOptionsOffset, value);
+	        if (_parameters.KeyOptions == null)
+		        _parameters.KeyOptions = new KeyOptions();
+
+            _parameters.KeyOptions.Offset = value;
         	
         	return this;
         }
@@ -133,7 +147,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public CollectionBuilder NumberOfShards(int value)
         {
-            _parameters.Int(ParameterName.NumberOfShards, value);
+            _parameters.NumberOfShards = value;
         	
         	return this;
         }
@@ -143,56 +157,46 @@ namespace ArangoDriver.Client
         /// </summary>
         public CollectionBuilder ShardKeys(List<string> value)
         {
-            _parameters.List(ParameterName.ShardKeys, value);
+            _parameters.ShardKeys = value;
         	
         	return this;
         }
         
         /// <summary>
-        /// Determines whether the return value should include the number of documents in collection. Default value: true.
+        /// determines how many copies of each shard are kept on different DBServers. Default value: 1
         /// </summary>
-        public CollectionBuilder Count(bool value)
+        public CollectionBuilder ReplicationFactor(int value)
         {
-            _parameters.Bool(ParameterName.Count, value);
-        	
-        	return this;
-        }
-        
-        #region Checksum options
-        
-        /// <summary>
-        /// Determines whether to include document revision ids in the checksum calculation. Default value: false.
-        /// </summary>
-        public CollectionBuilder WithRevisions(bool value)
-        {
-            // needs to be in string format
-            _parameters.String(ParameterName.WithRevisions, value.ToString().ToLower());
+            _parameters.ReplicationFactor = value;
         	
         	return this;
         }
         
         /// <summary>
-        /// Determines whether to include document body data in the checksum calculation. Default value: false.
+        /// determines how many copies of each shard are kept on different DBServers. Default value: 1
         /// </summary>
-        public CollectionBuilder WithData(bool value)
+        public CollectionBuilder ShardingStrategy(AShardingStrategy value)
         {
-            // needs to be in string format
-            _parameters.String(ParameterName.WithData, value.ToString().ToLower());
+	        switch (value)
+	        {
+		        case AShardingStrategy.Hash:
+			        _parameters.ShardingStrategy = "hash";
+			        break;
+		        case AShardingStrategy.CommunityCompat:
+			        _parameters.ShardingStrategy = "community-compat";
+			        break;
+		        case AShardingStrategy.EnterpriseCompat:
+			        _parameters.ShardingStrategy = "enterprise-compat";
+			        break;
+		        case AShardingStrategy.EnterpriseHashSmartEdge:
+			        _parameters.ShardingStrategy = "enterprise-hash-smart-edge";
+			        break;
+		        case AShardingStrategy.EnterpriseSmartEdgeCompat:
+			        _parameters.ShardingStrategy = "enterprise-smart-edge-compat";
+			        break;
+	        }
         	
-        	return this;
-        }
-        
-        #endregion
-        
-        /// <summary>
-        /// Determines which attribute will be retuned in the list. Default value: Path.
-        /// </summary>
-        public CollectionBuilder ReturnListType(AReturnListType value)
-        {
-            // needs to be string value
-            _parameters.String(ParameterName.Type, value.ToString().ToLower());
-        	
-        	return this;
+	        return this;
         }
         
         #endregion
@@ -203,36 +207,8 @@ namespace ArangoDriver.Client
         public async Task<AResult<Dictionary<string, object>>> Create()
         {
             var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Collection, "");
-            var document = new Dictionary<string, object>();
             
-            // required
-            document.String(ParameterName.Name, _collectionName);
-            // optional
-            Request.TrySetBodyParameter(ParameterName.Type, _parameters, document);
-            // optional
-            Request.TrySetBodyParameter(ParameterName.WaitForSync, _parameters, document);
-            // optional
-            Request.TrySetBodyParameter(ParameterName.JournalSize, _parameters, document);
-            // optional
-            Request.TrySetBodyParameter(ParameterName.DoCompact, _parameters, document);
-            // optional
-            Request.TrySetBodyParameter(ParameterName.IsSystem, _parameters, document);
-            // optional
-            Request.TrySetBodyParameter(ParameterName.IsVolatile, _parameters, document);
-            // optional
-            Request.TrySetBodyParameter(ParameterName.KeyOptionsType, _parameters, document);
-            // optional
-            Request.TrySetBodyParameter(ParameterName.KeyOptionsAllowUserKeys, _parameters, document);
-            // optional
-            Request.TrySetBodyParameter(ParameterName.KeyOptionsIncrement, _parameters, document);
-            // optional
-            Request.TrySetBodyParameter(ParameterName.KeyOptionsOffset, _parameters, document);
-            // optional
-            Request.TrySetBodyParameter(ParameterName.NumberOfShards, _parameters, document);
-            // optional
-            Request.TrySetBodyParameter(ParameterName.ShardKeys, _parameters, document);
-            
-            request.SetBody(document);
+            request.SetBody(_parameters);
             
             var response = await _connection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
@@ -246,11 +222,8 @@ namespace ArangoDriver.Client
                     result.Value = body;
                     break;
                 default:
-                    // Arango error
-                    break;
+                    throw new ArangoException();
             }
-            
-            _parameters.Clear();
             
             return result;
         }

@@ -4,8 +4,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using ArangoDriver.Exceptions;
-using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
+using ArangoDriver.Protocol.Requests;
 using ArangoDriver.Protocol.Responses;
 
 namespace ArangoDriver.Client
@@ -13,8 +13,10 @@ namespace ArangoDriver.Client
     public class DocumentCreate<T> where T : class
     {
         private readonly RequestFactory _requestFactory;
-        private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
         private readonly ACollection<T> _collection;
+
+        private bool? _waitForSync;
+        private bool? _returnNew;
         
         #region Parameters
         
@@ -23,8 +25,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public DocumentCreate<T> WaitForSync(bool value)
         {
-            // needs to be string value
-            _parameters.String(ParameterName.WaitForSync, value.ToString().ToLower());
+            _waitForSync = value;
         	
             return this;
         }
@@ -34,8 +35,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public DocumentCreate<T> ReturnNew()
         {
-            // needs to be string value
-            _parameters.String(ParameterName.ReturnNew, true.ToString().ToLower());
+            _returnNew = true;
 
             return this;
         }
@@ -57,10 +57,10 @@ namespace ArangoDriver.Client
         {
             var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Document, "/" + _collection.Name);
             
-            // optional
-            request.TrySetQueryStringParameter(ParameterName.WaitForSync, _parameters);
-            // optional
-            request.TrySetQueryStringParameter(ParameterName.ReturnNew, _parameters);
+            if (_waitForSync.HasValue)
+                request.QueryString.Add(ParameterName.WaitForSync, _waitForSync.Value.ToString().ToLower());
+            if (_returnNew.HasValue)
+                request.QueryString.Add(ParameterName.ReturnNew, _returnNew.Value.ToString().ToLower());
 
             request.SetBody(document);
             
@@ -72,7 +72,7 @@ namespace ArangoDriver.Client
                 case 201:
                 case 202:
                     T body;
-                    if (_parameters.ContainsKey(ParameterName.ReturnNew) && (string)_parameters[ParameterName.ReturnNew] == "true")
+                    if (_returnNew.HasValue && _returnNew.Value)
                         body = response.ParseBody<DocumentCreateResponse<T>>()?.New;
                     else
                         body = response.ParseBody<T>();
@@ -87,8 +87,6 @@ namespace ArangoDriver.Client
                 default:
                     throw new ArangoException();
             }
-            
-            _parameters.Clear();
             
             return result;
         }
@@ -126,10 +124,10 @@ namespace ArangoDriver.Client
             
             var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Document, "/" + _collection.Name);
             
-            // optional
-            request.TrySetQueryStringParameter(ParameterName.WaitForSync, _parameters);
-            // optional
-            request.TrySetQueryStringParameter(ParameterName.ReturnNew, _parameters);
+            if (_waitForSync.HasValue)
+                request.QueryString.Add(ParameterName.WaitForSync, _waitForSync.Value.ToString().ToLower());
+            if (_returnNew.HasValue)
+                request.QueryString.Add(ParameterName.ReturnNew, _returnNew.Value.ToString().ToLower());
 
             request.SetBody(documents);
             
@@ -145,7 +143,7 @@ namespace ArangoDriver.Client
                         throw new MultipleException();
                     
                     List<T> body;
-                    if (_parameters.ContainsKey(ParameterName.ReturnNew) && (string)_parameters[ParameterName.ReturnNew] == "true")
+                    if (_returnNew.HasValue && _returnNew.Value)
                         body = response.ParseBody<List<DocumentCreateResponse<T>>>().Select(e => e.New).ToList();
                     else
                         body = response.ParseBody<List<T>>();
@@ -158,8 +156,6 @@ namespace ArangoDriver.Client
                 default:
                     throw new ArangoException();
             }
-            
-            _parameters.Clear();
             
             return result;
         }

@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Arango.Tests;
 using ArangoDriver.Client;
 using ArangoDriver.Exceptions;
-using ArangoDriver.External.dictator;
 using NUnit.Framework;
 
 namespace Tests.Operations
@@ -48,10 +47,10 @@ namespace Tests.Operations
             Assert.AreEqual(200, resultCurrent.StatusCode);
             Assert.IsTrue(resultCurrent.Success);
             Assert.IsTrue(resultCurrent.HasValue);
-            Assert.AreEqual(TestDatabaseOneTime, resultCurrent.Value.String("name"));
-            Assert.AreEqual(false, string.IsNullOrEmpty(resultCurrent.Value.String("id")));
-            Assert.AreEqual(false, string.IsNullOrEmpty(resultCurrent.Value.String("path")));
-            Assert.AreEqual(false, resultCurrent.Value.Bool("isSystem"));
+            Assert.AreEqual(TestDatabaseOneTime, resultCurrent.Value["name"]);
+            Assert.AreEqual(false, string.IsNullOrEmpty((string) resultCurrent.Value["id"]));
+            Assert.AreEqual(false, string.IsNullOrEmpty((string) resultCurrent.Value["path"]));
+            Assert.AreEqual(false, resultCurrent.Value["isSystem"]);
         }
         
         [Test]
@@ -71,11 +70,11 @@ namespace Tests.Operations
             Assert.IsTrue(getResult.Success);
             Assert.IsTrue(getResult.HasValue);
             
-            var foundCreatedCollection = getResult.Value.FirstOrDefault(col => col.String("name") == createResult.Value.String("name"));
+            var foundCreatedCollection = getResult.Value.FirstOrDefault(col => (string) col["name"] == (string) createResult.Value["name"]);
             
             Assert.IsNotNull(foundCreatedCollection);
             
-            var foundSystemCollection = getResult.Value.FirstOrDefault(col => col.String("name") == "_system");
+            var foundSystemCollection = getResult.Value.FirstOrDefault(col => (string) col["name"] == "_system");
             
             Assert.IsNull(foundSystemCollection);
         }

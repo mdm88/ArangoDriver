@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
+﻿using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using ArangoDriver.Exceptions;
-using ArangoDriver.Expressions;
-using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 using ArangoDriver.Protocol.Requests;
 using ArangoDriver.Protocol.Responses;
@@ -17,10 +12,13 @@ namespace ArangoDriver.Client
     public class AQuery
     {
         private readonly RequestFactory _requestFactory;
-        readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
         readonly ADatabase _connection;
         readonly StringBuilder _query = new StringBuilder();
         readonly Dictionary<string, object> _bindVars = new Dictionary<string, object>();
+
+        private bool? _count;
+        private int? _ttl;
+        private int? _batchSize;
         
         internal AQuery(RequestFactory requestFactory, ADatabase connection)
         {
@@ -55,7 +53,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public AQuery BindVar(string key, object value)
         {
-            _bindVars.Object(key, value);
+            _bindVars.Add(key, value);
             
             return this;
         }
@@ -65,7 +63,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public AQuery Count(bool value)
         {
-        	_parameters.Bool(ParameterName.Count, value);
+            _count = value;
         	
         	return this;
         }
@@ -75,7 +73,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public AQuery Ttl(int value)
         {
-        	_parameters.Int(ParameterName.TTL, value);
+            _ttl = value;
         	
         	return this;
         }
@@ -85,7 +83,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public AQuery BatchSize(int value)
         {
-        	_parameters.Int(ParameterName.BatchSize, value);
+            _batchSize = value;
         	
         	return this;
         }
@@ -168,28 +166,20 @@ namespace ArangoDriver.Client
             var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Cursor, "");
             var document = new QueryRequest()
             {
-                Query = _query.ToString()
+                Query = _query.ToString(),
+                Count = _count,
+                TTL = _ttl,
+                BatchSize = _batchSize
             };
             
-            // optional
-            if (_parameters.Has(ParameterName.Count))
-                document.Count = _parameters.Bool(ParameterName.Count);
-            // optional
-            if (_parameters.Has(ParameterName.BatchSize))
-                document.BatchSize = _parameters.Int(ParameterName.BatchSize);
-            // optional
-            if (_parameters.Has(ParameterName.TTL))
-                document.TTL = _parameters.Int(ParameterName.TTL);
             // optional
             if (_bindVars.Count > 0)
                 document.BindVars = _bindVars;
             
             // TODO: options parameter
             
-            request.SetBody(document);
-            //this.LastRequest = request.Body;            
+            request.SetBody(document);           
             var response = await _connection.Send(request);
-            //this.LastResponse = response.Body;
             var result = new AResult<List<T>>(response);
             
             switch (response.StatusCode)
@@ -205,7 +195,7 @@ namespace ArangoDriver.Client
                         result.Value.AddRange(body.Result);
                         result.Extra = new Dictionary<string, object>();
                         
-                        CopyExtraBodyFields<List<T>>(body, result.Extra);
+                        CopyExtraBodyFields(body, result.Extra);
                         
                         if (body.HasMore)
                         {
@@ -232,10 +222,6 @@ namespace ArangoDriver.Client
                 default:
                     throw new ArangoException();
             }
-            
-            _parameters.Clear();
-            _bindVars.Clear();
-            _query.Clear();
             
             return result;
         }
@@ -348,7 +334,7 @@ namespace ArangoDriver.Client
             var document = new Dictionary<string, object>();
             
             // required
-            document.String(ParameterName.Query, Minify(query));
+            document[ParameterName.Query] = Minify(query);
             
             request.SetBody(document);
             
@@ -377,10 +363,6 @@ namespace ArangoDriver.Client
                 default:
                     throw new ArangoException();
             }
-            
-            _parameters.Clear();
-            _bindVars.Clear();
-            _query.Clear();
             
             return result;
         }
@@ -411,10 +393,6 @@ namespace ArangoDriver.Client
                 default:
                     throw new ArangoException();
             }
-            
-            _parameters.Clear();
-            _bindVars.Clear();
-            _query.Clear();
             
             return result;
         }
@@ -472,13 +450,13 @@ namespace ArangoDriver.Client
         
         private void CopyExtraBodyFields<T>(Body<T> source, Dictionary<string, object> destination)
         {
-            destination.String("id", source.ID);
-            destination.Long("count", source.Count);
-            destination.Bool("cached", source.Cached);
+            destination.Add("id", source.ID);
+            destination.Add("count", source.Count);
+            destination.Add("cached", source.Cached);
             
             if (source.Extra != null)
             {
-                destination.Document("extra", (Dictionary<string, object>)source.Extra);
+                destination.Add("extra", (Dictionary<string, object>)source.Extra);
             }
         }
     }

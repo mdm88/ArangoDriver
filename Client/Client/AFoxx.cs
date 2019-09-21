@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Threading.Tasks;
-using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 
 namespace ArangoDriver.Client
@@ -9,8 +7,9 @@ namespace ArangoDriver.Client
     public class AFoxx
     {
         private readonly RequestFactory _requestFactory;
-        readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
         readonly ADatabase _connection;
+
+        private object _body;
 
         internal AFoxx(RequestFactory requestFactory, ADatabase connection)
         {
@@ -25,7 +24,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public AFoxx Body(object value)
         {
-            _parameters.Object(ParameterName.Body, value);
+            _body = value;
 
             return this;
         }
@@ -76,17 +75,15 @@ namespace ArangoDriver.Client
         {
             var request = _requestFactory.Create(httpMethod, relativeUri);
 
-            if (_parameters.Has(ParameterName.Body))
+            if (_body != null)
             {
-                request.SetBody(_parameters.Object(ParameterName.Body));
+                request.SetBody(_body);
             }
 
             var response = await _connection.Send(request);
             var result = new AResult<T>(response);
 
             result.Value = response.ParseBody<T>();
-
-            _parameters.Clear();
 
             return result;
         }

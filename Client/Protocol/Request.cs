@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Net;
 using System.Net.Http;
 using System.Text;
-using ArangoDriver.External.dictator;
 using ArangoDriver.Serialization;
 
 namespace ArangoDriver.Protocol
@@ -79,7 +77,7 @@ namespace ArangoDriver.Protocol
         {
             if (parameters.ContainsKey(parameterName))
             {
-                string value = parameters.String(parameterName);
+                string value = (string)parameters[parameterName];
                 if (parameterName == ParameterName.IfMatch)
                     value = "\"" + value + "\"";
                 
@@ -91,7 +89,7 @@ namespace ArangoDriver.Protocol
         {
             if (parameters.ContainsKey(parameterName))
             {
-                QueryString.Add(parameterName, parameters.String(parameterName));
+                QueryString.Add(parameterName, (string)parameters[parameterName]);
             }
         }
 
@@ -102,9 +100,9 @@ namespace ArangoDriver.Protocol
         
         internal static void TrySetBodyParameter(string parameterName, Dictionary<string, object> source, Dictionary<string, object> destination)
         {
-            if (source.Has(parameterName))
+            if (source.ContainsKey(parameterName))
             {
-                destination.Object(parameterName, source.Object(parameterName));
+                destination[parameterName] = source[parameterName];
             }
         }
     }

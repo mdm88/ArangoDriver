@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using ArangoDriver.Exceptions;
-using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 
 namespace ArangoDriver.Client
@@ -50,7 +49,7 @@ namespace ArangoDriver.Client
                     result.Value = body;
                     break;
                 case 412:
-                    var rev = response.ParseBody<Dictionary<string, object>>().String("_rev");
+                    var rev = (string)response.ParseBody<Dictionary<string, object>>()["_rev"];
                     
                     throw new VersionCheckViolationException(rev);
                 case 404:

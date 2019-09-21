@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Arango.Tests;
 using ArangoDriver.Client;
 using ArangoDriver.Exceptions;
-using ArangoDriver.External.dictator;
 using NUnit.Framework;
 
 namespace Tests.Operations
@@ -44,8 +44,8 @@ namespace Tests.Operations
             Assert.AreEqual(201, queryResult.StatusCode);
             Assert.IsTrue(queryResult.Success);
             Assert.IsTrue(queryResult.HasValue);
-            Assert.IsTrue(queryResult.Value.IsString("Foo"));
-            Assert.IsTrue(queryResult.Value.IsLong("Bar"));
+            Assert.IsNotEmpty((string) queryResult.Value["Foo"]);
+            Assert.Greater((long) queryResult.Value["Bar"], 0);
         }
         
         [Test]
@@ -64,10 +64,10 @@ namespace Tests.Operations
             Assert.IsTrue(queryResult.Success);
             Assert.IsTrue(queryResult.HasValue);
             Assert.AreEqual(2, queryResult.Value.Count);
-            Assert.IsTrue(queryResult.Value[0].IsString("Foo"));
-            Assert.IsTrue(queryResult.Value[0].IsLong("Bar"));
-            Assert.IsTrue(queryResult.Value[1].IsString("Foo"));
-            Assert.IsTrue(queryResult.Value[1].IsLong("Bar"));
+            Assert.IsNotEmpty((string) queryResult.Value[0]["Foo"]);
+            Assert.Greater((long) queryResult.Value[0]["Bar"], 0);
+            Assert.IsNotEmpty((string) queryResult.Value[1]["Foo"]);
+            Assert.Greater((long) queryResult.Value[1]["Bar"], 0);
         }
         
         #endregion
@@ -130,8 +130,8 @@ namespace Tests.Operations
             Assert.AreEqual(201, queryResult.StatusCode);
             Assert.IsTrue(queryResult.Success);
             Assert.IsTrue(queryResult.HasValue);
-            Assert.IsTrue(queryResult.Value.IsString("Foo"));
-            Assert.IsTrue(queryResult.Value.IsLong("Bar"));
+            Assert.IsNotEmpty((string) queryResult.Value["Foo"]);
+            Assert.Greater((long) queryResult.Value["Bar"], 0);
         }
         
         [Test]
@@ -151,8 +151,8 @@ namespace Tests.Operations
             Assert.AreEqual(201, queryResult.StatusCode);
             Assert.IsTrue(queryResult.Success);
             Assert.IsTrue(queryResult.HasValue);
-            Assert.IsTrue(documents.First(q => q.String("Foo") == queryResult.Value.Foo) != null);
-            Assert.IsTrue(documents.First(q => q.Int("Bar") == queryResult.Value.Bar) != null);
+            Assert.IsTrue(documents.First(q => (string) q["Foo"] == queryResult.Value.Foo) != null);
+            Assert.IsTrue(documents.First(q => (long) q["Bar"] == queryResult.Value.Bar) != null);
         }
         
         [Test]
@@ -248,10 +248,10 @@ namespace Tests.Operations
             Assert.IsTrue(queryResult.Success);
             Assert.IsTrue(queryResult.HasValue);
             Assert.AreEqual(2, queryResult.Value.Count);
-            Assert.IsTrue(queryResult.Value[0].IsString("Foo"));
-            Assert.IsTrue(queryResult.Value[0].IsLong("Bar"));
-            Assert.IsTrue(queryResult.Value[1].IsString("Foo"));
-            Assert.IsTrue(queryResult.Value[1].IsLong("Bar"));
+            Assert.IsNotEmpty((string) queryResult.Value[0]["Foo"]);
+            Assert.Greater((long) queryResult.Value[0]["Bar"], 0);
+            Assert.IsNotEmpty((string) queryResult.Value[1]["Foo"]);
+            Assert.Greater((long) queryResult.Value[1]["Bar"], 0);
         }
         
         [Test]
@@ -271,10 +271,10 @@ namespace Tests.Operations
             Assert.IsTrue(queryResult.Success);
             Assert.IsTrue(queryResult.HasValue);
             Assert.AreEqual(2, queryResult.Value.Count);
-            Assert.AreEqual(documents[0].String("Foo"), queryResult.Value[0].Foo);
-            Assert.AreEqual(documents[0].Int("Bar"), queryResult.Value[0].Bar);
-            Assert.AreEqual(documents[1].String("Foo"), queryResult.Value[1].Foo);
-            Assert.AreEqual(documents[1].Int("Bar"), queryResult.Value[1].Bar);
+            Assert.AreEqual(documents[0]["Foo"], queryResult.Value[0].Foo);
+            Assert.AreEqual(documents[0]["Bar"], queryResult.Value[0].Bar);
+            Assert.AreEqual(documents[1]["Foo"], queryResult.Value[1].Foo);
+            Assert.AreEqual(documents[1]["Bar"], queryResult.Value[1].Bar);
         }
 
         #endregion
@@ -320,7 +320,7 @@ namespace Tests.Operations
             Assert.IsTrue(queryResult.Success);
             Assert.IsTrue(queryResult.HasValue);
             Assert.AreEqual(queryResult.Value.Count, 2);
-            Assert.AreEqual(queryResult.Extra.Long("count"), 2);
+            Assert.AreEqual(queryResult.Extra["count"], 2);
         }
         
         [Test]
@@ -330,12 +330,12 @@ namespace Tests.Operations
 
             var collection = _db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
             
-            var doc3 = new Dictionary<string, object>()
-                .String("Foo", "Foo string 3");
+            var doc3 = new Dictionary<string, object>();
+            doc3.Add("Foo", "Foo string 3");
             await collection.Insert().Document(doc3);
-            
-            var doc4 = new Dictionary<string, object>()
-                .String("Foo", "Foo string 4");
+
+            var doc4 = new Dictionary<string, object>();
+            doc4.Add("Foo", "Foo string 4");
             await collection.Insert().Document(doc4);
             
             var queryResult = await _db.Query
@@ -392,7 +392,7 @@ namespace Tests.Operations
             Assert.IsTrue(queryResult.Success);
             Assert.IsTrue(queryResult.HasValue);
             Assert.AreEqual(queryResult.Value.Count, 2);
-            Assert.AreEqual(queryResult.Extra.Long("count"), 2);
+            Assert.AreEqual(queryResult.Extra["count"], 2);
         }
         
         [Test]
@@ -409,9 +409,9 @@ namespace Tests.Operations
             Assert.AreEqual(200, parseResult.StatusCode);
             Assert.IsTrue(parseResult.Success);
             Assert.IsTrue(parseResult.HasValue);
-            Assert.IsTrue(parseResult.Value.IsList("bindVars"));
-            Assert.IsTrue(parseResult.Value.IsList("collections"));
-            Assert.IsTrue(parseResult.Value.IsList("ast"));
+            Assert.IsEmpty((IEnumerable) parseResult.Value["bindVars"]);
+            Assert.IsNotEmpty((IEnumerable) parseResult.Value["collections"]);
+            Assert.IsNotEmpty((IEnumerable) parseResult.Value["ast"]);
         }
         
         [Test]
@@ -438,11 +438,11 @@ namespace Tests.Operations
                 ")
                 .ToList<object>();
 
-            Assert.IsTrue(queryResult.Extra.IsString("id"));
+            Assert.IsNotEmpty((string) queryResult.Extra["id"]);
 
             Assert.ThrowsAsync<QueryCursorNotFoundException>(() =>
             {
-                return _db.Query.DeleteCursor(queryResult.Extra.String("id"));
+                return _db.Query.DeleteCursor((string) queryResult.Extra["id"]);
             });
         }
     }

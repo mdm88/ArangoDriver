@@ -25,7 +25,7 @@ namespace ArangoDriver.Client
             
             try
             {
-                id = External.dictator.DictionaryExtensions.String(dictionary, "_id");
+                id = (string) dictionary["_id"];
                 
                 if (!Helpers.IsID(id))
                 {
@@ -51,7 +51,7 @@ namespace ArangoDriver.Client
                 throw new ArgumentException("Specified id value (" + id + ") has invalid format.");
             }
             
-            External.dictator.DictionaryExtensions.SetFieldValue(dictionary, "_id", id);
+            dictionary.Add("_id", id);
             
             return dictionary;
         }
@@ -77,7 +77,7 @@ namespace ArangoDriver.Client
             
             try
             {
-                key = External.dictator.DictionaryExtensions.String(dictionary, "_key");
+                key = (string) dictionary["_key"];
                 
                 if (!Helpers.IsKey(key))
                 {
@@ -103,7 +103,7 @@ namespace ArangoDriver.Client
                 throw new ArgumentException("Specified key value (" + key + ") has invalid format.");
             }
             
-            External.dictator.DictionaryExtensions.SetFieldValue(dictionary, "_key", key);
+            dictionary.Add("_key", key);
             
             return dictionary;
         }
@@ -129,7 +129,7 @@ namespace ArangoDriver.Client
             
             try
             {
-                rev = External.dictator.DictionaryExtensions.String(dictionary, "_rev");
+                rev = (string) dictionary["_rev"];
                 
                 if (!Helpers.IsRev(rev))
                 {
@@ -155,7 +155,7 @@ namespace ArangoDriver.Client
                 throw new ArgumentException("Specified rev value (" + rev + ") has invalid format.");
             }   
             
-            External.dictator.DictionaryExtensions.SetFieldValue(dictionary, "_rev", rev);
+            dictionary.Add("_rev", rev);
             
             return dictionary;
         }
@@ -181,7 +181,7 @@ namespace ArangoDriver.Client
 
             try
             {
-                from = External.dictator.DictionaryExtensions.String(dictionary, "_from");
+                from = (string) dictionary["_from"];
 
                 if (!Helpers.IsID(from))
                 {
@@ -207,7 +207,7 @@ namespace ArangoDriver.Client
                 throw new ArgumentException("Specified id value (" + id + ") has invalid format.");
             }
 
-            External.dictator.DictionaryExtensions.SetFieldValue(dictionary, "_from", id);
+            dictionary.Add("_from", id);
 
             return dictionary;
         }
@@ -233,7 +233,7 @@ namespace ArangoDriver.Client
 
             try
             {
-                to = External.dictator.DictionaryExtensions.String(dictionary, "_to");
+                to = (string) dictionary["_to"];
 
                 if (!Helpers.IsID(to))
                 {
@@ -259,7 +259,7 @@ namespace ArangoDriver.Client
                 throw new ArgumentException("Specified id value (" + id + ") has invalid format.");
             }
 
-            External.dictator.DictionaryExtensions.SetFieldValue(dictionary, "_to", id);
+            dictionary.Add("_to", id);
 
             return dictionary;
         }
@@ -275,7 +275,7 @@ namespace ArangoDriver.Client
             
             try
             {
-                var fieldValue = External.dictator.DictionaryExtensions.GetFieldValue(dictionary, fieldPath);
+                var fieldValue = dictionary[fieldPath];
                 
                 if (fieldValue is string)
                 {
@@ -299,7 +299,7 @@ namespace ArangoDriver.Client
             
             try
             {
-                var fieldValue = External.dictator.DictionaryExtensions.GetFieldValue(dictionary, fieldPath);
+                var fieldValue = dictionary[fieldPath];
                 
                 if (fieldValue is string)
                 {

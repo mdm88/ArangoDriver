@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using ArangoDriver.Exceptions;
-using ArangoDriver.External.dictator;
 using ArangoDriver.Protocol;
 
 namespace ArangoDriver.Client
@@ -11,9 +10,12 @@ namespace ArangoDriver.Client
     public class DocumentDelete<T> where T : class
     {
         private readonly RequestFactory _requestFactory;
-        private readonly Dictionary<string, object> _parameters = new Dictionary<string, object>();
         private readonly ACollection<T> _collection;
 
+        private bool? _waitForSync;
+        private bool? _returnOld;
+        private string _ifMatch;
+        
         #region Parameters
         
         /// <summary>
@@ -21,8 +23,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public DocumentDelete<T> WaitForSync(bool value)
         {
-            // needs to be string value
-            _parameters.String(ParameterName.WaitForSync, value.ToString().ToLower());
+            _waitForSync = value;
         	
             return this;
         }
@@ -32,8 +33,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public DocumentDelete<T> ReturnOld()
         {
-            // needs to be string value
-            _parameters.String(ParameterName.ReturnOld, true.ToString().ToLower());
+            _returnOld = true;
 
             return this;
         }
@@ -43,7 +43,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public DocumentDelete<T> IfMatch(string revision)
         {
-            _parameters.String(ParameterName.IfMatch, revision);
+            _ifMatch = "\"" + revision + "\"";
         	
             return this;
         }
@@ -71,12 +71,12 @@ namespace ArangoDriver.Client
             
             var request = _requestFactory.Create(HttpMethod.Delete, ApiBaseUri.Document, "/" + id);
             
-            // optional
-            request.TrySetQueryStringParameter(ParameterName.WaitForSync, _parameters);
-            // optional
-            request.TrySetQueryStringParameter(ParameterName.ReturnOld, _parameters);
-            // optional
-            request.TrySetHeaderParameter(ParameterName.IfMatch, _parameters);
+            if (_waitForSync.HasValue)
+                request.QueryString.Add(ParameterName.WaitForSync, _waitForSync.Value.ToString().ToLower());
+            if (_returnOld.HasValue)
+                request.QueryString.Add(ParameterName.ReturnOld, _returnOld.Value.ToString().ToLower());
+            if (!String.IsNullOrEmpty(_ifMatch))
+                request.Headers.Add(ParameterName.IfMatch, _ifMatch);
             
             var response = await _collection.Send(request);
             var result = new AResult<Dictionary<string, object>>(response);
@@ -91,7 +91,7 @@ namespace ArangoDriver.Client
                     result.Value = body;
                     break;
                 case 412:
-                    var rev = response.ParseBody<Dictionary<string, object>>().String("_rev");
+                    var rev = (string)response.ParseBody<Dictionary<string, object>>()["_rev"];
                     
                     throw new VersionCheckViolationException(rev);
                 case 404:
@@ -99,8 +99,6 @@ namespace ArangoDriver.Client
                 default:
                     throw new ArangoException();
             }
-            
-            _parameters.Clear();
             
             return result;
         }

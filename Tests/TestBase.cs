@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using ArangoDriver.Client;
-using ArangoDriver.External.dictator;
 using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
 
@@ -89,25 +87,20 @@ namespace Arango.Tests
 	        var collection = db.GetCollection<Dictionary<string, object>>(TestDocumentCollectionName);
 
 	        var documents = new List<Dictionary<string, object>>();
-         	
-	        var document1 = new Dictionary<string, object>()
-		        .String("Foo", "string value one")
-		        .Int("Bar", 1);
+
+	        var document1 = new Dictionary<string, object>();
+	        document1.Add("Foo", "string value one");
+	        document1.Add("Bar", 1);
+
+	        var document2 = new Dictionary<string, object>();
+	        document2.Add("Foo", "string value two");
+	        document2.Add("Bar", 2);
         	
-	        var document2 = new Dictionary<string, object>()
-		        .String("Foo", "string value two")
-		        .Int("Bar", 2);
+	        var createResult1 = await collection.Insert().ReturnNew().Document(document1);
+	        var createResult2 = await collection.Insert().ReturnNew().Document(document2);
         	
-	        var createResult1 = await collection.Insert().Document(document1);
-        	
-	        document1.Merge(createResult1.Value);
-        	
-	        var createResult2 = await collection.Insert().Document(document2);
-        	
-	        document2.Merge(createResult2.Value);
-        	
-	        documents.Add(document1);
-	        documents.Add(document2);
+	        documents.Add(createResult1.Value);
+	        documents.Add(createResult2.Value);
         	
 	        return documents;
         }
