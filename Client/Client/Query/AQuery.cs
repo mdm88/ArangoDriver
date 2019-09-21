@@ -208,10 +208,6 @@ namespace ArangoDriver.Client
                             {
                                 result.Value.AddRange(putResult.Value);
                             }
-                            else
-                            {
-                                result.Error = putResult.Error;
-                            }
                         }
                     }
                     break;
@@ -237,7 +233,6 @@ namespace ArangoDriver.Client
             result.StatusCode = listResult.StatusCode;
             result.Success = listResult.Success;
             result.Extra = listResult.Extra;
-            result.Error = listResult.Error;
             
             if (listResult.Success)
             {
@@ -273,7 +268,6 @@ namespace ArangoDriver.Client
             result.StatusCode = listResult.StatusCode;
             result.Success = listResult.Success;
             result.Extra = listResult.Extra;
-            result.Error = listResult.Error;
             result.Value = null;
 
             return result;
@@ -308,10 +302,6 @@ namespace ArangoDriver.Client
                             if (putResult.Success)
                             {
                                 result.Value.AddRange(putResult.Value);
-                            }
-                            else
-                            {
-                                result.Error = putResult.Error;
                             }
                         }
                     }

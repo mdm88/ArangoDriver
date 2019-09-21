@@ -32,11 +32,6 @@ namespace ArangoDriver.Client
         public T Value { get; set; }
         
         /// <summary>
-        /// If operation ended with failure, this property would contain instance of AEerror object which contains further information about the error.
-        /// </summary>
-        public AEerror Error { get; set; }
-        
-        /// <summary>
         /// Document which might contain additional information on performed operation.
         /// </summary>
         public Dictionary<string, object> Extra { get; set; }

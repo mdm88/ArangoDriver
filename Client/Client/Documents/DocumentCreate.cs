@@ -113,7 +113,6 @@ namespace ArangoDriver.Client
                 {
                     StatusCode = resultSingle.StatusCode,
                     Success = resultSingle.Success,
-                    Error = resultSingle.Error,
                     Extra = resultSingle.Extra,
                     Value = new List<T>()
                     {
