@@ -8,6 +8,30 @@ namespace ArangoDriver.Client
 {
     public static class FilterBuilder<T>
     {
+        public static FilterDefinition Or(IEnumerable<FilterDefinition> filters)
+        {
+            string expression = "FILTER ";
+            List<object> values = new List<object>();
+
+            int i = 0;
+            foreach (FilterDefinition filter in filters)
+            {
+                string exp = filter.Expression.Replace("FILTER ", "");
+
+                for (int j = 0; j < filter.Values.Count; j++)
+                {
+                    exp = exp.Replace("@{" + j + "}", "@{" + i++ + "}");
+                }
+
+                expression += exp + " OR ";
+                values.AddRange(filter.Values);
+            }
+
+            expression = expression.Remove(expression.Length - 4);
+            
+            return new FilterDefinition(expression, values);
+        }
+        
         public static FilterDefinition Basic(string field, string operation, object value)
         {
             string expression = "FILTER " + field + " " + operation + " @{0}";
@@ -36,6 +60,15 @@ namespace ArangoDriver.Client
             return Basic(field, "==", value);
         }
         
+        public static FilterDefinition Neq(string field, object value)
+        {
+            return Basic(field, "!=", value);
+        }
+        public static FilterDefinition Neq<TV>(Expression<Func<T, TV>> field, TV value)
+        {
+            return Basic(field, "!=", value);
+        }
+
         public static FilterDefinition Gt(string field, object value)
         {
             return Basic(field, ">", value);

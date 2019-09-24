@@ -26,11 +26,9 @@ namespace Tests.QueryBuilder
         [Test]
         public void SimpleTest()
         {
-            AQuery query = _db.Query
-                .Aql("FOR x IN " + TestDocumentCollectionName)
-                .Filter(FilterBuilder<Dummy>.Eq( x => x.Foo, "asd"));
+            AQuery query = _db.Query.Filter(FilterBuilder<Dummy>.Eq( x => x.Foo, "asd"));
             
-            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " FILTER x.Foo == @var0", query.Query);
+            Assert.AreEqual("FILTER x.Foo == @var0", query.Query);
             Assert.AreEqual("asd", query.BindVars["var0"]);
         }
         
@@ -38,11 +36,10 @@ namespace Tests.QueryBuilder
         public void MultipleTest()
         {
             AQuery query = _db.Query
-                .Aql("FOR x IN " + TestDocumentCollectionName)
                 .Filter(FilterBuilder<Dummy>.Lt(x => x.Baz, 50))
                 .Filter(FilterBuilder<Dummy>.Gte(x => x.Bar, 1));
             
-            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " FILTER x.Baz < @var0 FILTER x.Bar >= @var1", query.Query);
+            Assert.AreEqual("FILTER x.Baz < @var0 FILTER x.Bar >= @var1", query.Query);
             Assert.AreEqual(50, query.BindVars["var0"]);
             Assert.AreEqual(1, query.BindVars["var1"]);
         }
@@ -52,12 +49,23 @@ namespace Tests.QueryBuilder
         {
             Type dummyType = typeof(Dummy);
             
-            AQuery query = _db.Query
-                .Aql("FOR x IN " + TestDocumentCollectionName)
-                .Filter(FilterBuilder<Dummy>.Eq(x => x.GetType(), dummyType));
+            AQuery query = _db.Query.Filter(FilterBuilder<Dummy>.Eq(x => x.GetType(), dummyType));
             
-            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " FILTER x.$type == @var0", query.Query);
+            Assert.AreEqual("FILTER x.$type == @var0", query.Query);
             Assert.AreEqual(dummyType.FullName + ", "  + dummyType.Assembly.GetName().Name, query.BindVars["var0"]);
+        }
+        
+        [Test]
+        public void OrTest()
+        {
+            var f1 = FilterBuilder<Dummy>.Eq(x => x.Foo, "asd");
+            var f2 = FilterBuilder<Dummy>.Gt(x => x.Bar, 1);
+
+            AQuery query = _db.Query.Filter(FilterBuilder<Dummy>.Or(new[] {f1, f2}));
+            
+            Assert.AreEqual("FILTER x.Foo == @var0 OR x.Bar > @var1", query.Query);
+            Assert.AreEqual("asd", query.BindVars["var0"]);
+            Assert.AreEqual(1, query.BindVars["var1"]);
         }
     }
 }
