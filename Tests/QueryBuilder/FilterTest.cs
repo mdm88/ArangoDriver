@@ -61,7 +61,7 @@ namespace Tests.QueryBuilder
             var f1 = FilterBuilder<Dummy>.Eq(x => x.Foo, "asd");
             var f2 = FilterBuilder<Dummy>.Gt(x => x.Bar, 1);
 
-            AQuery query = _db.Query.Filter(FilterBuilder<Dummy>.Or(new[] {f1, f2}));
+            AQuery query = _db.Query.Filter(FilterBuilder<Dummy>.Or(f1, f2));
             
             Assert.AreEqual("FILTER x.Foo == @var0 OR x.Bar > @var1", query.Query);
             Assert.AreEqual("asd", query.BindVars["var0"]);
