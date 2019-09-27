@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Arango.Tests;
 using ArangoDriver.Client;
@@ -8,7 +9,7 @@ using NUnit.Framework;
 namespace Tests.QueryBuilder
 {
     [TestFixture]
-    public class QueryTest : TestBase
+    public class ValueTest : TestBase
     {
         private ADatabase _db;
         
@@ -25,39 +26,39 @@ namespace Tests.QueryBuilder
         }
         
         [Test]
-        public void ForTest()
+        public void FieldTest()
         {
             AQuery query = _db.Query
-                .For(TestDocumentCollectionName, "x");
+                .Let( "x", AValue<Dummy>.Field(x => x.Bar));
             
-            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName, query.Query);
+            Assert.AreEqual("LET x = x.Bar", query.Query);
         }
         
         [Test]
-        public void LimitTest()
+        public void FieldSuffixTest()
         {
             AQuery query = _db.Query
-                .Limit(5);
+                .Let( "x", AValue<Dummy>.Field<int>(x => x.Foo, ".was"));
             
-            Assert.AreEqual("LIMIT 5", query.Query);
+            Assert.AreEqual("LET x = x.Foo.was", query.Query);
         }
         
         [Test]
-        public void LetTest()
+        public void AttributesTest()
         {
             AQuery query = _db.Query
-                .Let("x", AValue.Document<Dummy>(TestDocumentCollectionName, AValue.Field<string>("asd")));
-
-            Assert.AreEqual("LET x = DOCUMENT('" + TestDocumentCollectionName + "',asd)", query.Query);
+                .Let( "x", AValue.Attributes(AValue<Dummy>.Field(x => x.Foo)));
+            
+            Assert.AreEqual("LET x = ATTRIBUTES(x.Foo)", query.Query);
         }
         
         [Test]
-        public void ReturnTest()
+        public void OperationTest()
         {
             AQuery query = _db.Query
-                .Return("x");
+                .Let( "x", AValue.Op(AValue<Dummy>.Field(x => x.Baz), "/", AValue<Dummy>.Field(x => x.Bar)));
             
-            Assert.AreEqual("RETURN x", query.Query);
+            Assert.AreEqual("LET x = x.Baz / x.Bar", query.Query);
         }
     }
 }

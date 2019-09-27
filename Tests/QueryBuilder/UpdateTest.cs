@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Arango.Tests;
 using ArangoDriver.Client;
+using ArangoDriver.Client.Query;
 using NUnit.Framework;
 
 namespace Tests.QueryBuilder

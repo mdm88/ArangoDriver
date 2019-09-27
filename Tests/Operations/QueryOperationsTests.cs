@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Arango.Tests;
 using ArangoDriver.Client;
+using ArangoDriver.Client.Query;
 using ArangoDriver.Exceptions;
 using NUnit.Framework;
 
