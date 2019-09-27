@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using ArangoDriver.Client.Query;
 using ArangoDriver.Exceptions;
 using ArangoDriver.Protocol;
 using ArangoDriver.Protocol.Requests;
