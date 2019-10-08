@@ -80,5 +80,20 @@ namespace Tests.QueryBuilder
             Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { Bar: x.Bar-5 } IN " + TestDocumentCollectionName, query.Query);
             Assert.IsEmpty(query.BindVars);
         }
+        
+        [Test]
+        public void OptionsTest()
+        {
+            UpdateDefinition<Dummy> upd = UpdateBuilder<Dummy>.Update("x", TestDocumentCollectionName)
+                .Set(x => x.Foo, "asdf")
+                .OptMergeObjects(false);
+            
+            AQuery query = _db.Query
+                .Aql("FOR x IN " + TestDocumentCollectionName)
+                .Update(upd);
+
+            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { Foo: @var0 } IN " + TestDocumentCollectionName + " OPTIONS {mergeObjects:false}", query.Query);
+            Assert.AreEqual("asdf", query.BindVars["var0"]);
+        }
     }
 }

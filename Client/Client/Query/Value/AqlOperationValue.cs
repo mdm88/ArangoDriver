@@ -5,24 +5,28 @@ namespace ArangoDriver.Client.Query.Value
     public class AqlOperationValue<T> : IAqlValue<T>
     {
         private readonly string _function;
-        private readonly IAqlValue<T> _value1;
-        private readonly IAqlValue<T> _value2;
+        private readonly IAqlValue<T>[] _values;
         
-        internal AqlOperationValue(string function, IAqlValue<T> value1, IAqlValue<T> value2)
+        internal AqlOperationValue(string function, params IAqlValue<T>[] values)
         {
             _function = function;
-            _value1 = value1;
-            _value2 = value2;
+            _values = values;
         }
 
         public string GetExpression(ref int bindCount)
         {
-            return _value1.GetExpression(ref bindCount) + " " + _function + " " + _value2.GetExpression(ref bindCount);
+            string[] exp = new string[_values.Length];
+            for (int i = 0; i < _values.Length; i++)
+            {
+                exp[i] = _values[i].GetExpression(ref bindCount);
+            }
+
+            return "(" + string.Join(" " + _function + " ", exp) + ")";
         }
 
         public object[] GetBindedVars()
         {
-            return _value1.GetBindedVars().Union(_value2.GetBindedVars()).ToArray();
+            return _values.SelectMany(x => x.GetBindedVars()).ToArray();
         }
     }
 }

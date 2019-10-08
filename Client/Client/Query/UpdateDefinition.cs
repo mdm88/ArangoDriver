@@ -22,9 +22,13 @@ namespace ArangoDriver.Client
         private readonly List<string> _updates;
 
         internal List<object> Values { get; }
+        internal Dictionary<string, object> Options { get; }
 
         public string Expression =>
-            !IsEmpty() ? "UPDATE " + _alias + " WITH { " + string.Join(", ", _updates) + " } IN " + _collectionName : "";
+            !IsEmpty()
+                ? "UPDATE " + _alias + " WITH { " + string.Join(", ", _updates) + " } IN " + _collectionName +
+                  (Options.Count > 0 ? " OPTIONS {" + string.Join(", ", Options.Select(kvp => kvp.Key + ":" + kvp.Value)) + "}" : "")
+                : "";
 
         public UpdateDefinition(string alias, string collectionName)
         {
@@ -32,6 +36,7 @@ namespace ArangoDriver.Client
             _collectionName = collectionName;
             _updates = new List<string>();
             Values = new List<object>();
+            Options = new Dictionary<string, object>();
         }
 
         public UpdateDefinition<T> Set(string field, object value)
@@ -60,6 +65,13 @@ namespace ArangoDriver.Client
             var expression = new FieldExpression<T, double>(field);
             
             return Inc(expression.Name, expression.Field, value);
+        }
+
+        public UpdateDefinition<T> OptMergeObjects(bool mergeObjects)
+        {
+            Options["mergeObjects"] = mergeObjects.ToString().ToLower();
+
+            return this;
         }
 
         public bool IsEmpty()

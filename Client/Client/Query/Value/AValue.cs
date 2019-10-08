@@ -62,6 +62,18 @@ namespace ArangoDriver.Client.Query.Value
         {
             return new AqlOperationValue<T>(op, v1, v2);
         }
+        
+        /// <summary>
+        /// value1 op value2 .... op valueN
+        /// </summary>
+        /// <param name="op">Operand</param>
+        /// <param name="v">Values</param>
+        /// <typeparam name="T">Type of values</typeparam>
+        /// <returns>AqlValue</returns>
+        public static AqlOperationValue<T> Op<T>(string op, params IAqlValue<T>[] v)
+        {
+            return new AqlOperationValue<T>(op, v);
+        }
 
         /// <summary>
         /// @var0 and binds the value
