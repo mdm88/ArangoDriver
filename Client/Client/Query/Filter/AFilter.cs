@@ -26,7 +26,7 @@ namespace ArangoDriver.Client.Query.Filter
         }
         public static AqlFilter Lte<T>(IAqlValue<T> value1, IAqlValue<T> value2)
         {
-            return new AqlFilter(">=", value1, value2);
+            return new AqlFilter("<=", value1, value2);
         }
 
         public static AqlFilter In<T>(IAqlValue<T> value1, AqlArrayValue<T> value2)
