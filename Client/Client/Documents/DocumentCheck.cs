@@ -42,16 +42,15 @@ namespace ArangoDriver.Client
             {
                 case 200:
                 case 304:
-                    if ((response.Headers.ETag.Tag ?? "").Trim().Length > 0)
+                case 404:
+                    if ((response.Headers?.ETag?.Tag ?? "").Trim().Length > 0)
                     {
-                        result.Value = response.Headers.ETag.Tag?.Replace("\"", "");
+                        result.Value = response.Headers?.ETag?.Tag?.Replace("\"", "");
                         result.Success = (result.Value != null);
                     }
                     break;
                 case 412:
                     throw new VersionCheckViolationException(response.Headers.ETag.Tag?.Replace("\"", ""));
-                case 404:
-                    throw new CollectionNotFoundException();
                 default:
                     throw new ArangoException();
             }
