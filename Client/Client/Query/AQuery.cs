@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -227,6 +227,11 @@ namespace ArangoDriver.Client.Query
             Aql("RETURN " + alias);
 
             return this;
+        }
+
+        public AQuery Return<T>(params Expression<Func<T, object>>[] fields)
+        {
+            return Return("{" + String.Join(", ", fields.Select(e => new FieldExpression<T, object>(e)).Select(e => e.Field + ":" + e.Name + "." + e.Field)) + "}");
         }
         
         #endregion

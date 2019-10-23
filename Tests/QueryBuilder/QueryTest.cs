@@ -59,5 +59,14 @@ namespace Tests.QueryBuilder
             
             Assert.AreEqual("RETURN x", query.Query);
         }
+        
+        [Test]
+        public void ReturnPartialTest()
+        {
+            AQuery query = _db.Query
+                .Return<Dummy>(x => x.Key, x => x.Foo);
+            
+            Assert.AreEqual("RETURN {_key:x._key, Foo:x.Foo}", query.Query);
+        }
     }
 }

@@ -58,7 +58,7 @@ namespace Tests.QueryBuilder
             AQuery query = _db.Query
                 .Let( "x", AValue.Op(AValue<Dummy>.Field(x => x.Baz), "/", AValue<Dummy>.Field(x => x.Bar)));
             
-            Assert.AreEqual("LET x = x.Baz / x.Bar", query.Query);
+            Assert.AreEqual("LET x = (x.Baz / x.Bar)", query.Query);
         }
     }
 }
