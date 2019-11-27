@@ -60,7 +60,7 @@ namespace ArangoDriver.Client
 
             _updates.Add(expression.Field + ": " + value.GetExpression(ref _vars));
 
-            Values.Add(value.GetBindedVars());
+            Values.AddRange(value.GetBindedVars());
 
             return this;
         }
