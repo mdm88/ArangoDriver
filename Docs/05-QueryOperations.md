@@ -27,19 +27,18 @@ Applicable parameters available through fluent API:
 ```csharp
 var db = new ADatabase("myDatabaseAlias");
 
-var queryResult = db.Query
+var queryResult = await db.Query
     .Aql(@"
     FOR item IN MyDocumentCollection 
         RETURN item
     ")
-    .ToDocuments();
+    .ToList<Dummy>();
     
 if (queryResult.Success)
 {
-    foreach (var document in queryResult.Value)
+    foreach (Dummy document in queryResult.Value)
     {
-        var foo = document.String("foo");
-        var bar = document.Int("bar");
+        ...
     }
 }
 ```
@@ -49,21 +48,20 @@ if (queryResult.Success)
 ```csharp
 var db = new ADatabase("myDatabaseAlias");
 
-var queryResult = db.Query
+var queryResult = await db.Query
     .BindVar("bar", 123)
     .Aql(@"
     FOR item IN MyDocumentCollection 
         FILTER item.bar == @bar
         RETURN item
     ")
-    .ToDocuments();
+    .ToList<Dummy>();
     
 if (queryResult.Success)
 {
-    foreach (var document in queryResult.Value)
+    foreach (Dummy document in queryResult.Value)
     {
-        var foo = document.String("foo");
-        var bar = document.Int("bar");
+        ...
     }
 }
 ```
@@ -75,7 +73,7 @@ Result of the non-query operation does not contain value information and is inte
 ```csharp
 var db = new ADatabase("myDatabaseAlias");
 
-var queryResult = db.Query
+var queryResult = await db.Query
     .Aql(@"
     UPSERT { bar: 1 }
     INSERT { foo: 'some string value', bar: 1 }
@@ -108,7 +106,7 @@ Analyzes specified AQL query.
 ```csharp
 var db = new ADatabase("myDatabaseAlias");
 
-var parseQueryResult = db.Query.Parse("FOR item IN MyDocumentCollection RETURN item");
+var parseQueryResult = await db.Query.Parse("FOR item IN MyDocumentCollection RETURN item");
     
 if (parseQueryResult.Success)
 {
@@ -127,6 +125,38 @@ FOR item IN MyDocumentCollection
 ");
 ```
 
+## Execute query and return batch
+
+```csharp
+var db = new ADatabase("myDatabaseAlias");
+
+var query = db.Query
+    .Aql(@"
+        FOR item IN MyDocumentCollection 
+            RETURN item
+    ");
+    
+var firstBatch = await query.ToListBatch<Dummy>();
+    
+if (firstBatch.Success)
+{
+    foreach (Dummy document in firstBatch.Value)
+    {
+        ...
+    }
+}
+
+var secondBatch = await query.ToListBatch<Dummy>();
+    
+if (secondBatch.Success)
+{
+    foreach (Dummy document in secondBatch.Value)
+    {
+        ...
+    }
+}
+```
+
 ## Delete cursor
 
 Deletes specified AQL query cursor.
@@ -134,8 +164,8 @@ Deletes specified AQL query cursor.
 ```csharp
 var db = new ADatabase("myDatabaseAlias");
 
-var deleteCursorResult = db.Query
-    .DeleteCursor("someCursorID");
+var deleteCursorResult = await db.Query
+    .DeleteCursor();
     
 if (deleteCursorResult.Success)
 {

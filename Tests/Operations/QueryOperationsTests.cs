@@ -443,7 +443,7 @@ namespace Tests.Operations
 
             Assert.ThrowsAsync<QueryCursorNotFoundException>(() =>
             {
-                return _db.Query.DeleteCursor((string) queryResult.Extra["id"]);
+                return _db.Query.DeleteCursor();
             });
         }
     }

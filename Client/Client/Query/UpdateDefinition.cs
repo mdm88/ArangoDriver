@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using ArangoDriver.Client.Query.Value;
 using ArangoDriver.Expressions;
 
 namespace ArangoDriver.Client
@@ -52,6 +53,16 @@ namespace ArangoDriver.Client
             var expression = new FieldExpression<T, TV>(field);
             
             return Set(expression.Field, value);
+        }
+        public UpdateDefinition<T> Set<TV>(Expression<Func<T, TV>> field, IAqlValue<TV> value)
+        {
+            var expression = new FieldExpression<T, TV>(field);
+
+            _updates.Add(expression.Field + ": " + value.GetExpression(ref _vars));
+
+            Values.Add(value.GetBindedVars());
+
+            return this;
         }
 
         public UpdateDefinition<T> Inc(string alias, string field, double value)

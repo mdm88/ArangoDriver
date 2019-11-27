@@ -1,10 +1,14 @@
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using ArangoDriver.Client.Query.Filter;
 using ArangoDriver.Client.Query.Value;
 using ArangoDriver.Exceptions;
+using ArangoDriver.Expressions;
 using ArangoDriver.Protocol;
 using ArangoDriver.Protocol.Requests;
 using ArangoDriver.Protocol.Responses;
@@ -14,13 +18,15 @@ namespace ArangoDriver.Client.Query
     public class AQuery
     {
         private readonly RequestFactory _requestFactory;
-        readonly ADatabase _connection;
-        readonly StringBuilder _query = new StringBuilder();
-        readonly Dictionary<string, object> _bindVars = new Dictionary<string, object>();
+        private readonly ADatabase _connection;
+        private readonly StringBuilder _query = new StringBuilder();
+        private readonly Dictionary<string, object> _bindVars = new Dictionary<string, object>();
 
         private bool? _count;
         private int? _ttl;
         private int? _batchSize;
+
+        private string _cursorId;
         
         internal AQuery(RequestFactory requestFactory, ADatabase connection)
         {
@@ -71,7 +77,7 @@ namespace ArangoDriver.Client.Query
         }
         
         /// <summary>
-        /// Determines whether the number of documents in the result set should be returned. Default value: false.
+        /// Determines the time-to-live for the cursor in seconds. Default value: 30 seconds.
         /// </summary>
         public AQuery Ttl(int value)
         {
@@ -239,67 +245,48 @@ namespace ArangoDriver.Client.Query
         #region Operation
         
         /// <summary>
-        /// Retrieves result value as list of objects.
+        /// Retrieves all results values as list of objects.
         /// </summary>
         public async Task<AResult<List<T>>> ToList<T>()
         {
-            var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Cursor, "");
-            var document = new QueryRequest()
+            var result = await Post<T>();
+
+            while ((bool) result.Extra["hasMore"])
             {
-                Query = _query.ToString(),
-                Count = _count,
-                TTL = _ttl,
-                BatchSize = _batchSize
-            };
-            
-            // optional
-            if (_bindVars.Count > 0)
-                document.BindVars = _bindVars;
-            
-            // TODO: options parameter
-            
-            request.SetBody(document);           
-            var response = await _connection.Send(request);
-            var result = new AResult<List<T>>(response);
-            
-            switch (response.StatusCode)
-            {
-                case 201:
-                    var body = response.ParseBody<Body<List<T>>>();
-                    
-                    result.Success = (body != null);
-                    
-                    if (result.Success)
-                    {
-                        result.Value = new List<T>();
-                        result.Value.AddRange(body.Result);
-                        result.Extra = new Dictionary<string, object>();
-                        
-                        CopyExtraBodyFields(body, result.Extra);
-                        
-                        if (body.HasMore)
-                        {
-                            var putResult = await Put<T>(body.ID);
-                            
-                            result.Success = putResult.Success;
-                            result.StatusCode = putResult.StatusCode;
-                            
-                            if (putResult.Success)
-                            {
-                                result.Value.AddRange(putResult.Value);
-                            }
-                        }
-                    }
-                    break;
-                case 400:
-                    throw new QueryInvalidException();
-                case 404:
-                    throw new CollectionNotFoundException();
-                default:
-                    throw new ArangoException();
+                var batch = await Put<T>(_cursorId);
+                
+                result.Success = batch.Success;
+                result.StatusCode = batch.StatusCode;
+
+                if (result.Success)
+                {
+                    result.Value.AddRange(batch.Value);
+                    result.Extra["hasMore"] = batch.Extra["hasMore"];
+                }
+                else
+                {
+                    result.Extra["hasMore"] = false;
+                }
             }
             
             return result;
+        }
+
+        /// <summary>
+        /// Retrieves a batch of results as list of objects
+        /// </summary>
+        /// <typeparam name="T">Object type</typeparam>
+        /// <returns>AResult</returns>
+        public async Task<AResult<List<T>>> ToListBatch<T>()
+        {
+            if (string.IsNullOrEmpty(_cursorId))
+            {
+                return await Post<T>();
+            }
+            else
+            {
+                return await Put<T>(_cursorId);
+            }
         }
         
         /// <summary>
@@ -353,9 +340,76 @@ namespace ArangoDriver.Client.Query
             return result;
         }
 
-        internal async Task<AResult<List<T>>> Put<T>(string cursorID)
+        /// <summary>
+        /// Create cursor and return first batch
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        /// <exception cref="QueryInvalidException"></exception>
+        /// <exception cref="CollectionNotFoundException"></exception>
+        /// <exception cref="ArangoException"></exception>
+        private async Task<AResult<List<T>>> Post<T>()
         {
-            var request = _requestFactory.Create(HttpMethod.Put, ApiBaseUri.Cursor, "/" + cursorID);
+            var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Cursor, "");
+            var document = new QueryRequest()
+            {
+                Query = _query.ToString(),
+                Count = _count,
+                TTL = _ttl,
+                BatchSize = _batchSize
+            };
+            
+            // optional
+            if (_bindVars.Count > 0)
+                document.BindVars = _bindVars;
+            
+            // TODO: options parameter
+            
+            request.SetBody(document);           
+            var response = await _connection.Send(request);
+            var result = new AResult<List<T>>(response);
+            
+            switch (response.StatusCode)
+            {
+                case 201:
+                    var body = response.ParseBody<Body<List<T>>>();
+                    
+                    result.Success = (body != null);
+                    
+                    if (body != null)
+                    {
+                        _cursorId = body.ID;
+                        
+                        result.Value = new List<T>();
+                        result.Value.AddRange(body.Result);
+                        result.Extra = new Dictionary<string, object>();
+                        
+                        CopyExtraBodyFields(body, result.Extra);
+                    }
+                    
+                    break;
+                case 400:
+                    throw new QueryInvalidException();
+                case 404:
+                    throw new CollectionNotFoundException();
+                default:
+                    throw new ArangoException();
+            }
+            
+            return result;            
+        }
+        
+        /// <summary>
+        /// Return next batch of results
+        /// </summary>
+        /// <param name="cursorId"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        /// <exception cref="QueryCursorNotFoundException"></exception>
+        /// <exception cref="ArangoException"></exception>
+        private async Task<AResult<List<T>>> Put<T>(string cursorId)
+        {
+            var request = _requestFactory.Create(HttpMethod.Put, ApiBaseUri.Cursor, "/" + cursorId);
             
             var response = await _connection.Send(request);
             var result = new AResult<List<T>>(response);
@@ -371,19 +425,9 @@ namespace ArangoDriver.Client.Query
                     {
                         result.Value = new List<T>();
                         result.Value.AddRange(body.Result);
+                        result.Extra = new Dictionary<string, object>();
                         
-                        if (body.HasMore)
-                        {
-                            var putResult = await Put<T>(body.ID);
-                            
-                            result.Success = putResult.Success;
-                            result.StatusCode = putResult.StatusCode;
-                            
-                            if (putResult.Success)
-                            {
-                                result.Value.AddRange(putResult.Value);
-                            }
-                        }
+                        CopyExtraBodyFields(body, result.Extra);
                     }
                     break;
                 case 404:
@@ -437,14 +481,15 @@ namespace ArangoDriver.Client.Query
             return result;
         }
         
-        // TODO: check docs - https://docs.arangodb.com/HttpAqlQuery/index.html
-        // in docs status code is 200 and it isn't clear what is returned in data
         /// <summary>
-        /// Deletes specified AQL query cursor.
+        /// Deletes AQL query cursor.
         /// </summary>
-        public async Task<AResult<bool>> DeleteCursor(string cursorID)
+        public async Task<AResult<bool>> DeleteCursor()
         {
-            var request = _requestFactory.Create(HttpMethod.Delete, ApiBaseUri.Cursor, "/" + cursorID);
+            if (string.IsNullOrEmpty(_cursorId))
+                throw new QueryCursorNotFoundException();
+            
+            var request = _requestFactory.Create(HttpMethod.Delete, ApiBaseUri.Cursor, "/" + _cursorId);
             
             var response = await _connection.Send(request);
             var result = new AResult<bool>(response);
@@ -523,6 +568,7 @@ namespace ArangoDriver.Client.Query
             destination.Add("id", source.ID);
             destination.Add("count", source.Count);
             destination.Add("cached", source.Cached);
+            destination.Add("hasMore", source.HasMore);
             
             if (source.Extra != null)
             {
