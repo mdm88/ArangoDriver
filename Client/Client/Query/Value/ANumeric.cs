@@ -4,7 +4,7 @@ namespace ArangoDriver.Client.Query.Value
 {
     public static class ANumeric
     {
-        private static AqlFunctionSingleValue<T> Basic<T>(string f, params IAqlValue<T>[] v)
+        private static AqlFunctionValue<T> Basic<T>(string f, params IAqlValue<T>[] v)
         {
             IAqlValue value;
             if (v.Length == 1)
@@ -12,7 +12,12 @@ namespace ArangoDriver.Client.Query.Value
             else
                 value = new AqlArrayValue<T>(v);
 
-            return new AqlFunctionSingleValue<T>(f, value);
+            return new AqlFunctionValue<T>(f, value);
+        }
+        
+        private static AqlFunctionValue<T> Multiple<T>(string f, params IAqlValue<T>[] v)
+        {
+            return new AqlFunctionValue<T>(f, v);
         }
         
         /// <summary>
@@ -21,7 +26,7 @@ namespace ArangoDriver.Client.Query.Value
         /// <param name="v">AqlFieldValue</param>
         /// <typeparam name="T">Type of value returned</typeparam>
         /// <returns>AqlValue</returns>
-        public static AqlFunctionSingleValue<T> Min<T>(params IAqlValue<T>[] v)
+        public static AqlFunctionValue<T> Min<T>(params IAqlValue<T>[] v)
         {
             return Basic("MIN", v);
         }
@@ -32,7 +37,7 @@ namespace ArangoDriver.Client.Query.Value
         /// <param name="v">AqlFieldValue</param>
         /// <typeparam name="T">Type of value returned</typeparam>
         /// <returns>AqlValue</returns>
-        public static AqlFunctionSingleValue<T> Max<T>(params IAqlValue<T>[] v)
+        public static AqlFunctionValue<T> Max<T>(params IAqlValue<T>[] v)
         {
             return Basic("MAX", v);
         }
@@ -43,7 +48,7 @@ namespace ArangoDriver.Client.Query.Value
         /// <param name="v">AqlFieldValue</param>
         /// <typeparam name="T">Type of value returned</typeparam>
         /// <returns>AqlValue</returns>
-        public static AqlFunctionSingleValue<T> Avg<T>(params IAqlValue<T>[] v)
+        public static AqlFunctionValue<T> Avg<T>(params IAqlValue<T>[] v)
         {
             return Basic("AVG", v);
         }
@@ -54,7 +59,7 @@ namespace ArangoDriver.Client.Query.Value
         /// <param name="v">AqlFieldValue</param>
         /// <typeparam name="T">Type of value returned</typeparam>
         /// <returns>AqlValue</returns>
-        public static AqlFunctionSingleValue<T> Sum<T>(params IAqlValue<T>[] v)
+        public static AqlFunctionValue<T> Sum<T>(params IAqlValue<T>[] v)
         {
             return Basic("SUM", v);
         }
@@ -65,7 +70,7 @@ namespace ArangoDriver.Client.Query.Value
         /// <param name="v">AqlFieldValue</param>
         /// <typeparam name="T">Type of value returned</typeparam>
         /// <returns>AqlValue</returns>
-        public static AqlFunctionSingleValue<T> Abs<T>(IAqlValue<T> v)
+        public static AqlFunctionValue<T> Abs<T>(IAqlValue<T> v)
         {
             return Basic("ABS", v);
         }
@@ -76,7 +81,7 @@ namespace ArangoDriver.Client.Query.Value
         /// <param name="v">AqlFieldValue</param>
         /// <typeparam name="T">Type of value returned</typeparam>
         /// <returns>AqlValue</returns>
-        public static AqlFunctionSingleValue<T> Ceil<T>(IAqlValue<T> v)
+        public static AqlFunctionValue<T> Ceil<T>(IAqlValue<T> v)
         {
             return Basic("CEIL", v);
         }
@@ -87,7 +92,7 @@ namespace ArangoDriver.Client.Query.Value
         /// <param name="v">AqlFieldValue</param>
         /// <typeparam name="T">Type of value returned</typeparam>
         /// <returns>AqlValue</returns>
-        public static AqlFunctionSingleValue<T> Floor<T>(IAqlValue<T> v)
+        public static AqlFunctionValue<T> Floor<T>(IAqlValue<T> v)
         {
             return Basic("FLOOR", v);
         }
@@ -98,9 +103,20 @@ namespace ArangoDriver.Client.Query.Value
         /// <param name="v">AqlFieldValue</param>
         /// <typeparam name="T">Type of value returned</typeparam>
         /// <returns>AqlValue</returns>
-        public static AqlFunctionSingleValue<T> Round<T>(IAqlValue<T> v)
+        public static AqlFunctionValue<T> Round<T>(IAqlValue<T> v)
         {
             return Basic("ROUND", v);
+        }
+
+        /// <summary>
+        /// IF_NULL(value1, value2, ..., valueN)
+        /// </summary>
+        /// <param name="v">AqlValue</param>
+        /// <typeparam name="T">Type of value returned</typeparam>
+        /// <returns>AqlValue</returns>
+        public static AqlFunctionValue<T> Coalesce<T>(params IAqlValue<T>[] v)
+        {
+            return Multiple("NOT_NULL", v);
         }
     }
 }

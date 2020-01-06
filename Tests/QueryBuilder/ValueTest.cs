@@ -60,5 +60,28 @@ namespace Tests.QueryBuilder
             
             Assert.AreEqual("LET x = (x.Baz / x.Bar)", query.Query);
         }
+        
+        [Test]
+        public void FunctionSingleTest()
+        {
+            AQuery query = _db.Query
+                .Let( "x", ANumeric.Min(AValueArray.Bind(2, 5, 6)));
+            
+            Assert.AreEqual("LET x = MIN([@var0,@var1,@var2])", query.Query);
+            Assert.AreEqual(2, query.BindVars["var0"]);
+            Assert.AreEqual(5, query.BindVars["var1"]);
+            Assert.AreEqual(6, query.BindVars["var2"]);
+        }
+        
+        [Test]
+        public void FunctionMultipleTest()
+        {
+            AQuery query = _db.Query
+                .Let( "x", ANumeric.Coalesce(AValue.Bind(2), AValue.Bind(5)));
+            
+            Assert.AreEqual("LET x = NOT_NULL(@var0,@var1)", query.Query);
+            Assert.AreEqual(2, query.BindVars["var0"]);
+            Assert.AreEqual(5, query.BindVars["var1"]);
+        }
     }
 }

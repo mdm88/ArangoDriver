@@ -45,9 +45,9 @@ namespace ArangoDriver.Client.Query.Value
         /// <param name="v">AqlFieldValue</param>
         /// <typeparam name="T">Type of document returned</typeparam>
         /// <returns>AqlValue</returns>
-        public static AqlFunctionSingleValue<string[]> Attributes<T>(AqlFieldValue<T> v)
+        public static AqlFunctionValue<string[]> Attributes<T>(AqlFieldValue<T> v)
         {
-            return new AqlFunctionSingleValue<string[]>("ATTRIBUTES", v);
+            return new AqlFunctionValue<string[]>("ATTRIBUTES", v);
         }
 
         /// <summary>
