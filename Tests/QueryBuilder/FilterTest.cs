@@ -63,6 +63,16 @@ namespace Tests.QueryBuilder
         }
         
         [Test]
+        public void BetweenTest()
+        {
+            AQuery query = _db.Query.Filter(AFilter.Between(AValue<Dummy>.Field(x => x.Bar), AValue.Bind(1), AValue.Bind(50)));
+            
+            Assert.AreEqual("FILTER (x.Bar >= @var0 AND x.Bar <= @var1)", query.Query);
+            Assert.AreEqual(1, query.BindVars["var0"]);
+            Assert.AreEqual(50, query.BindVars["var1"]);
+        }
+        
+        [Test]
         public void InTest()
         {
             //AQuery query = _db.Query.Filter(FilterBuilder<Dummy>.In(x => x.Foo, new[] {"asd", "qwe"}));
@@ -76,10 +86,6 @@ namespace Tests.QueryBuilder
         [Test]
         public void OrTest()
         {
-            /*AQuery query = _db.Query.Filter(FilterBuilder<Dummy>.Or(
-                FilterBuilder<Dummy>.Eq(x => x.Foo, "asd"), 
-                FilterBuilder<Dummy>.Gt(x => x.Bar, 1))
-            );*/
             AQuery query = _db.Query.Filter(
                 AFilter.Or(
                     AFilter.Eq(AValue<Dummy>.Field(x => x.Foo), AValue.Bind("asd")), 
@@ -88,6 +94,21 @@ namespace Tests.QueryBuilder
             );
             
             Assert.AreEqual("FILTER (x.Foo == @var0 OR x.Bar > @var1)", query.Query);
+            Assert.AreEqual("asd", query.BindVars["var0"]);
+            Assert.AreEqual(1, query.BindVars["var1"]);
+        }
+        
+        [Test]
+        public void AndTest()
+        {
+            AQuery query = _db.Query.Filter(
+                AFilter.And(
+                    AFilter.Eq(AValue<Dummy>.Field(x => x.Foo), AValue.Bind("asd")), 
+                    AFilter.Gt(AValue<Dummy>.Field(x => x.Bar), AValue.Bind(1))
+                )
+            );
+            
+            Assert.AreEqual("FILTER (x.Foo == @var0 AND x.Bar > @var1)", query.Query);
             Assert.AreEqual("asd", query.BindVars["var0"]);
             Assert.AreEqual(1, query.BindVars["var1"]);
         }

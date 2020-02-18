@@ -28,6 +28,10 @@ namespace ArangoDriver.Client.Query.Filter
         {
             return new AqlFilter("<=", value1, value2);
         }
+        public static AqlFilterAnd Between<T>(IAqlValue<T> value, IAqlValue<T> min, IAqlValue<T> max)
+        {
+            return And(Gte(value, min), Lte(value, max));
+        }
 
         public static AqlFilter In<T>(IAqlValue<T> value1, AqlArrayValue<T> value2)
         {
@@ -37,6 +41,10 @@ namespace ArangoDriver.Client.Query.Filter
         public static AqlFilterOr Or(params IAqlFilter[] filters)
         {
             return new AqlFilterOr(filters);
+        }
+        public static AqlFilterAnd And(params IAqlFilter[] filters)
+        {
+            return new AqlFilterAnd(filters);
         }
     }
 }
