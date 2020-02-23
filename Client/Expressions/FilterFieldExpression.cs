@@ -50,7 +50,7 @@ namespace ArangoDriver.Expressions
                         throw new ExpressionInvalidException();
                 }
                 
-                expression = methodCallExpression.Arguments.FirstOrDefault();
+                expression = methodCallExpression.Object;
 
                 if (expression == null)
                     return;

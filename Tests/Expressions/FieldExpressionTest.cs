@@ -78,5 +78,13 @@ namespace Tests.Expressions
             
             Assert.AreEqual("x.$type", expression.Field);
         }
+
+        [Test]
+        public void SubTypeExpressionTest()
+        {
+            var expression = new FilterFieldExpression<Complex, Type>(x => x.asd.GetType());
+            
+            Assert.AreEqual("x.renamed.$type", expression.Field);
+        }
     }
 }
