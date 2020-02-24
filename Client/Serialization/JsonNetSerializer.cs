@@ -19,7 +19,8 @@ namespace ArangoDriver.Serialization
                 MetadataPropertyHandling = MetadataPropertyHandling.ReadAhead,
                 Converters = new List<JsonConverter>()
                 {
-                    new DictionaryConverter()
+                    new DictionaryConverter(),
+                    new StringEnumConverter()
                 }
             };
         }
