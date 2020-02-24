@@ -32,8 +32,8 @@ namespace Tests.QueryBuilder
             //AQuery query = _db.Query.Filter(FilterBuilder<Dummy>.Eq( x => x.Foo, "asd"));
             AQuery query = _db.Query.Filter(AFilter.Eq(AValue<Dummy>.Field(x => x.Foo), AValue.Bind("asd")));
             
-            Assert.AreEqual("FILTER x.Foo == @var0", query.Query);
-            Assert.AreEqual("asd", query.BindVars["var0"]);
+            Assert.AreEqual("FILTER x.Foo == @var0", query.GetExpression());
+            Assert.AreEqual("asd", query.GetBindedVars()[0]);
         }
         
         [Test]
@@ -45,9 +45,9 @@ namespace Tests.QueryBuilder
                 .Filter(AFilter.Lt(AValue<Dummy>.Field(x => x.Baz), AValue.Bind(50)))
                 .Filter(AFilter.Gte(AValue<Dummy>.Field(x => x.Bar), AValue.Bind(1)));
             
-            Assert.AreEqual("FILTER x.Baz < @var0 FILTER x.Bar >= @var1", query.Query);
-            Assert.AreEqual(50, query.BindVars["var0"]);
-            Assert.AreEqual(1, query.BindVars["var1"]);
+            Assert.AreEqual("FILTER x.Baz < @var0 FILTER x.Bar >= @var1", query.GetExpression());
+            Assert.AreEqual(50, query.GetBindedVars()[0]);
+            Assert.AreEqual(1, query.GetBindedVars()[1]);
         }
         
         [Test]
@@ -58,8 +58,8 @@ namespace Tests.QueryBuilder
             //AQuery query = _db.Query.Filter(FilterBuilder<Dummy>.Eq(x => x.GetType(), dummyType));
             AQuery query = _db.Query.Filter(AFilter.Eq(AValue<Dummy>.Field(x => x.GetType()), AValue.Bind(dummyType)));
             
-            Assert.AreEqual("FILTER x.$type == @var0", query.Query);
-            Assert.AreEqual(dummyType.FullName + ", "  + dummyType.Assembly.GetName().Name, query.BindVars["var0"]);
+            Assert.AreEqual("FILTER x.$type == @var0", query.GetExpression());
+            Assert.AreEqual(dummyType.FullName + ", "  + dummyType.Assembly.GetName().Name, query.GetBindedVars()[0]);
         }
         
         [Test]
@@ -67,9 +67,9 @@ namespace Tests.QueryBuilder
         {
             AQuery query = _db.Query.Filter(AFilter.Between(AValue<Dummy>.Field(x => x.Bar), AValue.Bind(1), AValue.Bind(50)));
             
-            Assert.AreEqual("FILTER (x.Bar >= @var0 AND x.Bar <= @var1)", query.Query);
-            Assert.AreEqual(1, query.BindVars["var0"]);
-            Assert.AreEqual(50, query.BindVars["var1"]);
+            Assert.AreEqual("FILTER (x.Bar >= @var0 AND x.Bar <= @var1)", query.GetExpression());
+            Assert.AreEqual(1, query.GetBindedVars()[0]);
+            Assert.AreEqual(50, query.GetBindedVars()[1]);
         }
         
         [Test]
@@ -78,9 +78,9 @@ namespace Tests.QueryBuilder
             //AQuery query = _db.Query.Filter(FilterBuilder<Dummy>.In(x => x.Foo, new[] {"asd", "qwe"}));
             AQuery query = _db.Query.Filter(AFilter.In(AValue<Dummy>.Field(x => x.Foo), AValueArray.Bind("asd", "qwe")));
             
-            Assert.AreEqual("FILTER x.Foo IN [@var0,@var1]", query.Query);
-            Assert.AreEqual("asd", query.BindVars["var0"]);
-            Assert.AreEqual("qwe", query.BindVars["var1"]);
+            Assert.AreEqual("FILTER x.Foo IN [@var0,@var1]", query.GetExpression());
+            Assert.AreEqual("asd", query.GetBindedVars()[0]);
+            Assert.AreEqual("qwe", query.GetBindedVars()[1]);
         }
         
         [Test]
@@ -93,9 +93,9 @@ namespace Tests.QueryBuilder
                 )
             );
             
-            Assert.AreEqual("FILTER (x.Foo == @var0 OR x.Bar > @var1)", query.Query);
-            Assert.AreEqual("asd", query.BindVars["var0"]);
-            Assert.AreEqual(1, query.BindVars["var1"]);
+            Assert.AreEqual("FILTER (x.Foo == @var0 OR x.Bar > @var1)", query.GetExpression());
+            Assert.AreEqual("asd", query.GetBindedVars()[0]);
+            Assert.AreEqual(1, query.GetBindedVars()[1]);
         }
         
         [Test]
@@ -108,9 +108,9 @@ namespace Tests.QueryBuilder
                 )
             );
             
-            Assert.AreEqual("FILTER (x.Foo == @var0 AND x.Bar > @var1)", query.Query);
-            Assert.AreEqual("asd", query.BindVars["var0"]);
-            Assert.AreEqual(1, query.BindVars["var1"]);
+            Assert.AreEqual("FILTER (x.Foo == @var0 AND x.Bar > @var1)", query.GetExpression());
+            Assert.AreEqual("asd", query.GetBindedVars()[0]);
+            Assert.AreEqual(1, query.GetBindedVars()[1]);
         }
     }
 }

@@ -103,7 +103,7 @@ Driver is heavily using [fluent API](http://en.wikipedia.org/wiki/Fluent_interfa
 var db = connection.GetDatabase("myDatabase");
 // operation core
 var queryOperation = db.Query
-    .Aql("FOR item IN myCollection RETURN item");
+    .Raw("FOR item IN myCollection RETURN item");
 
 // add optional parameter
 if (... condition whether to use count query parameter ...)
@@ -124,6 +124,6 @@ var queryResult1 = await queryOperation.ToList();
 var queryResult2 = await db.Query
     .Count(true)
     .BatchSize(1)
-    .Aql("FOR item IN myCollection RETURN item")
+    .Raw("FOR item IN myCollection RETURN item")
     .ToList();
 ```

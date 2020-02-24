@@ -6,12 +6,14 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using ArangoDriver.Client.Query.Filter;
+using ArangoDriver.Client.Query.Query;
 using ArangoDriver.Client.Query.Value;
 using ArangoDriver.Exceptions;
 using ArangoDriver.Expressions;
 using ArangoDriver.Protocol;
 using ArangoDriver.Protocol.Requests;
 using ArangoDriver.Protocol.Responses;
+using AqlFilter = ArangoDriver.Client.Query.Query.AqlFilter;
 
 namespace ArangoDriver.Client.Query
 {
@@ -34,37 +36,7 @@ namespace ArangoDriver.Client.Query
             _connection = connection;
         }
         
-        public string Query => _query.ToString();
-        public Dictionary<string, object> BindVars => _bindVars;
-
         #region Parameters
-        
-        /// <summary>
-        /// Sets AQL query code.
-        /// </summary>
-        public AQuery Aql(string query)
-        {
-        	var cleanQuery = Minify(query);
-        	
-        	if (_query.Length > 0)
-        	{
-        		_query.Append(" ");
-        	}
-        	
-        	_query.Append(cleanQuery);
-        	
-            return this;
-        }
-        
-        /// <summary>
-        /// Maps key/value bind parameter to the AQL query.
-        /// </summary>
-        public AQuery BindVar(string key, object value)
-        {
-            _bindVars.Add(key, value);
-            
-            return this;
-        }
         
         /// <summary>
         /// Determines whether the number of retrieved documents should be returned in `Extra` property of `AResult` instance. Default value: false.
@@ -99,145 +71,115 @@ namespace ArangoDriver.Client.Query
         #endregion
         
         #region QueryBuilder
-
-        private int _anonymousBindedVars = 0;
-        private string BindVar(object value)
-        {
-            string var = "var" + _anonymousBindedVars++;
-
-            BindVar(var, value);
-
-            return var;
-        }
         
+        private readonly List<IAqlQuery> _queries = new List<IAqlQuery>();
 
-
-        public AQuery For(string collectionName, string alias)
+        /*public AQuery For(string collectionName, string alias)
         {
             Aql("FOR " + alias + " IN " + collectionName);
 
             return this;
-        }
+        }*/
 
         public AQuery For(string alias, IAqlValue collection)
         {
-            int initialBindCount = _anonymousBindedVars;
-
-            Aql("FOR " + alias + " IN " + collection.GetExpression(ref _anonymousBindedVars));
-
-            foreach (object value in collection.GetBindedVars())
-            {
-                string var = "var" + initialBindCount++;
-
-                BindVar(var, value);
-            }
+            _queries.Add(new AqlFor(alias, collection));
 
             return this;
         }
         
         public AQuery Filter(IAqlFilter filter)
         {
-            int initialBindCount = _anonymousBindedVars;
-            
-            Aql("FILTER " + filter.GetExpression(ref _anonymousBindedVars));
-
-            foreach (object value in filter.GetBindedVars())
-            {
-                string var = "var" + initialBindCount++;
-
-                BindVar(var, value);
-            }
+            _queries.Add(new AqlFilter(filter));
 
             return this;
         }
 
         public AQuery Update<T>(UpdateDefinition<T> definition)
         {
-            string expression = definition.Expression;
-            int i = 0;
-            foreach (object value in definition.Values)
-            {
-                string bindedVar = BindVar(value);
-                expression = expression.Replace("{" + i++ + "}", bindedVar);
-            }
-            
-            Aql(expression);
+            _queries.Add(new AqlUpdate<T>(definition));
             
             return this;
         }
 
         public AQuery Collect()
         {
-            Aql("COLLECT");
+            _queries.Add(new AqlCollect());
 
             return this;
         }
 
         public AQuery Collect(string alias, IAqlValue value)
         {
-            int initialBindCount = _anonymousBindedVars;
-
-            Aql("COLLECT " + alias + "=" + value.GetExpression(ref _anonymousBindedVars));
-
-            foreach (object bindedVar in value.GetBindedVars())
-            {
-                string var = "var" + initialBindCount++;
-
-                BindVar(var, bindedVar);
-            }
-
+            _queries.Add(new AqlCollect(alias, value));
+            
             return this;
         }
 
         public AQuery Aggregate(string alias, IAqlValue value)
         {
-            int initialBindCount = _anonymousBindedVars;
-
-            Aql("AGGREGATE " + alias + "=" + value.GetExpression(ref _anonymousBindedVars));
-
-            foreach (object bindedVar in value.GetBindedVars())
-            {
-                string var = "var" + initialBindCount++;
-
-                BindVar(var, bindedVar);
-            }
+            _queries.Add(new AqlAggregate(alias, value));
 
             return this;
         }
 
         public AQuery Limit(int quantity)
         {
-            Aql("LIMIT " + quantity);
+            _queries.Add(new AqlLimit(quantity));
 
             return this;
         }
 
         public AQuery Let(string alias, IAqlValue value)
         {
-            int initialBindCount = _anonymousBindedVars;
-            
-            Aql("LET " + alias + " = " + value.GetExpression(ref _anonymousBindedVars));
-
-            foreach (object bindedVar in value.GetBindedVars())
-            {
-                string var = "var" + initialBindCount++;
-
-                BindVar(var, bindedVar);
-            }
+            _queries.Add(new AqlLet(alias, value));
 
             return this;
         }
 
         public AQuery Return(string alias)
         {
-            Aql("RETURN " + alias);
+            _queries.Add(new AqlReturn(alias));
 
             return this;
         }
 
         public AQuery Return<T>(params Expression<Func<T, object>>[] fields)
         {
-            return Return("{" + String.Join(", ", fields.Select(e => new FieldExpression<T, object>(e)).Select(e => e.Field + ":" + e.Name + "." + e.Field)) + "}");
+            string exp = "{" + String.Join(", ", fields.Select(e => new FieldExpression<T, object>(e)).Select(e => e.Field + ":" + e.Name + "." + e.Field)) + "}";
+            
+            _queries.Add(new AqlReturn(exp));
+            
+            return this;
+        }
+
+        public AQuery Raw(string expression)
+        {
+            _queries.Add(new AqlQueryRaw(expression));
+
+            return this;
+        }
+
+        public string GetExpression()
+        {
+            int bindCount = 0;
+
+            return GetExpression(ref bindCount);
+        }
+        public string GetExpression(ref int bindCount)
+        {
+            string expression = "";
+            
+            foreach (IAqlQuery query in _queries)
+            {
+                expression += query.GetExpression(ref bindCount) + " ";
+            }
+
+            return Minify(expression.Substring(0, expression.Length - 1));
+        }
+        public object[] GetBindedVars()
+        {
+            return _queries.SelectMany(x => x.GetBindedVars()).ToArray();
         }
         
         #endregion
@@ -353,15 +295,15 @@ namespace ArangoDriver.Client.Query
             var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Cursor, "");
             var document = new QueryRequest()
             {
-                Query = _query.ToString(),
+                Query = GetExpression(),
                 Count = _count,
                 TTL = _ttl,
                 BatchSize = _batchSize
             };
+
             
-            // optional
-            if (_bindVars.Count > 0)
-                document.BindVars = _bindVars;
+            int i = 0;
+            document.BindVars = GetBindedVars().ToDictionary(_ => "var" + i++);
             
             // TODO: options parameter
             

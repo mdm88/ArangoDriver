@@ -28,9 +28,9 @@ namespace Tests.QueryBuilder
         public void ForTest()
         {
             AQuery query = _db.Query
-                .For(TestDocumentCollectionName, "x");
+                .For("x", AValue.Field(TestDocumentCollectionName));
             
-            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName, query.Query);
+            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName, query.GetExpression());
         }
         
         [Test]
@@ -39,7 +39,7 @@ namespace Tests.QueryBuilder
             AQuery query = _db.Query
                 .Limit(5);
             
-            Assert.AreEqual("LIMIT 5", query.Query);
+            Assert.AreEqual("LIMIT 5", query.GetExpression());
         }
         
         [Test]
@@ -48,7 +48,23 @@ namespace Tests.QueryBuilder
             AQuery query = _db.Query
                 .Let("x", AValue.Document<Dummy>(TestDocumentCollectionName, AValue.Field<string>("asd")));
 
-            Assert.AreEqual("LET x = DOCUMENT('" + TestDocumentCollectionName + "',asd)", query.Query);
+            Assert.AreEqual("LET x = DOCUMENT('" + TestDocumentCollectionName + "',asd)", query.GetExpression());
+        }
+        
+        [Test]
+        public void LetSubQueryTest()
+        {
+
+            AQuery subquery = _db.Query
+                .For("y", AValue.Field(TestDocumentCollectionName))
+                .Collect()
+                .Aggregate("max", ANumeric.Max(AValue.Field("y.value")))
+                .Return("max");
+                
+            AQuery query = _db.Query
+                .Let("x", AValue.Subquery<int>(subquery));
+
+            Assert.AreEqual("LET x = (FOR y IN " + TestDocumentCollectionName + " COLLECT AGGREGATE max = MAX(y.value) RETURN max)", query.GetExpression());
         }
         
         [Test]
@@ -57,7 +73,7 @@ namespace Tests.QueryBuilder
             AQuery query = _db.Query
                 .Return("x");
             
-            Assert.AreEqual("RETURN x", query.Query);
+            Assert.AreEqual("RETURN x", query.GetExpression());
         }
         
         [Test]
@@ -66,7 +82,7 @@ namespace Tests.QueryBuilder
             AQuery query = _db.Query
                 .Return<Dummy>(x => x.Key, x => x.Foo);
             
-            Assert.AreEqual("RETURN {_key:x._key, Foo:x.Foo}", query.Query);
+            Assert.AreEqual("RETURN {_key:x._key, Foo:x.Foo}", query.GetExpression());
         }
     }
 }

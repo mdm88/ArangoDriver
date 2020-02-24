@@ -42,7 +42,7 @@ namespace ArangoDriver.Client
 
         public UpdateDefinition<T> Set(string field, object value)
         {
-            _updates.Add(field + ": @{" + _vars++ +"}");
+            _updates.Add(field + ": {" + _vars++ +"}");
 
             Values.Add(value);
 

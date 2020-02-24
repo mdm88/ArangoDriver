@@ -28,7 +28,7 @@ Applicable parameters available through fluent API:
 var db = new ADatabase("myDatabaseAlias");
 
 var queryResult = await db.Query
-    .Aql(@"
+    .Raw(@"
     FOR item IN MyDocumentCollection 
         RETURN item
     ")
@@ -50,7 +50,7 @@ var db = new ADatabase("myDatabaseAlias");
 
 var queryResult = await db.Query
     .BindVar("bar", 123)
-    .Aql(@"
+    .Raw(@"
     FOR item IN MyDocumentCollection 
         FILTER item.bar == @bar
         RETURN item
@@ -74,7 +74,7 @@ Result of the non-query operation does not contain value information and is inte
 var db = new ADatabase("myDatabaseAlias");
 
 var queryResult = await db.Query
-    .Aql(@"
+    .Raw(@"
     UPSERT { bar: 1 }
     INSERT { foo: 'some string value', bar: 1 }
     UPDATE { foo: 'some string value updated', bar: 2 }
@@ -131,7 +131,7 @@ FOR item IN MyDocumentCollection
 var db = new ADatabase("myDatabaseAlias");
 
 var query = db.Query
-    .Aql(@"
+    .Raw(@"
         FOR item IN MyDocumentCollection 
             RETURN item
     ");

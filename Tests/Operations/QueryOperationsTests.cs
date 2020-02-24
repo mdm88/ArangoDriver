@@ -35,7 +35,7 @@ namespace Tests.Operations
             await InsertTestData(_db);
             
             var queryResult = await _db.Query
-                .Aql($@"
+                .Raw($@"
                 FOR item IN {TestDocumentCollectionName}
                     LIMIT 1
                     RETURN item
@@ -55,7 +55,7 @@ namespace Tests.Operations
             await InsertTestData(_db);
 
             var queryResult = await _db.Query
-                .Aql($@"
+                .Raw($@"
                 FOR item IN {TestDocumentCollectionName}
                     RETURN item
                 ")
@@ -81,7 +81,7 @@ namespace Tests.Operations
             await InsertTestData(_db);
 
             var queryResult = await _db.Query
-                .Aql($@"
+                .Raw($@"
                 FOR item IN {TestDocumentCollectionName}
                     LIMIT 1
                     RETURN item
@@ -100,7 +100,7 @@ namespace Tests.Operations
             await InsertTestData(_db);
 
             var queryResult = await _db.Query
-                .Aql($@"
+                .Raw($@"
                 FOR item IN {TestDocumentCollectionName}
                     SORT item.Bar
                     LIMIT 1
@@ -120,7 +120,7 @@ namespace Tests.Operations
             await InsertTestData(_db);
 
             var queryResult = await _db.Query
-                .Aql($@"
+                .Raw($@"
                 FOR item IN {TestDocumentCollectionName}
                     SORT item.Bar
                     LIMIT 1
@@ -141,7 +141,7 @@ namespace Tests.Operations
             var documents = await InsertTestData(_db);
 
             var queryResult = await _db.Query
-                .Aql($@"
+                .Raw($@"
                 FOR item IN {TestDocumentCollectionName}
                     SORT item.Bar
                     LIMIT 1
@@ -160,7 +160,7 @@ namespace Tests.Operations
         public async Task Should_execute_AQL_query_with_no_result_object()
         {
             var queryResult = await _db.Query
-                .Aql(@"
+                .Raw(@"
                 LET items = []
                 FOR item IN items
                     RETURN item
@@ -177,7 +177,7 @@ namespace Tests.Operations
         public async Task Should_execute_AQL_query_with_no_result_strongly_typed()
         {
             var queryResult = await _db.Query
-                .Aql(@"
+                .Raw(@"
                 LET items = []
                 FOR item IN items
                     RETURN item
@@ -200,7 +200,7 @@ namespace Tests.Operations
             await InsertTestData(_db);
 
             var queryResult = await _db.Query
-                .Aql($@"
+                .Raw($@"
                 FOR item IN {TestDocumentCollectionName}
                     RETURN item
                 ")
@@ -218,7 +218,7 @@ namespace Tests.Operations
             await InsertTestData(_db);
 
             var queryResult = await _db.Query
-                .Aql($@"
+                .Raw($@"
                 FOR item IN {TestDocumentCollectionName}
                     SORT item.Bar
                     RETURN item.Bar
@@ -239,7 +239,7 @@ namespace Tests.Operations
             await InsertTestData(_db);
 
             var queryResult = await _db.Query
-                .Aql($@"
+                .Raw($@"
                 FOR item IN {TestDocumentCollectionName}
                     RETURN item
                 ")
@@ -261,7 +261,7 @@ namespace Tests.Operations
             var documents = await InsertTestData(_db);
 
             var queryResult = await _db.Query
-                .Aql($@"
+                .Raw($@"
                 FOR item IN {TestDocumentCollectionName}
                     SORT item.Bar
                     RETURN item
@@ -288,7 +288,7 @@ namespace Tests.Operations
             await InsertTestData(_db);
 
             var queryResult = await _db.Query
-                .Aql($@"
+                .Raw($@"
                 UPSERT {{ Bar: 1 }}
                 INSERT {{ Foo: 'some string value', Bar: 1 }} 
                 UPDATE {{ Foo: 'some string value updated', Bar: 2 }}
@@ -311,7 +311,7 @@ namespace Tests.Operations
 
             var queryResult = await _db.Query
                 .Count(true)
-                .Aql($@"
+                .Raw($@"
                 FOR item IN {TestDocumentCollectionName}
                     RETURN item
                 ")
@@ -341,7 +341,7 @@ namespace Tests.Operations
             
             var queryResult = await _db.Query
                 .BatchSize(1)
-                .Aql($@"
+                .Raw($@"
                 FOR item IN {TestDocumentCollectionName}
                     RETURN item
                 ")
@@ -353,14 +353,14 @@ namespace Tests.Operations
             Assert.AreEqual(queryResult.Value.Count, 4);
         }
         
-        [Test]
+        /*[Test]
         public async Task Should_execute_AQL_query_with_bindVar()
         {
             await InsertTestData(_db);
 
             var queryResult = await _db.Query
                 .BindVar("barNumber", 1)
-                .Aql($@"
+                .Raw($@"
                 FOR item IN {TestDocumentCollectionName}
                     FILTER item.Bar == @barNumber
                     RETURN item
@@ -371,7 +371,7 @@ namespace Tests.Operations
             Assert.IsTrue(queryResult.Success);
             Assert.IsTrue(queryResult.HasValue);
             Assert.AreEqual(queryResult.Value.Count, 1);
-        }
+        }*/
         
         [Test]
         public async Task Should_execute_AQL_query_fluent()
@@ -379,7 +379,7 @@ namespace Tests.Operations
             await InsertTestData(_db);
             
             var queryOperation = _db.Query
-                .Aql($@"
+                .Raw($@"
                 FOR item IN {TestDocumentCollectionName}
                     RETURN item
                 ");
@@ -433,7 +433,7 @@ namespace Tests.Operations
 
             var queryResult = await _db.Query
                 .BatchSize(1)
-                .Aql($@"
+                .Raw($@"
                 FOR item IN {TestDocumentCollectionName}
                     RETURN item
                 ")

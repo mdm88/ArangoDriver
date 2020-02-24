@@ -74,6 +74,16 @@ namespace ArangoDriver.Client.Query.Value
         {
             return new AqlOperationValue<T>(op, v);
         }
+        
+        /// <summary>
+        /// (subquery)
+        /// </summary>
+        /// <param name="q">Query</param>
+        /// <returns>AqlValue</returns>
+        public static AqlSubqueryValue<T> Subquery<T>(AQuery q)
+        {
+            return new AqlSubqueryValue<T>(q);
+        }
 
         /// <summary>
         /// @var0 and binds the value

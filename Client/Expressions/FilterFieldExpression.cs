@@ -42,21 +42,24 @@ namespace ArangoDriver.Expressions
                 {
                     case "Count":
                         Special = Specials.Count;
+                        expression = methodCallExpression.Arguments.FirstOrDefault();
                         break;
                     case "GetType":
                         Special = Specials.Type;
+                        expression = methodCallExpression.Object;
                         break;
                     default:
                         throw new ExpressionInvalidException();
                 }
                 
-                expression = methodCallExpression.Object;
-
                 if (expression == null)
                     return;
             }
-            
-            base.Parse(expression);
+
+            try
+            {
+                base.Parse(expression);
+            } catch(ExpressionInvalidException) {}
         }
 
         internal enum Specials

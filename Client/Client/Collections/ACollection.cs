@@ -304,7 +304,7 @@ namespace ArangoDriver.Client
         /// </summary>
         public async Task<AResult<List<T>>> GetAll()
         {
-            AQuery query = new AQuery(_requestFactory, _connection).Aql("FOR x IN " + _collectionName + " RETURN x");
+            AQuery query = new AQuery(_requestFactory, _connection).Raw("FOR x IN " + _collectionName + " RETURN x");
 
             return await query.ToList<T>();
         }
