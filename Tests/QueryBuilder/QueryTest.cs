@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Arango.Tests;
 using ArangoDriver.Client;
 using ArangoDriver.Client.Query;
+using ArangoDriver.Client.Query.Query;
 using ArangoDriver.Client.Query.Value;
 using NUnit.Framework;
 
@@ -40,6 +41,15 @@ namespace Tests.QueryBuilder
                 .Limit(5);
             
             Assert.AreEqual("LIMIT 5", query.GetExpression());
+        }
+        
+        [Test]
+        public void SortTest()
+        {
+            AQuery query = _db.Query
+                .Sort(AValue<Dummy>.Field(x => x.Foo), AqlSort.Direction.Desc);
+            
+            Assert.AreEqual("SORT x.Foo DESC", query.GetExpression());
         }
         
         [Test]

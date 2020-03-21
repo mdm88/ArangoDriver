@@ -130,6 +130,13 @@ namespace ArangoDriver.Client.Query
             return this;
         }
 
+        public AQuery Sort(IAqlValue field, AqlSort.Direction direction)
+        {
+            _queries.Add(new AqlSort(field, direction));
+
+            return this;
+        }
+
         public AQuery Let(string alias, IAqlValue value)
         {
             _queries.Add(new AqlLet(alias, value));
