@@ -65,6 +65,29 @@ namespace ArangoDriver.Client.Query.Value
         }
         
         /// <summary>
+        /// POW(value, exp)
+        /// </summary>
+        /// <param name="v">AqlFieldValue</param>
+        /// <param name="e">AqlFieldValue</param>
+        /// <typeparam name="T">Type of value returned</typeparam>
+        /// <returns>AqlValue</returns>
+        public static AqlFunctionValue<T> Pow<T>(IAqlValue<T> v, IAqlValue<T> e)
+        {
+            return Multiple("POW", v, e);
+        }
+        
+        /// <summary>
+        /// SQRT(value)
+        /// </summary>
+        /// <param name="v">AqlFieldValue</param>
+        /// <typeparam name="T">Type of value returned</typeparam>
+        /// <returns>AqlValue</returns>
+        public static AqlFunctionValue<T> Sqrt<T>(IAqlValue<T> v)
+        {
+            return Basic("SQRT", v);
+        }
+        
+        /// <summary>
         /// ABS(value)
         /// </summary>
         /// <param name="v">AqlFieldValue</param>
