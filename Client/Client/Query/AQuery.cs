@@ -159,6 +159,15 @@ namespace ArangoDriver.Client.Query
             
             return this;
         }
+        
+        public AQuery Return<T>(params MemberExpression[] fields)
+        {
+            string exp = "{" + String.Join(", ", fields.Select(e => new FieldExpression<T, object>(e)).Select(e => e.Field + ":" + e.Name + "." + e.Field)) + "}";
+            
+            _queries.Add(new AqlReturn(exp));
+            
+            return this;
+        }
 
         public AQuery Raw(string expression)
         {

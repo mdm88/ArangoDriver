@@ -10,6 +10,12 @@ namespace ArangoDriver.Expressions
 
         public string Name => _name;
         
+        public FieldExpression(MemberExpression expression)
+        {
+            _name = ((ParameterExpression)expression.Expression).Name;
+            
+            Parse(expression);
+        }
         public FieldExpression(Expression<Func<T, TV>> expression)
         {
             _name = expression.Parameters.First().Name;

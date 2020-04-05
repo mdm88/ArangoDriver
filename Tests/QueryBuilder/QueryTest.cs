@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Arango.Tests;
 using ArangoDriver.Client;
@@ -91,6 +92,19 @@ namespace Tests.QueryBuilder
         {
             AQuery query = _db.Query
                 .Return<Dummy>(x => x.Key, x => x.Foo);
+            
+            Assert.AreEqual("RETURN {_key:x._key, Foo:x.Foo}", query.GetExpression());
+        }
+        
+        
+        [Test]
+        public void ReturnPartial2Test()
+        {
+            AQuery query = _db.Query
+                .Return<Dummy>(
+                    Expression.Property(Expression.Parameter(typeof(Dummy), "x"), "Key"),
+                    Expression.Property(Expression.Parameter(typeof(Dummy), "x"), "Foo")
+                );
             
             Assert.AreEqual("RETURN {_key:x._key, Foo:x.Foo}", query.GetExpression());
         }
