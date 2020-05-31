@@ -4,7 +4,7 @@ namespace ArangoDriver.Exceptions
     {
         public string Version { get; }
         
-        public VersionCheckViolationException(string version)
+        public VersionCheckViolationException(string version) : base("")
         {
             Version = version;
         }

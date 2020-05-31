@@ -49,7 +49,7 @@ namespace ArangoDriver.Expressions
                         expression = methodCallExpression.Object;
                         break;
                     default:
-                        throw new ExpressionInvalidException();
+                        throw new ExpressionInvalidException(expression.ToString());
                 }
                 
                 if (expression == null)

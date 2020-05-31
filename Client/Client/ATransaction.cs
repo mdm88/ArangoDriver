@@ -127,7 +127,7 @@ namespace ArangoDriver.Client
                 case 409:
                 case 500:
                 default:
-                    throw new ArangoException();
+                    throw new ArangoException(response.Body);
             }
             
             return result;

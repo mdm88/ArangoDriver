@@ -52,7 +52,7 @@ namespace ArangoDriver.Client
                 case 412:
                     throw new VersionCheckViolationException(response.Headers.ETag.Tag?.Replace("\"", ""));
                 default:
-                    throw new ArangoException();
+                    throw new ArangoException(response.Body);
             }
             
             return result;

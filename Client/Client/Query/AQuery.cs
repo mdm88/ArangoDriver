@@ -347,11 +347,11 @@ namespace ArangoDriver.Client.Query
                     
                     break;
                 case 400:
-                    throw new QueryInvalidException();
+                    throw new QueryInvalidException(response.Body);
                 case 404:
                     throw new CollectionNotFoundException();
                 default:
-                    throw new ArangoException();
+                    throw new ArangoException(response.Body);
             }
             
             return result;            
@@ -391,7 +391,7 @@ namespace ArangoDriver.Client.Query
                 case 404:
                     throw new QueryCursorNotFoundException();
                 default:
-                    throw new ArangoException();
+                    throw new ArangoException(response.Body);
             }
             
             return result;
@@ -431,9 +431,9 @@ namespace ArangoDriver.Client.Query
                     }
                     break;
                 case 400:
-                    throw new QueryInvalidException();
+                    throw new QueryInvalidException(response.Body);
                 default:
-                    throw new ArangoException();
+                    throw new ArangoException(response.Body);
             }
             
             return result;
@@ -464,7 +464,7 @@ namespace ArangoDriver.Client.Query
                 case 404:
                     throw new QueryCursorNotFoundException();
                 default:
-                    throw new ArangoException();
+                    throw new ArangoException(response.Body);
             }
             
             return result;

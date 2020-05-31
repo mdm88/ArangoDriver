@@ -222,7 +222,7 @@ namespace ArangoDriver.Client
                     result.Value = body;
                     break;
                 default:
-                    throw new ArangoException();
+                    throw new ArangoException(response.Body);
             }
             
             return result;

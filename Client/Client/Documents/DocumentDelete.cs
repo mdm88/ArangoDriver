@@ -97,7 +97,7 @@ namespace ArangoDriver.Client
                 case 404:
                     throw new CollectionNotFoundException();
                 default:
-                    throw new ArangoException();
+                    throw new ArangoException(response.Body);
             }
             
             return result;

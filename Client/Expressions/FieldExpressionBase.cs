@@ -17,7 +17,7 @@ namespace ArangoDriver.Expressions
             
             MemberExpression e = expression as MemberExpression ?? (expression as UnaryExpression)?.Operand as MemberExpression;
             if (e == null)
-                throw new ExpressionInvalidException();
+                throw new ExpressionInvalidException(expression.ToString());
             while (e != null)
             {
                 JsonPropertyAttribute attr = e.Member.GetCustomAttributes(typeof(JsonPropertyAttribute), true).FirstOrDefault() as JsonPropertyAttribute;

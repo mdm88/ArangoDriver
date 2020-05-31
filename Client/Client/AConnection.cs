@@ -93,7 +93,7 @@ namespace ArangoDriver.Client
                 case 409:
                     throw new DatabaseAlreadyExistsException();
                 default:
-                    throw new ArangoException();
+                    throw new ArangoException(response.Body);
             }
             
             return result;
@@ -118,7 +118,7 @@ namespace ArangoDriver.Client
                     result.Value = body?.Result;
                     break;
                 default:
-                    throw new ArangoException();
+                    throw new ArangoException(response.Body);
             }
             
             return result;
@@ -143,7 +143,7 @@ namespace ArangoDriver.Client
                     result.Value = body?.Result;
                     break;
                 default:
-                    throw new ArangoException();
+                    throw new ArangoException(response.Body);
             }
             
             return result;
@@ -170,7 +170,7 @@ namespace ArangoDriver.Client
                 case 404:
                     throw new DatabaseNotFoundException();
                 default:
-                    throw new ArangoException();
+                    throw new ArangoException(response.Body);
             }
             
             return result;
