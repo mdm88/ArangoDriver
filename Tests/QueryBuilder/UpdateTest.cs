@@ -2,6 +2,8 @@ using System.Threading.Tasks;
 using Arango.Tests;
 using ArangoDriver.Client;
 using ArangoDriver.Client.Query;
+using ArangoDriver.Client.Query.Update;
+using ArangoDriver.Client.Query.Value;
 using NUnit.Framework;
 
 namespace Tests.QueryBuilder
@@ -26,29 +28,31 @@ namespace Tests.QueryBuilder
         [Test]
         public void SimpleTest()
         {
-            UpdateDefinition<Dummy> upd = UpdateBuilder<Dummy>.Update("x", TestDocumentCollectionName)
-                .Set(x => x.Foo, "asdf");
-            
             AQuery query = _db.Query
                 .Raw("FOR x IN " + TestDocumentCollectionName)
-                .Update(upd);
+                .Update<Dummy>(
+                    "x", TestDocumentCollectionName,
+                    builder => builder
+                        .Set(x => x.Foo, AValue.Bind("asdf"))
+                );
 
-            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { Foo: @var0 } IN " + TestDocumentCollectionName, query.GetExpression());
+            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { Foo:@var0 } IN " + TestDocumentCollectionName, query.GetExpression());
             Assert.AreEqual("asdf", query.GetBindedVars()[0]);
         }
         
         [Test]
         public void MultipleTest()
         {
-            UpdateDefinition<Dummy> upd = UpdateBuilder<Dummy>.Update("x", TestDocumentCollectionName)
-                .Set(x => x.Foo, "asdf")
-                .Set(x => x.Id, "1235");
-            
             AQuery query = _db.Query
                 .Raw("FOR x IN " + TestDocumentCollectionName)
-                .Update(upd);
+                .Update<Dummy>(
+                    "x", TestDocumentCollectionName, 
+                    builder => builder
+                        .Set(x => x.Foo, AValue.Bind("asdf"))
+                        .Set(x => x.Id, AValue.Bind("1235"))
+                );
 
-            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { Foo: @var0, _id: @var1 } IN " + TestDocumentCollectionName, query.GetExpression());
+            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { Foo:@var0, _id:@var1 } IN " + TestDocumentCollectionName, query.GetExpression());
             Assert.AreEqual("asdf", query.GetBindedVars()[0]);
             Assert.AreEqual("1235", query.GetBindedVars()[1]);
         }
@@ -56,43 +60,86 @@ namespace Tests.QueryBuilder
         [Test]
         public void IncTest()
         {
-            UpdateDefinition<Dummy> upd = UpdateBuilder<Dummy>.Update("x", TestDocumentCollectionName)
-                .Inc(x => x.Bar, 38);
-            
             AQuery query = _db.Query
                 .Raw("FOR x IN " + TestDocumentCollectionName)
-                .Update(upd);
+                .Update<Dummy>(
+                    "x", TestDocumentCollectionName, 
+                    builder => builder
+                        .Inc(x => x.Bar, AValue.Bind(38))
+                );
 
-            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { Bar: x.Bar+38 } IN " + TestDocumentCollectionName, query.GetExpression());
-            Assert.IsEmpty(query.GetBindedVars());
+            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { Bar:x.Bar+@var0 } IN " + TestDocumentCollectionName, query.GetExpression());
+            Assert.AreEqual(38, query.GetBindedVars()[0]);
         }
         
         [Test]
-        public void IncNegativeTest()
+        public void SubElementTest()
         {
-            UpdateDefinition<Dummy> upd = UpdateBuilder<Dummy>.Update("x", TestDocumentCollectionName)
-                .Inc(x => x.Bar, -5);
+            AQuery query = _db.Query
+                .Raw("FOR x IN " + TestDocumentCollectionName)
+                .Update<Complex>(
+                    "x", TestDocumentCollectionName,
+                    builderComplex => builderComplex
+                        .SetPartial(
+                            x => x.dum,
+                            builderDummy => builderDummy
+                                .Set(x => x.Bar, AValue.Bind(38))
+                        )
+                );
+
+            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { dum:MERGE(x.dum,{ Bar:@var0 }) } IN " + TestDocumentCollectionName, query.GetExpression());
+            Assert.AreEqual(38, query.GetBindedVars()[0]);
+        }
+        
+        [Test]
+        public void SubElementIncTest()
+        {
+            AQuery query = _db.Query
+                .Raw("FOR x IN " + TestDocumentCollectionName)
+                .Update<Complex>(
+                    "x", TestDocumentCollectionName,
+                    builderComplex => builderComplex
+                        .SetPartial(
+                            x => x.dum,
+                            builderDummy => builderDummy
+                                .Inc(x => x.Bar, AValue.Bind(38))
+                        )
+                );
+
+            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { dum:MERGE(x.dum,{ Bar:x.dum.Bar+@var0 }) } IN " + TestDocumentCollectionName, query.GetExpression());
+            Assert.AreEqual(38, query.GetBindedVars()[0]);
+        }
+        
+        [Test]
+        public void PredefinedTest()
+        {
+            UpdateBuilder<Dummy> definition = new UpdateBuilder<Dummy>()
+                .Set(x => x.Foo, AValue.Bind("asdf"));
             
             AQuery query = _db.Query
                 .Raw("FOR x IN " + TestDocumentCollectionName)
-                .Update(upd);
+                .Update<Dummy>(
+                    "x", TestDocumentCollectionName,
+                    definition
+                );
 
-            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { Bar: x.Bar-5 } IN " + TestDocumentCollectionName, query.GetExpression());
-            Assert.IsEmpty(query.GetBindedVars());
+            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { Foo:@var0 } IN " + TestDocumentCollectionName, query.GetExpression());
+            Assert.AreEqual("asdf", query.GetBindedVars()[0]);
         }
         
         [Test]
         public void OptionsTest()
         {
-            UpdateDefinition<Dummy> upd = UpdateBuilder<Dummy>.Update("x", TestDocumentCollectionName)
-                .Set(x => x.Foo, "asdf")
-                .OptMergeObjects(false);
-            
             AQuery query = _db.Query
                 .Raw("FOR x IN " + TestDocumentCollectionName)
-                .Update(upd);
+                .Update<Dummy>(
+                    "x", TestDocumentCollectionName,
+                    builder => builder
+                        .Set(x => x.Foo, AValue.Bind("asdf")),
+                    false
+                );
 
-            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { Foo: @var0 } IN " + TestDocumentCollectionName + " OPTIONS {mergeObjects:false}", query.GetExpression());
+            Assert.AreEqual("FOR x IN " + TestDocumentCollectionName + " UPDATE x WITH { Foo:@var0 } IN " + TestDocumentCollectionName + " OPTIONS {mergeObjects:false}", query.GetExpression());
             Assert.AreEqual("asdf", query.GetBindedVars()[0]);
         }
     }

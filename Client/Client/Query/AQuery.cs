@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ArangoDriver.Client.Query.Filter;
 using ArangoDriver.Client.Query.Query;
+using ArangoDriver.Client.Query.Update;
 using ArangoDriver.Client.Query.Value;
 using ArangoDriver.Exceptions;
 using ArangoDriver.Expressions;
@@ -95,9 +96,20 @@ namespace ArangoDriver.Client.Query
             return this;
         }
 
-        public AQuery Update<T>(UpdateDefinition<T> definition)
+        public AQuery Update<T>(string alias, string collectionName, Action<UpdateBuilder<T>> build, bool mergeObjects = true)
         {
-            _queries.Add(new AqlUpdate<T>(definition));
+            var definition = new UpdateBuilder<T>();
+            
+            build.Invoke(definition);
+            
+            _queries.Add(new AqlUpdate<T>(alias, collectionName, definition, mergeObjects));
+            
+            return this;
+        }
+
+        public AQuery Update<T>(string alias, string collectionName, UpdateBuilder<T> definition, bool mergeObjects = true)
+        {
+            _queries.Add(new AqlUpdate<T>(alias, collectionName, definition, mergeObjects));
             
             return this;
         }

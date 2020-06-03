@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Tests
 {
@@ -24,5 +25,19 @@ namespace Tests
         public int Bar { get; set; }
         
         public int Baz { get; set; }
+    }
+    
+    public interface IComplex
+    {
+        Dummy dum { get; }
+    }
+    public class Complex
+    {
+        public Dummy dum { get; set; }
+            
+        [JsonProperty(PropertyName = "renamed")]
+        public Dummy asd { get; set; }
+            
+        public List<Dummy> list { get; set; }
     }
 }
