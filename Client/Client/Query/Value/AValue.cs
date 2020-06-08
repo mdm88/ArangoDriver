@@ -28,6 +28,19 @@ namespace ArangoDriver.Client.Query.Value
         }
 
         /// <summary>
+        /// (condition ? positive : negative)
+        /// </summary>
+        /// <param name="c">Condition</param>
+        /// <param name="p">AqlValue returned when condition is true</param>
+        /// <param name="n">AqlValue returned when condition is false</param>
+        /// <typeparam name="T">Type of field returned</typeparam>
+        /// <returns>AqlValue</returns>
+        public static AqlIf<T> If<T>(IAqlExpression<bool> c, IAqlValue<T> p, IAqlValue<T> n)
+        {
+            return new AqlIf<T>(c, p, n);
+        }
+
+        /// <summary>
         /// DOCUMENT(collectionName, documentKey)
         /// </summary>
         /// <param name="c">Collection Name</param>

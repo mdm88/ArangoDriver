@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Arango.Tests;
 using ArangoDriver.Client;
 using ArangoDriver.Client.Query;
+using ArangoDriver.Client.Query.Filter;
 using ArangoDriver.Client.Query.Value;
 using NUnit.Framework;
 
@@ -32,6 +33,21 @@ namespace Tests.QueryBuilder
                 .Let( "x", AValue<Dummy>.Field(x => x.Bar));
             
             Assert.AreEqual("LET x = x.Bar", query.GetExpression());
+        }
+        
+        [Test]
+        public void IfTest()
+        {
+            AQuery query = _db.Query
+                .Let( "x", AValue.If(
+                    AFilter.Eq(AValue<Dummy>.Field(x => x.Bar), AValue.Bind(2)), 
+                    AValue<Dummy>.Field(x => x.Baz),
+                    AValue.Bind(0)
+                ));
+            
+            Assert.AreEqual("LET x = (x.Bar == @var0 ? x.Baz : @var1)", query.GetExpression());
+            Assert.AreEqual(2, query.GetBindedVars()[0]);
+            Assert.AreEqual(0, query.GetBindedVars()[1]);
         }
         
         [Test]

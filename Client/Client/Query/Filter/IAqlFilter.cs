@@ -1,8 +1,6 @@
 namespace ArangoDriver.Client.Query.Filter
 {
-    public interface IAqlFilter
+    public interface IAqlFilter : IAqlExpression<bool>
     {
-        string GetExpression(ref int bindCount);
-        object[] GetBindedVars();
     }
 }

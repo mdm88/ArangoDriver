@@ -6,7 +6,7 @@ namespace ArangoDriver.Client.Query.Value
     {
         private static AqlFunctionValue<T> Basic<T>(string f, params IAqlValue<T>[] v)
         {
-            IAqlValue value;
+            IAqlValue<T> value;
             if (v.Length == 1)
                 value = v.First();
             else
