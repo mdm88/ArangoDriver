@@ -831,18 +831,15 @@ namespace Tests.Operations
             
             Assert.AreEqual(202, replaceResult.StatusCode);
             Assert.IsTrue(replaceResult.Success);
-            Assert.IsTrue(replaceResult.HasValue);
-            Assert.AreEqual(replaceResult.Value.ID(), documents[0].ID());
-            Assert.AreEqual(replaceResult.Value.Key(), documents[0].Key());
-            Assert.AreNotEqual(replaceResult.Value.Rev(), documents[0].Rev());
+            Assert.IsFalse(replaceResult.HasValue);
             
             var getResult = await collection
                 .Get()
-                .ById(replaceResult.Value.ID());
+                .ById(documents[0].ID());
             
-            Assert.AreEqual(getResult.Value.ID(), replaceResult.Value.ID());
-            Assert.AreEqual(getResult.Value.Key(), replaceResult.Value.Key());
-            Assert.AreEqual(getResult.Value.Rev(), replaceResult.Value.Rev());
+            Assert.AreEqual(getResult.Value.ID(), documents[0].ID());
+            Assert.AreEqual(getResult.Value.Key(), documents[0].Key());
+            Assert.AreNotEqual(getResult.Value.Rev(), documents[0].Rev());
             
             Assert.AreNotEqual(getResult.Value["Foo"], documents[0]["Foo"]);
             Assert.AreEqual(getResult.Value["Foo"], document["Foo"]);
@@ -953,18 +950,15 @@ namespace Tests.Operations
             
             Assert.AreEqual(201, replaceResult.StatusCode);
             Assert.IsTrue(replaceResult.Success);
-            Assert.IsTrue(replaceResult.HasValue);
-            Assert.AreEqual(replaceResult.Value.ID(), documents[0].ID());
-            Assert.AreEqual(replaceResult.Value.Key(), documents[0].Key());
-            Assert.AreNotEqual(replaceResult.Value.Rev(), documents[0].Rev());
+            Assert.IsFalse(replaceResult.HasValue);
             
             var getResult = await collection
                 .Get()
-                .ById(replaceResult.Value.ID());
+                .ById(documents[0].ID());
             
-            Assert.AreEqual(getResult.Value.ID(), replaceResult.Value.ID());
-            Assert.AreEqual(getResult.Value.Key(), replaceResult.Value.Key());
-            Assert.AreEqual(getResult.Value.Rev(), replaceResult.Value.Rev());
+            Assert.AreEqual(getResult.Value.ID(), documents[0].ID());
+            Assert.AreEqual(getResult.Value.Key(), documents[0].Key());
+            Assert.AreNotEqual(getResult.Value.Rev(), documents[0].Rev());
             
             Assert.AreNotEqual(getResult.Value["Foo"], documents[0]["Foo"]);
             Assert.AreEqual(getResult.Value["Foo"], document["Foo"]);
@@ -994,10 +988,7 @@ namespace Tests.Operations
 
             Assert.AreEqual(202, replaceResult.StatusCode);
             Assert.IsTrue(replaceResult.Success);
-            Assert.IsTrue(replaceResult.HasValue);
-            Assert.AreEqual(replaceResult.Value.ID(), documents[0].ID());
-            Assert.AreEqual(replaceResult.Value.Key(), documents[0].Key());
-            Assert.AreNotEqual(replaceResult.Value.Rev(), documents[0].Rev());
+            Assert.IsFalse(replaceResult.HasValue);
         }
 
         [Test]
@@ -1018,18 +1009,15 @@ namespace Tests.Operations
             
             Assert.AreEqual(202, replaceResult.StatusCode);
             Assert.IsTrue(replaceResult.Success);
-            Assert.IsTrue(replaceResult.HasValue);
-            Assert.AreEqual(replaceResult.Value.ID(), documents[0].ID());
-            Assert.AreEqual(replaceResult.Value.Key(), documents[0].Key());
-            Assert.AreNotEqual(replaceResult.Value.Rev(), documents[0].Rev());
+            Assert.IsFalse(replaceResult.HasValue);
             
             var getResult = await collection
                 .Get()
-                .ById(replaceResult.Value.ID());
+                .ById(documents[0].ID());
             
-            Assert.AreEqual(getResult.Value.ID(), replaceResult.Value.ID());
-            Assert.AreEqual(getResult.Value.Key(), replaceResult.Value.Key());
-            Assert.AreEqual(getResult.Value.Rev(), replaceResult.Value.Rev());
+            Assert.AreEqual(getResult.Value.ID(), documents[0].ID());
+            Assert.AreEqual(getResult.Value.Key(), documents[0].Key());
+            Assert.AreNotEqual(getResult.Value.Rev(), documents[0].Rev());
             
             Assert.AreNotEqual(getResult.Value["Foo"], documents[0]["Foo"]);
             Assert.AreEqual(getResult.Value["Foo"], document["Foo"]);
@@ -1077,18 +1065,15 @@ namespace Tests.Operations
             
             Assert.AreEqual(202, replaceResult.StatusCode);
             Assert.IsTrue(replaceResult.Success);
-            Assert.IsTrue(replaceResult.HasValue);
-            Assert.AreEqual(replaceResult.Value.Id, documents[0].ID());
-            Assert.AreEqual(replaceResult.Value.Key, documents[0].Key());
-            Assert.AreNotEqual(replaceResult.Value.Revision, documents[0].Rev());
+            Assert.IsFalse(replaceResult.HasValue);
             
             var getResult = await collection
                 .Get()
-                .ById(replaceResult.Value.Id);
+                .ById(documents[0].ID());
             
-            Assert.AreEqual(getResult.Value.Id, replaceResult.Value.Id);
-            Assert.AreEqual(getResult.Value.Key, replaceResult.Value.Key);
-            Assert.AreEqual(getResult.Value.Revision, replaceResult.Value.Revision);
+            Assert.AreEqual(getResult.Value.Id, documents[0].ID());
+            Assert.AreEqual(getResult.Value.Key, documents[0].Key());
+            Assert.AreNotEqual(getResult.Value.Revision, documents[0].Rev());
             
             Assert.AreNotEqual(getResult.Value.Foo, documents[0]["Foo"]);
             Assert.AreEqual(getResult.Value.Foo, dummy.Foo);

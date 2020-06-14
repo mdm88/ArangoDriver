@@ -4,6 +4,7 @@ using Arango.Tests;
 using ArangoDriver.Client;
 using ArangoDriver.Client.Query;
 using ArangoDriver.Client.Query.Query;
+using ArangoDriver.Client.Query.Return;
 using ArangoDriver.Client.Query.Value;
 using NUnit.Framework;
 
@@ -70,7 +71,7 @@ namespace Tests.QueryBuilder
                 .For("y", AValue.Field(TestDocumentCollectionName))
                 .Collect()
                 .Aggregate("max", ANumeric.Max(AValue.Field("y.value")))
-                .Return("max");
+                .Return(AReturn.Variable("max"));
                 
             AQuery query = _db.Query
                 .Let("x", AValue.Subquery<int>(subquery));
@@ -82,7 +83,7 @@ namespace Tests.QueryBuilder
         public void ReturnTest()
         {
             AQuery query = _db.Query
-                .Return("x");
+                .Return(AReturn.Variable("x"));
             
             Assert.AreEqual("RETURN x", query.GetExpression());
         }
@@ -91,7 +92,7 @@ namespace Tests.QueryBuilder
         public void ReturnPartialTest()
         {
             AQuery query = _db.Query
-                .Return<Dummy>(x => x.Key, x => x.Foo);
+                .Return(AReturn.Partial<Dummy>(x => x.Key, x => x.Foo));
             
             Assert.AreEqual("RETURN {_key:x._key, Foo:x.Foo}", query.GetExpression());
         }
@@ -101,9 +102,11 @@ namespace Tests.QueryBuilder
         public void ReturnPartial2Test()
         {
             AQuery query = _db.Query
-                .Return<Dummy>(
-                    Expression.Property(Expression.Parameter(typeof(Dummy), "x"), "Key"),
-                    Expression.Property(Expression.Parameter(typeof(Dummy), "x"), "Foo")
+                .Return(
+                    AReturn.Partial<Dummy>(
+                        Expression.Property(Expression.Parameter(typeof(Dummy), "x"), "Key"),
+                        Expression.Property(Expression.Parameter(typeof(Dummy), "x"), "Foo")
+                    )
                 );
             
             Assert.AreEqual("RETURN {_key:x._key, Foo:x.Foo}", query.GetExpression());

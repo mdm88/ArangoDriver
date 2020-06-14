@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ArangoDriver.Client.Query.Filter;
 using ArangoDriver.Client.Query.Query;
+using ArangoDriver.Client.Query.Return;
 using ArangoDriver.Client.Query.Update;
 using ArangoDriver.Client.Query.Value;
 using ArangoDriver.Exceptions;
@@ -155,28 +156,10 @@ namespace ArangoDriver.Client.Query
 
             return this;
         }
-
-        public AQuery Return(string alias)
-        {
-            _queries.Add(new AqlReturn(alias));
-
-            return this;
-        }
-
-        public AQuery Return<T>(params Expression<Func<T, object>>[] fields)
-        {
-            string exp = "{" + String.Join(", ", fields.Select(e => new FieldExpression<T, object>(e)).Select(e => e.Field + ":" + e.Name + "." + e.Field)) + "}";
-            
-            _queries.Add(new AqlReturn(exp));
-            
-            return this;
-        }
         
-        public AQuery Return<T>(params MemberExpression[] fields)
+        public AQuery Return(IAqlReturn returned)
         {
-            string exp = "{" + String.Join(", ", fields.Select(e => new FieldExpression<T, object>(e)).Select(e => e.Field + ":" + e.Name + "." + e.Field)) + "}";
-            
-            _queries.Add(new AqlReturn(exp));
+            _queries.Add(new AqlReturn(returned.GetExpression()));
             
             return this;
         }
