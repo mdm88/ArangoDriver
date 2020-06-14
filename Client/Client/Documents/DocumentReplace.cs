@@ -115,16 +115,22 @@ namespace ArangoDriver.Client
             {
                 case 201:
                 case 202:
-                    T body;
-                    if (_returnNew.HasValue && _returnNew.Value)
-                        body = response.ParseBody<DocumentCreateResponse<T>>()?.New;
-                    else if (_returnOld.HasValue && _returnOld.Value)
-                        body = response.ParseBody<DocumentCreateResponse<T>>()?.Old;
-                    else
-                        body = response.ParseBody<T>();
+                    if (_returnNew.HasValue && _returnNew.Value || _returnOld.HasValue && _returnOld.Value)
+                    {
+                        T body;
+                        if (_returnNew.HasValue && _returnNew.Value)
+                            body = response.ParseBody<DocumentCreateResponse<T>>()?.New;
+                        else
+                            body = response.ParseBody<DocumentCreateResponse<T>>()?.Old;
                     
-                    result.Success = (body != null);
-                    result.Value = body;
+                        result.Success = body != null;
+                        result.Value = body;
+                    }
+                    else
+                    {
+                        result.Success = true;
+                        result.Value = null;
+                    }
                     break;
                 case 412:
                     var rev = (string)response.ParseBody<Dictionary<string, object>>()["_rev"];
