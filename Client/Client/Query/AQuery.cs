@@ -129,6 +129,13 @@ namespace ArangoDriver.Client.Query
             return this;
         }
 
+        public AQuery CollectCount(string alias)
+        {
+            _queries.Add(new AqlCollectCount(alias));
+            
+            return this;
+        }
+
         public AQuery Aggregate(string alias, IAqlValue value)
         {
             _queries.Add(new AqlAggregate(alias, value));
