@@ -473,6 +473,11 @@ namespace ArangoDriver.Client.Query
         }
         
         #endregion
+
+        public AQuery SubQuery()
+        {
+            return _connection.Query;
+        }
         
         /// <summary>
         /// Transforms specified query into minified version with removed leading and trailing whitespaces except new line characters.
