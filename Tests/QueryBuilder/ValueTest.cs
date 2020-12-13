@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Arango.Tests;
@@ -98,6 +99,20 @@ namespace Tests.QueryBuilder
             Assert.AreEqual("LET x = NOT_NULL(@var0,@var1)", query.GetExpression());
             Assert.AreEqual(2, query.GetBindedVars()[0]);
             Assert.AreEqual(5, query.GetBindedVars()[1]);
+        }
+        
+        [Test]
+        public void ArrayFunctionTest()
+        {
+            AQuery query = _db.Query
+                .Let( "x", AArray.Minus(
+                    AValue.Bind(new List<int>() {2, 5, 6}),
+                    AValue.Bind(new List<int>() {4, 5, 6})
+                ));
+            
+            Assert.AreEqual("LET x = MINUS(@var0,@var1)", query.GetExpression());
+            Assert.AreEqual(typeof(List<int>), query.GetBindedVars()[0].GetType());
+            Assert.AreEqual(typeof(List<int>), query.GetBindedVars()[1].GetType());
         }
     }
 }
