@@ -17,6 +17,7 @@ namespace ArangoDriver.Client
 
         private bool? _waitForSync;
         private bool? _returnNew;
+        private OverwriteMode? _overwriteMode;
         
         #region Parameters
         
@@ -36,6 +37,13 @@ namespace ArangoDriver.Client
         public DocumentCreate<T> ReturnNew()
         {
             _returnNew = true;
+
+            return this;
+        }
+
+        public DocumentCreate<T> OverwriteMode(OverwriteMode mode)
+        {
+            _overwriteMode = mode;
 
             return this;
         }
@@ -61,6 +69,8 @@ namespace ArangoDriver.Client
                 request.QueryString.Add(ParameterName.WaitForSync, _waitForSync.Value.ToString().ToLower());
             if (_returnNew.HasValue)
                 request.QueryString.Add(ParameterName.ReturnNew, _returnNew.Value.ToString().ToLower());
+            if (_overwriteMode.HasValue)
+                request.QueryString.Add(ParameterName.OverwriteMode, _overwriteMode.Value.ToString().ToLower());
 
             request.SetBody(document);
             
