@@ -37,6 +37,7 @@ namespace ArangoDriver.Client.Query.Value
         {
             return new AqlArrayValue<T>(v.Select(x => new AqlBindValue<T>(x)));
         }
+        
         /// <summary>
         /// [@var0, @var1, ...@varN] and binds the values
         /// </summary>

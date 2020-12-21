@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using ArangoDriver.Client.Query.Value;
 
 namespace ArangoDriver.Client.Query.Filter
@@ -36,6 +37,21 @@ namespace ArangoDriver.Client.Query.Filter
         public static AqlFilter In<T>(IAqlValue<T> value1, AqlArrayValue<T> value2)
         {
             return new AqlFilter("IN", value1, value2);
+        }
+
+        public static AqlFilter In<T>(IAqlValue<T> value1, IAqlValue<IEnumerable<T>> value2)
+        {
+            return new AqlFilter("IN", value1, value2);
+        }
+
+        public static AqlFilter Nin<T>(IAqlValue<T> value1, AqlArrayValue<T> value2)
+        {
+            return new AqlFilter("NOT IN", value1, value2);
+        }
+
+        public static AqlFilter Nin<T>(IAqlValue<T> value1, IAqlValue<IEnumerable<T>> value2)
+        {
+            return new AqlFilter("NOT IN", value1, value2);
         }
 
         public static AqlFilterOr Or(params IAqlFilter[] filters)

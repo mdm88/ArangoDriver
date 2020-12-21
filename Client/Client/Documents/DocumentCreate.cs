@@ -70,7 +70,10 @@ namespace ArangoDriver.Client
             if (_returnNew.HasValue)
                 request.QueryString.Add(ParameterName.ReturnNew, _returnNew.Value.ToString().ToLower());
             if (_overwriteMode.HasValue)
+            {
+                request.QueryString.Add(ParameterName.Overwrite, "true");
                 request.QueryString.Add(ParameterName.OverwriteMode, _overwriteMode.Value.ToString().ToLower());
+            }
 
             request.SetBody(document);
             
@@ -137,6 +140,11 @@ namespace ArangoDriver.Client
                 request.QueryString.Add(ParameterName.WaitForSync, _waitForSync.Value.ToString().ToLower());
             if (_returnNew.HasValue)
                 request.QueryString.Add(ParameterName.ReturnNew, _returnNew.Value.ToString().ToLower());
+            if (_overwriteMode.HasValue)
+            {
+                request.QueryString.Add(ParameterName.Overwrite, "true");
+                request.QueryString.Add(ParameterName.OverwriteMode, _overwriteMode.Value.ToString().ToLower());
+            }
 
             request.SetBody(documents);
             

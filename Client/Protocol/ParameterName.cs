@@ -44,6 +44,7 @@ namespace ArangoDriver.Protocol
         internal const string Query = "query";
         internal const string ReturnNew = "returnNew";
         internal const string ReturnOld = "returnOld";
+        internal const string Overwrite = "overwrite";
         internal const string OverwriteMode = "overwriteMode";
         internal const string ShardKeys = "shardKeys";
         internal const string Sparse = "sparse";
