@@ -17,6 +17,7 @@ namespace ArangoDriver.Client
 
         private bool? _waitForSync;
         private bool? _returnNew;
+        private bool? _returnOld;
         private OverwriteMode? _overwriteMode;
         
         #region Parameters
@@ -32,11 +33,22 @@ namespace ArangoDriver.Client
         }
 
         /// <summary>
-        /// Determines whether to return additionally the complete new document under the attribute 'new' in the result.
+        /// Determines whether to return additionally the complete new document in the result.
         /// </summary>
         public DocumentCreate<T> ReturnNew()
         {
             _returnNew = true;
+
+            return this;
+        }
+
+        /// <summary>
+        /// Determines whether to return additionally the complete old document in the result.
+        /// Only available if the overwrite option is used.
+        /// </summary>
+        public DocumentCreate<T> ReturnOld()
+        {
+            _returnOld = true;
 
             return this;
         }
@@ -69,6 +81,8 @@ namespace ArangoDriver.Client
                 request.QueryString.Add(ParameterName.WaitForSync, _waitForSync.Value.ToString().ToLower());
             if (_returnNew.HasValue)
                 request.QueryString.Add(ParameterName.ReturnNew, _returnNew.Value.ToString().ToLower());
+            if (_returnOld.HasValue)
+                request.QueryString.Add(ParameterName.ReturnOld, _returnOld.Value.ToString().ToLower());
             if (_overwriteMode.HasValue)
             {
                 request.QueryString.Add(ParameterName.Overwrite, "true");
@@ -87,6 +101,8 @@ namespace ArangoDriver.Client
                     T body;
                     if (_returnNew.HasValue && _returnNew.Value)
                         body = response.ParseBody<DocumentCreateResponse<T>>()?.New;
+                    else if (_returnOld.HasValue && _returnOld.Value)
+                        body = response.ParseBody<DocumentCreateResponse<T>>()?.Old;
                     else
                         body = response.ParseBody<T>();
 
@@ -140,6 +156,8 @@ namespace ArangoDriver.Client
                 request.QueryString.Add(ParameterName.WaitForSync, _waitForSync.Value.ToString().ToLower());
             if (_returnNew.HasValue)
                 request.QueryString.Add(ParameterName.ReturnNew, _returnNew.Value.ToString().ToLower());
+            if (_returnOld.HasValue)
+                request.QueryString.Add(ParameterName.ReturnOld, _returnOld.Value.ToString().ToLower());
             if (_overwriteMode.HasValue)
             {
                 request.QueryString.Add(ParameterName.Overwrite, "true");
@@ -162,6 +180,8 @@ namespace ArangoDriver.Client
                     List<T> body;
                     if (_returnNew.HasValue && _returnNew.Value)
                         body = response.ParseBody<List<DocumentCreateResponse<T>>>().Select(e => e.New).ToList();
+                    else if (_returnOld.HasValue && _returnOld.Value)
+                        body = response.ParseBody<List<DocumentCreateResponse<T>>>().Select(e => e.Old).ToList();
                     else
                         body = response.ParseBody<List<T>>();
                     
