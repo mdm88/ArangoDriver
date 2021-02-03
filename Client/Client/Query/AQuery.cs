@@ -115,6 +115,13 @@ namespace ArangoDriver.Client.Query
             return this;
         }
 
+        public AQuery Remove(string alias, string collectionName)
+        {
+            _queries.Add(new AqlRemove(alias, collectionName));
+            
+            return this;
+        }
+
         public AQuery Collect()
         {
             _queries.Add(new AqlCollect());
