@@ -40,4 +40,9 @@ namespace Tests
             
         public List<Dummy> list { get; set; }
     }
+
+    public class ComplexWithDictionary
+    {
+        public Dictionary<string, double> dic { get; set; }
+    }
 }

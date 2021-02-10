@@ -48,8 +48,6 @@ namespace ArangoDriver.Expressions
                         Special = Specials.Type;
                         expression = methodCallExpression.Object;
                         break;
-                    default:
-                        throw new ExpressionInvalidException(expression.ToString());
                 }
                 
                 if (expression == null)

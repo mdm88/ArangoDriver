@@ -72,5 +72,26 @@ namespace Tests.Expressions
             
             Assert.AreEqual("x.renamed.$type", expression.Field);
         }
+
+        [Test]
+        public void DictionaryExpressionTest()
+        {
+            var expression = new FilterFieldExpression<Dictionary<string, double>, double>(x => x["asd"]);
+            
+            Assert.AreEqual("x.asd", expression.Field);
+            
+            var expression2 = new FilterFieldExpression<ComplexWithDictionary, double>(x => x.dic["asd"]);
+            
+            Assert.AreEqual("x.dic.asd", expression2.Field);
+            
+            var expression3 = new FilterFieldExpression<Dictionary<string, Complex>, int>(x => x["asd"].asd.Bar);
+            
+            Assert.AreEqual("x.asd.renamed.Bar", expression3.Field);
+
+            var param = "qwe";
+            var expression4 = new FilterFieldExpression<Dictionary<string, Complex>, int>(x => x[param].asd.Bar);
+            
+            Assert.AreEqual("x.qwe.renamed.Bar", expression4.Field);
+        }
     }
 }

@@ -14,17 +14,55 @@ namespace ArangoDriver.Expressions
         protected virtual void Parse(Expression expression)
         {
             _field = "";
-            
-            MemberExpression e = expression as MemberExpression ?? (expression as UnaryExpression)?.Operand as MemberExpression;
-            if (e == null)
-                throw new ExpressionInvalidException(expression.ToString());
-            while (e != null)
+
+            while (expression != null)
             {
-                JsonPropertyAttribute attr = e.Member.GetCustomAttributes(typeof(JsonPropertyAttribute), true).FirstOrDefault() as JsonPropertyAttribute;
+                string field;
+                if (expression is MethodCallExpression methodCallExpression)
+                {
+                    if (methodCallExpression.Method.Name == "get_Item")
+                    {
+                        var argument = methodCallExpression.Arguments.FirstOrDefault();
+                        if (argument is ConstantExpression constantArgument)
+                        {
+                            field = constantArgument.Value as string;
+                        }
+                        else
+                        {
+                            field = Expression.Lambda<Func<string>>(argument).Compile().Invoke();
+                        }
+                        expression = methodCallExpression.Object;
+                    }
+                    else
+                    {
+                        throw new ExpressionInvalidException(expression.ToString());
+                    }
+                }
+                else if (expression is MemberExpression memberExpression)
+                {
+                    JsonPropertyAttribute attr = memberExpression.Member.GetCustomAttributes(typeof(JsonPropertyAttribute), true).FirstOrDefault() as JsonPropertyAttribute;
+                    
+                    field = attr?.PropertyName ?? memberExpression.Member.Name;
+                    expression = memberExpression.Expression;
+                }
+                else if (expression is UnaryExpression unaryExpression)
+                {
+                    MemberExpression memberExpression2 = unaryExpression.Operand as MemberExpression;
+                    JsonPropertyAttribute attr = memberExpression2.Member.GetCustomAttributes(typeof(JsonPropertyAttribute), true).FirstOrDefault() as JsonPropertyAttribute;
+                    
+                    field = attr?.PropertyName ?? memberExpression2.Member.Name;
+                    expression = memberExpression2.Expression;
+                }
+                else if (expression is ParameterExpression)
+                {
+                    break;
+                }
+                else
+                {
+                    throw new ExpressionInvalidException(expression.ToString());
+                }
                 
-                _field = (attr?.PropertyName ?? e.Member.Name) + (!String.IsNullOrEmpty(_field) ? "." + _field : "");
-                
-                e = e.Expression as MemberExpression;
+                _field = field + (!String.IsNullOrEmpty(_field) ? "." + _field : "");
             }
         }
     }
