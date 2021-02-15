@@ -1,3 +1,4 @@
+using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
 namespace ArangoDriver.Protocol.Responses

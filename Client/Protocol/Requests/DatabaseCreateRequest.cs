@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using ArangoDriver.Client;
 using Newtonsoft.Json;
 
