@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using ArangoDriver.Client;
+using ArangoDriver.Serialization;
 using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
 
@@ -22,7 +23,8 @@ namespace Arango.Tests
 			    int.Parse(configuration["Connection:Port"]),
 			    false,
 			    configuration["Connection:User"],
-			    configuration["Connection:Password"]
+			    configuration["Connection:Password"],
+			    new JsonNetSerializer()
 		    );
 	    }
 

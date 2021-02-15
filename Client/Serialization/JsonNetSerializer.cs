@@ -1,13 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Linq;
 
 namespace ArangoDriver.Serialization
 {
-    internal class JsonNetSerializer : IJsonSerializer
+    public class JsonNetSerializer : IJsonSerializer
     {
         private readonly JsonSerializerSettings _settings;
         

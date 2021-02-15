@@ -18,31 +18,23 @@ namespace ArangoDriver.Client
     public class AConnection
     {
         private readonly HttpClient _httpClient;
-        private readonly JsonNetSerializer _jsonSerializer;
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly RequestFactory _requestFactory;
         
         private readonly string _username;
         private readonly string _password;
         private readonly Uri _baseUri;
-        private readonly bool _useWebProxy;
         
-        public AConnection(string hostname, int port, bool isSecured, string userName, string password, bool useWebProxy = false)
+        public AConnection(string hostname, int port, bool isSecured, string userName, string password, IJsonSerializer jsonSerializer)
         {
             _username = userName;
             _password = password;
 
-            _useWebProxy = useWebProxy;
-
             _baseUri = new Uri((isSecured ? "https" : "http") + "://" + hostname + ":" + port + "/");
             
             _httpClient = new HttpClient();
-            _jsonSerializer = new JsonNetSerializer();
+            _jsonSerializer = jsonSerializer;
             _requestFactory = new RequestFactory(_jsonSerializer);
-        }
-
-        public void RegisterSerializer(JsonConverter converter)
-        {
-            _jsonSerializer.RegisterSerializer(converter);
         }
         
         #region Databases
