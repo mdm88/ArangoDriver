@@ -97,6 +97,13 @@ namespace ArangoDriver.Client.Query
             return this;
         }
 
+        public AQuery Insert(string collectionName, IAqlValue definition)
+        {
+            _queries.Add(new AqlInsert(collectionName, definition));
+                    
+            return this;
+        }
+
         public AQuery Update<T>(string alias, string collectionName, Action<UpdateBuilder<T>> build, bool mergeObjects = true)
         {
             var definition = new UpdateBuilder<T>();
