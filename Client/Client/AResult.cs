@@ -32,11 +32,6 @@ namespace ArangoDriver.Client
         public T Value { get; set; }
         
         /// <summary>
-        /// Raw response
-        /// </summary>
-        public string Raw { get; set; }
-        
-        /// <summary>
         /// Document which might contain additional information on performed operation.
         /// </summary>
         public Dictionary<string, object> Extra { get; set; }
@@ -46,7 +41,6 @@ namespace ArangoDriver.Client
         internal AResult(Response response)
         {
             StatusCode = response.StatusCode;
-            Raw = response.Body;
         }
     }
 }

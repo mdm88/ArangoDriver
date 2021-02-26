@@ -29,7 +29,7 @@ namespace ArangoDriver.Client
         /// Retrieves specified index.
         /// </summary>
         /// <exception cref="ArgumentException">Specified id value has invalid format.</exception>
-        public async Task<AResult<Dictionary<string, object>>> Get(string id)
+        public async Task<AResult<IndexCreateResponse>> Get(string id)
         {
             if (!Helpers.IsID(id))
             {
@@ -39,7 +39,7 @@ namespace ArangoDriver.Client
             var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Index, "/" + id);
             
             var response = await _collection.Send(request);
-            var result = new AResult<Dictionary<string, object>>(response);
+            var result = new AResult<IndexCreateResponse>(response);
             
             switch (response.StatusCode)
             {
@@ -47,19 +47,7 @@ namespace ArangoDriver.Client
                     var body = response.ParseBody<IndexCreateResponse>();
                     
                     result.Success = (body != null);
-                    result.Value = new Dictionary<string, object>()
-                    {
-                        {"id", body.Id},
-                        {"name", body.Name},
-                        {"type", body.Type},
-                        {"fields", body.Fields},
-                        {"minLength", body.MinLength},
-                        {"geoJson", body.GeoJson},
-                        {"sparse", body.Sparse},
-                        {"unique", body.Unique},
-                        {"isNewlyCreated", body.IsNewlyCreated},
-                        {"selectivityEstimate", body.SelectivityEstimate}
-                    };
+                    result.Value = body;
                     break;
                 case 404:
                 default:

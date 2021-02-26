@@ -95,7 +95,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Creates index within specified collection in current database context.
         /// </summary>
-        public async Task<AResult<Dictionary<string, object>>> Create()
+        public async Task<AResult<IndexCreateResponse>> Create()
         {
             var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Index, "");
             
@@ -105,7 +105,7 @@ namespace ArangoDriver.Client
             request.SetBody(_create);
             
             var response = await _collection.Send(request);
-            var result = new AResult<Dictionary<string, object>>(response);
+            var result = new AResult<IndexCreateResponse>(response);
             
             switch (response.StatusCode)
             {
@@ -114,19 +114,7 @@ namespace ArangoDriver.Client
                     var body = response.ParseBody<IndexCreateResponse>();
                     
                     result.Success = (body != null);
-                    result.Value = new Dictionary<string, object>()
-                    {
-                        {"id", body.Id},
-                        {"name", body.Name},
-                        {"type", body.Type},
-                        {"fields", body.Fields},
-                        {"minLength", body.MinLength},
-                        {"geoJson", body.GeoJson},
-                        {"sparse", body.Sparse},
-                        {"unique", body.Unique},
-                        {"isNewlyCreated", body.IsNewlyCreated},
-                        {"selectivityEstimate", body.SelectivityEstimate}
-                    };
+                    result.Value = body;
                     break;
                 case 400:
                 case 404:
