@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using ArangoDriver.Exceptions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -7,35 +9,63 @@ namespace ArangoDriver.Serialization
 {
     public class JsonNetSerializer : IJsonSerializer
     {
-        private readonly JsonSerializerSettings _settings;
-        
+        protected readonly JsonSerializer _serializer;
+
         public JsonNetSerializer()
         {
-            _settings = new JsonSerializerSettings()
+            _serializer = new JsonSerializer()
             {
                 TypeNameHandling = TypeNameHandling.Auto,
                 MetadataPropertyHandling = MetadataPropertyHandling.ReadAhead,
-                Converters = new List<JsonConverter>()
-                {
-                    new DictionaryConverter(),
-                    new StringEnumConverter()
-                }
             };
+            _serializer.Converters.Add(new DictionaryConverter());
+            _serializer.Converters.Add(new StringEnumConverter());
         }
 
         public void RegisterSerializer(JsonConverter converter)
         {
-            _settings.Converters.Add(converter);
+            _serializer.Converters.Add(converter);
         }
         
         public string Serialize<T>(T obj)
         {
-            return JsonConvert.SerializeObject(obj, typeof(T), _settings);
+            using StringWriter writer = new StringWriter();
+            using JsonTextWriter jsonWriter = new JsonTextWriter(writer);
+            
+            _serializer.Serialize(jsonWriter, obj, typeof(T));
+            jsonWriter.Flush();
+
+            return writer.ToString();
         }
 
         public T Deserialize<T>(string json)
         {
-            return JsonConvert.DeserializeObject<T>(json, _settings);
+            try
+            {
+                using StringReader sr = new StringReader(json);
+                using JsonReader reader = new JsonTextReader(sr);
+                
+                return _serializer.Deserialize<T>(reader);
+            }
+            catch (Exception e)
+            {
+                throw new ArangoException(e.Message);
+            }
+        }
+
+        public T Deserialize<T>(Stream stream)
+        {
+            try
+            {
+                using StreamReader sr = new StreamReader(stream);
+                using JsonReader reader = new JsonTextReader(sr);
+                
+                return _serializer.Deserialize<T>(reader);
+            }
+            catch (Exception e)
+            {
+                throw new ArangoException(e.Message);
+            }
         }
         
         private class DictionaryConverter : CustomCreationConverter<IDictionary<string, object>>

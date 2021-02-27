@@ -6,6 +6,7 @@ using ArangoDriver.Client.Query;
 using ArangoDriver.Exceptions;
 using ArangoDriver.Protocol;
 using ArangoDriver.Protocol.Requests;
+using ArangoDriver.Serialization;
 
 namespace ArangoDriver.Client
 {
@@ -14,6 +15,7 @@ namespace ArangoDriver.Client
         private readonly RequestFactory _requestFactory;
         private readonly ADatabase _connection;
         private readonly string _collectionName;
+        private readonly IJsonSerializer _jsonSerializer;
 
         public string Name => _collectionName;
 
@@ -22,11 +24,12 @@ namespace ArangoDriver.Client
         /// </summary>
         public AIndex<T> Index => new AIndex<T>(_requestFactory, this);
 
-        internal ACollection(RequestFactory requestFactory, ADatabase connection, string collectionName)
+        internal ACollection(RequestFactory requestFactory, ADatabase connection, string collectionName, IJsonSerializer jsonSerializer)
         {
             _requestFactory = requestFactory;
             _connection = connection;
             _collectionName = collectionName;
+            _jsonSerializer = jsonSerializer;
         }
         
         #region Collection
@@ -38,23 +41,19 @@ namespace ArangoDriver.Client
         {
             var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName);
 
-            var response = await _connection.Send(request);
-            var result = new AResult<Dictionary<string, object>>(response);
-            
-            switch (response.StatusCode)
+            var result = await _connection.RequestQuery<Dictionary<string, object>>(request);
+
+            if (!result.Success)
             {
-                case 200:
-                    var body = response.ParseBody<Dictionary<string, object>>();
-                    
-                    result.Success = (body != null);
-                    result.Value = body;
-                    break;
-                case 404:
-                    throw new CollectionNotFoundException();
-                default:
-                    throw new ArangoException(response.Body);
+                switch (result.StatusCode)
+                {
+                    case 404:
+                        throw new CollectionNotFoundException();
+                    default:
+                        throw new ArangoException();
+                }
             }
-            
+
             return result;
         }
         
@@ -65,23 +64,19 @@ namespace ArangoDriver.Client
         {
             var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/properties");
 
-            var response = await _connection.Send(request);
-            var result = new AResult<Dictionary<string, object>>(response);
-            
-            switch (response.StatusCode)
+            var result = await _connection.RequestQuery<Dictionary<string, object>>(request);
+
+            if (!result.Success)
             {
-                case 200:
-                    var body = response.ParseBody<Dictionary<string, object>>();
-                    
-                    result.Success = (body != null);
-                    result.Value = body;
-                    break;
-                case 404:
-                    throw new CollectionNotFoundException();
-                default:
-                    throw new ArangoException(response.Body);
+                switch (result.StatusCode)
+                {
+                    case 404:
+                        throw new CollectionNotFoundException();
+                    default:
+                        throw new ArangoException();
+                }
             }
-            
+
             return result;
         }
         
@@ -92,23 +87,19 @@ namespace ArangoDriver.Client
         {
             var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/figures");
 
-            var response = await _connection.Send(request);
-            var result = new AResult<Dictionary<string, object>>(response);
-            
-            switch (response.StatusCode)
+            var result = await _connection.RequestQuery<Dictionary<string, object>>(request);
+
+            if (!result.Success)
             {
-                case 200:
-                    var body = response.ParseBody<Dictionary<string, object>>();
-                    
-                    result.Success = (body != null);
-                    result.Value = body;
-                    break;
-                case 404:
-                    throw new CollectionNotFoundException();
-                default:
-                    throw new ArangoException(response.Body);
+                switch (result.StatusCode)
+                {
+                    case 404:
+                        throw new CollectionNotFoundException();
+                    default:
+                        throw new ArangoException();
+                }
             }
-            
+
             return result;
         }
         
@@ -119,23 +110,19 @@ namespace ArangoDriver.Client
         {
             var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/revision");
 
-            var response = await _connection.Send(request);
-            var result = new AResult<Dictionary<string, object>>(response);
-            
-            switch (response.StatusCode)
+            var result = await _connection.RequestQuery<Dictionary<string, object>>(request);
+
+            if (!result.Success)
             {
-                case 200:
-                    var body = response.ParseBody<Dictionary<string, object>>();
-                    
-                    result.Success = (body != null);
-                    result.Value = body;
-                    break;
-                case 404:
-                    throw new CollectionNotFoundException();
-                default:
-                    throw new ArangoException(response.Body);
+                switch (result.StatusCode)
+                {
+                    case 404:
+                        throw new CollectionNotFoundException();
+                    default:
+                        throw new ArangoException();
+                }
             }
-            
+
             return result;
         }
         
@@ -146,28 +133,19 @@ namespace ArangoDriver.Client
         {
             var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/checksum");
 
-            // optional
-            //request.TrySetQueryStringParameter(ParameterName.WithRevisions, _parameters);
-            // optional
-            //request.TrySetQueryStringParameter(ParameterName.WithData, _parameters);
-            
-            var response = await _connection.Send(request);
-            var result = new AResult<Dictionary<string, object>>(response);
-            
-            switch (response.StatusCode)
+            var result = await _connection.RequestQuery<Dictionary<string, object>>(request);
+
+            if (!result.Success)
             {
-                case 200:
-                    var body = response.ParseBody<Dictionary<string, object>>();
-                    
-                    result.Success = (body != null);
-                    result.Value = body;
-                    break;
-                case 404:
-                    throw new CollectionNotFoundException();
-                default:
-                    throw new ArangoException(response.Body);
+                switch (result.StatusCode)
+                {
+                    case 404:
+                        throw new CollectionNotFoundException();
+                    default:
+                        throw new ArangoException();
+                }
             }
-            
+
             return result;
         }
         
@@ -181,23 +159,19 @@ namespace ArangoDriver.Client
             // required
             request.QueryString.Add(ParameterName.Collection, _collectionName);
             
-            var response = await _connection.Send(request);
-            var result = new AResult<Dictionary<string, object>>(response);
-            
-            switch (response.StatusCode)
+            var result = await _connection.RequestQuery<Dictionary<string, object>>(request);
+
+            if (!result.Success)
             {
-                case 200:
-                    var body = response.ParseBody<Dictionary<string, object>>();
-                    
-                    result.Success = (body != null);
-                    result.Value = body;
-                    break;
-                case 404:
-                    throw new CollectionNotFoundException();
-                default:
-                    throw new ArangoException(response.Body);
+                switch (result.StatusCode)
+                {
+                    case 404:
+                        throw new CollectionNotFoundException();
+                    default:
+                        throw new ArangoException();
+                }
             }
-            
+
             return result;
         }
         
@@ -208,23 +182,19 @@ namespace ArangoDriver.Client
         {
             var request = _requestFactory.Create(HttpMethod.Put, ApiBaseUri.Collection, "/" + _collectionName + "/truncate");
             
-            var response = await _connection.Send(request);
-            var result = new AResult<Dictionary<string, object>>(response);
-            
-            switch (response.StatusCode)
+            var result = await _connection.RequestQuery<Dictionary<string, object>>(request);
+
+            if (!result.Success)
             {
-                case 200:
-                    var body = response.ParseBody<Dictionary<string, object>>();
-                    
-                    result.Success = (body != null);
-                    result.Value = body;
-                    break;
-                case 404:
-                    throw new CollectionNotFoundException();
-                default:
-                    throw new ArangoException(response.Body);
+                switch (result.StatusCode)
+                {
+                    case 404:
+                        throw new CollectionNotFoundException();
+                    default:
+                        throw new ArangoException();
+                }
             }
-            
+
             return result;
         }
         
@@ -243,20 +213,17 @@ namespace ArangoDriver.Client
             
             request.Body = JSON.ToJSON(bodyDocument, ASettings.JsonParameters);
             
-            var response = await _connection.Send(request);
-            var result = new AResult<Dictionary<string, object>>(response);
-            
-            switch (response.StatusCode)
+            var result = await _connection.RequestQuery<Dictionary<string, object>>(request);
+
+            if (!result.Success)
             {
-                case 200:
-                    var body = response.ParseBody<Dictionary<string, object>>();
-                    
-                    result.Success = (body != null);
-                    result.Value = body;
-                    break;
-                default:
-                    // Arango error
-                    break;
+                switch (result.StatusCode)
+                {
+                    case 404:
+                        throw new CollectionNotFoundException();
+                    default:
+                        throw new ArangoException();
+                }
             }
             
             return result;
@@ -275,23 +242,19 @@ namespace ArangoDriver.Client
             
             request.SetBody(document);
             
-            var response = await Send(request);
-            var result = new AResult<Dictionary<string, object>>(response);
-            
-            switch (response.StatusCode)
+            var result = await _connection.RequestQuery<Dictionary<string, object>>(request);
+
+            if (!result.Success)
             {
-                case 200:
-                    var body = response.ParseBody<Dictionary<string, object>>();
-                    
-                    result.Success = (body != null);
-                    result.Value = body;
-                    break;
-                case 404:
-                    throw new CollectionNotFoundException();
-                default:
-                    throw new ArangoException(response.Body);
+                switch (result.StatusCode)
+                {
+                    case 404:
+                        throw new CollectionNotFoundException();
+                    default:
+                        throw new ArangoException();
+                }
             }
-            
+
             return result;
         }
         
@@ -316,26 +279,25 @@ namespace ArangoDriver.Client
         {
             var request = _requestFactory.Create(HttpMethod.Get, ApiBaseUri.Collection, "/" + _collectionName + "/count");
 
-            var response = await _connection.Send(request);
-            var result = new AResult<long>(response);
-            
-            switch (response.StatusCode)
+            var result = await _connection.RequestQuery<Dictionary<string, object>>(request);
+
+            if (!result.Success)
             {
-                case 200:
-                    var body = response.ParseBody<Dictionary<string, object>>();
-                    
-                    result.Success = (body != null);
-                    
-                    if (body != null)
-                        result.Value = (long) body["count"];
-                    break;
-                case 404:
-                    throw new CollectionNotFoundException();
-                default:
-                    throw new ArangoException(response.Body);
+                switch (result.StatusCode)
+                {
+                    case 404:
+                        throw new CollectionNotFoundException();
+                    default:
+                        throw new ArangoException();
+                }
             }
-            
-            return result;
+
+            return new AResult<long>()
+            {
+                StatusCode = result.StatusCode,
+                Success = result.Success,
+                Value = (long) result.Value["count"]
+            };
         }
 
         /// <summary>
@@ -345,7 +307,7 @@ namespace ArangoDriver.Client
         /// <returns>DocumentCreate</returns>
         public DocumentCreate<T> Insert()
         {
-            return new DocumentCreate<T>(_requestFactory, this);
+            return new DocumentCreate<T>(_requestFactory, this, _jsonSerializer);
         }
         
         /// <summary>
@@ -363,7 +325,7 @@ namespace ArangoDriver.Client
         /// <exception cref="ArgumentException">Specified 'id' value has invalid format.</exception>
         public DocumentGet<T> Get()
         {
-            return new DocumentGet<T>(_requestFactory, this);
+            return new DocumentGet<T>(_requestFactory, this, _jsonSerializer);
         }
 
         /// <summary>
@@ -384,29 +346,25 @@ namespace ArangoDriver.Client
             // required
             request.QueryString.Add(ParameterName.Direction, direction.ToString().ToLower());
 
-            var response = await _connection.Send(request);
-            var result = new AResult<List<Dictionary<string, object>>>(response);
+            var result = await _connection.RequestQuery<Dictionary<string, object>>(request);
 
-            switch (response.StatusCode)
+            if (!result.Success)
             {
-                case 200:
-                    var body = response.ParseBody<Dictionary<string, object>>();
-
-                    result.Success = (body != null);
-
-                    if (body != null)
-                    {
-                        result.Value = body["edges"] as List<Dictionary<string, object>>;
-                    }
-                    break;
-                case 400:
-                case 404:
-                default:
-                    // Arango error
-                    break;
+                switch (result.StatusCode)
+                {
+                    case 404:
+                        throw new CollectionNotFoundException();
+                    default:
+                        throw new ArangoException();
+                }
             }
 
-            return result;
+            return new AResult<List<Dictionary<string, object>>>()
+            {
+                StatusCode = result.StatusCode,
+                Success = result.Success,
+                Value = result.Value["edges"] as List<Dictionary<string, object>>
+            };
         }
 
         /// <summary>
@@ -426,7 +384,7 @@ namespace ArangoDriver.Client
         /// <returns>DocumentReplace</returns>
         public DocumentReplace<T> Replace()
         {
-            return new DocumentReplace<T>(_requestFactory, this);
+            return new DocumentReplace<T>(_requestFactory, this, _jsonSerializer);
         }
         
         /// <summary>
@@ -436,7 +394,7 @@ namespace ArangoDriver.Client
         /// <returns>DocumentDelete</returns>
         public DocumentDelete<T> Delete()
         {
-            return new DocumentDelete<T>(_requestFactory, this);
+            return new DocumentDelete<T>(_requestFactory, this, _jsonSerializer);
         }
         
         #endregion
@@ -444,6 +402,15 @@ namespace ArangoDriver.Client
         internal Task<Response> Send(Request request)
         {
             return _connection.Send(request);
+        }
+        
+        internal Task<HttpResponseMessage> Request(Request request)
+        {
+            return _connection.Request(request);
+        }
+        internal Task<AResult<T2>> RequestQuery<T2>(Request request)
+        {
+            return _connection.RequestQuery<T2>(request);
         }
     }
 }

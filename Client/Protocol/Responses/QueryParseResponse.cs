@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace ArangoDriver.Protocol.Responses
 {
-    internal class QueryParseResponse
+    public class QueryParseResponse
     {
         [JsonProperty(PropertyName = "collections")]
         public List<object> Collections { get; set; }

@@ -90,6 +90,7 @@ namespace Tests.Operations
 
             var doc1Result = await collection
                 .Insert()
+                .ReturnNew()
                 .Document(newDocument);
             
             Assert.AreEqual(202, doc1Result.StatusCode);
@@ -101,6 +102,7 @@ namespace Tests.Operations
             
             var doc2Result = await collection
                 .Insert()
+                .ReturnNew()
                 .Document(newDocument);
             
             Assert.AreEqual(202, doc2Result.StatusCode);

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ArangoDriver.Exceptions;
 using ArangoDriver.Protocol;
 using ArangoDriver.Protocol.Responses;
+using ArangoDriver.Serialization;
 
 namespace ArangoDriver.Client
 {
@@ -13,6 +14,7 @@ namespace ArangoDriver.Client
     {
         private readonly RequestFactory _requestFactory;
         private readonly ACollection<T> _collection;
+        private readonly IJsonSerializer _jsonSerializer;
 
         private bool? _waitForSync;
         private bool? _ignoreRevs;
@@ -74,10 +76,11 @@ namespace ArangoDriver.Client
 
         #endregion
 
-        internal DocumentReplace(RequestFactory requestFactory, ACollection<T> collection)
+        internal DocumentReplace(RequestFactory requestFactory, ACollection<T> collection, IJsonSerializer jsonSerializer)
         {
             _requestFactory = requestFactory;
             _collection = collection;
+            _jsonSerializer = jsonSerializer;
         }
         
         #region Document
@@ -108,38 +111,36 @@ namespace ArangoDriver.Client
             
             request.SetBody(document);
             
-            var response = await _collection.Send(request);
-            var result = new AResult<T>(response);
+            using var response = await _collection.Request(request);
             
-            switch (response.StatusCode)
+            var result = new AResult<T>()
+            {
+                StatusCode = (int) response.StatusCode,
+                Success = response.IsSuccessStatusCode
+            };
+            
+            switch (result.StatusCode)
             {
                 case 201:
                 case 202:
                     if (_returnNew.HasValue && _returnNew.Value || _returnOld.HasValue && _returnOld.Value)
                     {
-                        T body;
+                        var body = _jsonSerializer.Deserialize<DocumentCreateResponse<T>>(await response.Content.ReadAsStreamAsync());
                         if (_returnNew.HasValue && _returnNew.Value)
-                            body = response.ParseBody<DocumentCreateResponse<T>>()?.New;
+                            result.Value = body.New;
                         else
-                            body = response.ParseBody<DocumentCreateResponse<T>>()?.Old;
+                            result.Value = body.Old;
+                    }
                     
-                        result.Success = body != null;
-                        result.Value = body;
-                    }
-                    else
-                    {
-                        result.Success = true;
-                        result.Value = null;
-                    }
                     break;
                 case 412:
-                    var rev = (string)response.ParseBody<Dictionary<string, object>>()["_rev"];
+                    var rev = (string) _jsonSerializer.Deserialize<Dictionary<string, object>>(await response.Content.ReadAsStreamAsync())["_rev"];
                     
                     throw new VersionCheckViolationException(rev);
                 case 404:
                     throw new CollectionNotFoundException();
                 default:
-                    throw new ArangoException(response.Body);
+                    throw new ArangoException();
             }
             
             return result;

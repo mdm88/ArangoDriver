@@ -46,7 +46,7 @@ namespace ArangoDriver.Client
         /// <returns>ADatabase</returns>
         public ADatabase GetDatabase(string databaseName)
         {
-            return new ADatabase(_requestFactory, this, databaseName);
+            return new ADatabase(_requestFactory, this, databaseName, _jsonSerializer);
         }
         
         /// <summary>
@@ -211,7 +211,18 @@ namespace ArangoDriver.Client
             {
                 httpRequestMessage.Headers.Add(HttpRequestHeader.ContentLength.ToString(), "0");
             }
+            
+            
+            /*using var response = await _httpClient.GetAsync("http://localhost:58815/books", HttpCompletionOption.ResponseHeadersRead);
 
+            response.EnsureSuccessStatusCode();
+
+            if (response.Content is object)
+            {
+                var stream = await response.Content.ReadAsStreamAsync();
+                var data = await JsonSerializer.DeserializeAsync<List<Book>>(stream);
+                // do something with the data or return it
+            }*/
 
             HttpResponseMessage httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage);
 
@@ -223,6 +234,83 @@ namespace ArangoDriver.Client
             };
 
             return response;
+        }
+        
+        
+        
+        internal Task<HttpResponseMessage> Request(Request request, string databaseName)
+        {
+            return Request(request, new Uri(_baseUri + "_db/" + databaseName + "/"));
+        }
+        internal async Task<HttpResponseMessage> Request(Request request, Uri uri = null)
+        {
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(request.HttpMethod, (uri ?? _baseUri) + request.GetRelativeUri());
+            httpRequestMessage.Version = HttpVersion.Version11;
+            
+            foreach (KeyValuePair<string, string> header in request.Headers)
+            {
+                httpRequestMessage.Headers.Add(header.Key, header.Value);
+            }
+
+            httpRequestMessage.Headers.Add(HttpRequestHeader.KeepAlive.ToString(), "true");
+            httpRequestMessage.Headers.Add(HttpRequestHeader.UserAgent.ToString(),
+                ASettings.DriverName + "/" + ASettings.DriverVersion);
+
+            if (!string.IsNullOrEmpty(_username) && !string.IsNullOrEmpty(_password))
+            {
+                httpRequestMessage.Headers.Add(
+                    HttpRequestHeader.Authorization.ToString(),
+                    "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes(_username + ":" + _password))
+                );
+            }
+
+            if (request.Body != null)
+            {
+                httpRequestMessage.Content = new StringContent(request.Body, Encoding.UTF8, "application/json");
+                //httpRequestMessage.Headers.Add(HttpRequestHeader.ContentLength.ToString(), "0");
+            }
+            else
+            {
+                httpRequestMessage.Headers.Add(HttpRequestHeader.ContentLength.ToString(), "0");
+            }
+
+            return await _httpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead);
+        }
+        
+        internal Task<AResult<T>> RequestQuery<T>(Request request, string databaseName)
+        {
+            return RequestQuery<T>(request, new Uri(_baseUri + "_db/" + databaseName + "/"));
+        }
+        internal async Task<AResult<T>> RequestQuery<T>(Request request, Uri uri = null)
+        {
+            using var response = await Request(request, uri);
+            
+            var result = new AResult<T>()
+            {
+                StatusCode = (int) response.StatusCode,
+                Success = response.IsSuccessStatusCode
+            };
+            
+            if (response.IsSuccessStatusCode) {
+                result.Value = _jsonSerializer.Deserialize<T>(await response.Content.ReadAsStreamAsync());
+            }
+
+            return result;
+        }
+        
+        internal Task<AResult<object>> RequestExecute(Request request, string databaseName)
+        {
+            return RequestExecute(request, new Uri(_baseUri + "_db/" + databaseName + "/"));
+        }
+        internal async Task<AResult<object>> RequestExecute(Request request, Uri uri = null)
+        {
+            using var response = await Request(request, uri);
+            
+            return new AResult<object>()
+            {
+                StatusCode = (int) response.StatusCode,
+                Success = response.IsSuccessStatusCode
+            };
         }
     }
 }

@@ -223,23 +223,25 @@ namespace ArangoDriver.Client.Query
         /// </summary>
         public async Task<AResult<List<T>>> ToList<T>()
         {
-            var result = await Post<T>();
+            var resultInternal = await Post<T>();
 
-            while ((bool) result.Extra["hasMore"])
+            var result = new AResult<List<T>>()
             {
-                var batch = await Put<T>(_cursorId);
-                
-                result.Success = batch.Success;
-                result.StatusCode = batch.StatusCode;
+                StatusCode = resultInternal.StatusCode,
+                Success = resultInternal.Success,
+                Value = new List<T>(resultInternal.Value.Result)
+            };
 
-                if (result.Success)
+            while (resultInternal.Value.HasMore)
+            {
+                resultInternal = await Put<T>(_cursorId);
+                
+                result.StatusCode = resultInternal.StatusCode;
+                result.Success = resultInternal.Success;
+
+                if (resultInternal.Success)
                 {
-                    result.Value.AddRange(batch.Value);
-                    result.Extra["hasMore"] = batch.Extra["hasMore"];
-                }
-                else
-                {
-                    result.Extra["hasMore"] = false;
+                    result.Value.AddRange(resultInternal.Value.Result);
                 }
             }
             
@@ -251,35 +253,35 @@ namespace ArangoDriver.Client.Query
         /// </summary>
         /// <typeparam name="T">Object type</typeparam>
         /// <returns>AResult</returns>
-        public async Task<AResult<List<T>>> ToListBatch<T>()
+        public Task<AResult<Body<List<T>>>> ToListBatch<T>()
         {
             if (string.IsNullOrEmpty(_cursorId))
             {
-                return await Post<T>();
+                return Post<T>();
             }
             else
             {
-                return await Put<T>(_cursorId);
+                return Put<T>(_cursorId);
             }
         }
         
         /// <summary>
-        /// Retrieves result value as single generic object.
+        /// Retrieves first result value as single generic object.
         /// </summary>
         public async Task<AResult<T>> ToObject<T>()
         {
-            var listResult = await ToList<T>();
-            var result = new AResult<T>();
-            
-            result.StatusCode = listResult.StatusCode;
-            result.Success = listResult.Success;
-            result.Extra = listResult.Extra;
+            var listResult = await Post<T>();
+            var result = new AResult<T>()
+            {
+                StatusCode = listResult.StatusCode,
+                Success = listResult.Success
+            };
             
             if (listResult.Success)
             {
-                if (listResult.Value.Count > 0)
+                if (listResult.Value.Result.Count > 0)
                 {
-                    result.Value = listResult.Value[0];
+                    result.Value = listResult.Value.Result[0];
                 }
                 else
                 {
@@ -291,7 +293,7 @@ namespace ArangoDriver.Client.Query
         }
         
         /// <summary>
-        /// Retrieves result value as single object.
+        /// Retrieves first result value as single object.
         /// </summary>
         public Task<AResult<object>> ToObject()
         {
@@ -303,13 +305,36 @@ namespace ArangoDriver.Client.Query
         /// </summary>
         public async Task<AResult<object>> ExecuteNonQuery()
         {
-            var listResult = await ToList<Dictionary<string, object>>();
-            var result = new AResult<object>();
+            var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Cursor, "");
+            var document = new QueryRequest()
+            {
+                Query = GetExpression(),
+                Count = _count,
+                TTL = _ttl,
+                BatchSize = _batchSize
+            };
 
-            result.StatusCode = listResult.StatusCode;
-            result.Success = listResult.Success;
-            result.Extra = listResult.Extra;
-            result.Value = null;
+            int i = 0;
+            document.BindVars = GetBindedVars().ToDictionary(_ => "var" + i++);
+            
+            // TODO: options parameter
+            
+            request.SetBody(document);           
+            
+            var result = await _connection.RequestExecute(request);
+
+            if (!result.Success)
+            {
+                switch (result.StatusCode)
+                {
+                    case 400:
+                        throw new QueryInvalidException();
+                    case 404:
+                        throw new CollectionNotFoundException();
+                    default:
+                        throw new ArangoException();
+                }
+            }
 
             return result;
         }
@@ -322,7 +347,7 @@ namespace ArangoDriver.Client.Query
         /// <exception cref="QueryInvalidException"></exception>
         /// <exception cref="CollectionNotFoundException"></exception>
         /// <exception cref="ArangoException"></exception>
-        private async Task<AResult<List<T>>> Post<T>()
+        private async Task<AResult<Body<List<T>>>> Post<T>()
         {
             var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Cursor, "");
             var document = new QueryRequest()
@@ -333,44 +358,31 @@ namespace ArangoDriver.Client.Query
                 BatchSize = _batchSize
             };
 
-            
             int i = 0;
             document.BindVars = GetBindedVars().ToDictionary(_ => "var" + i++);
             
             // TODO: options parameter
             
             request.SetBody(document);           
-            var response = await _connection.Send(request);
-            var result = new AResult<List<T>>(response);
             
-            switch (response.StatusCode)
+            var result = await _connection.RequestQuery<Body<List<T>>>(request);
+
+            if (!result.Success)
             {
-                case 201:
-                    var body = response.ParseBody<Body<List<T>>>();
-                    
-                    result.Success = (body != null);
-                    
-                    if (body != null)
-                    {
-                        _cursorId = body.ID;
-                        
-                        result.Value = new List<T>();
-                        result.Value.AddRange(body.Result);
-                        result.Extra = new Dictionary<string, object>();
-                        
-                        CopyExtraBodyFields(body, result.Extra);
-                    }
-                    
-                    break;
-                case 400:
-                    throw new QueryInvalidException(response.Body);
-                case 404:
-                    throw new CollectionNotFoundException();
-                default:
-                    throw new ArangoException(response.Body);
+                switch (result.StatusCode)
+                {
+                    case 400:
+                        throw new QueryInvalidException();
+                    case 404:
+                        throw new CollectionNotFoundException();
+                    default:
+                        throw new ArangoException();
+                }
             }
             
-            return result;            
+            _cursorId = result.Value.ID;
+
+            return result;
         }
         
         /// <summary>
@@ -381,33 +393,21 @@ namespace ArangoDriver.Client.Query
         /// <returns></returns>
         /// <exception cref="QueryCursorNotFoundException"></exception>
         /// <exception cref="ArangoException"></exception>
-        private async Task<AResult<List<T>>> Put<T>(string cursorId)
+        private async Task<AResult<Body<List<T>>>> Put<T>(string cursorId)
         {
             var request = _requestFactory.Create(HttpMethod.Put, ApiBaseUri.Cursor, "/" + cursorId);
             
-            var response = await _connection.Send(request);
-            var result = new AResult<List<T>>(response);
-            
-            switch (response.StatusCode)
+            var result = await _connection.RequestQuery<Body<List<T>>>(request);
+
+            if (!result.Success)
             {
-                case 200:                    
-                    var body = response.ParseBody<Body<List<T>>>();
-                    
-                    result.Success = (body.Result != null);
-                    
-                    if (result.Success)
-                    {
-                        result.Value = new List<T>();
-                        result.Value.AddRange(body.Result);
-                        result.Extra = new Dictionary<string, object>();
-                        
-                        CopyExtraBodyFields(body, result.Extra);
-                    }
-                    break;
-                case 404:
-                    throw new QueryCursorNotFoundException();
-                default:
-                    throw new ArangoException(response.Body);
+                switch (result.StatusCode)
+                {
+                    case 404:
+                        throw new QueryCursorNotFoundException();
+                    default:
+                        throw new ArangoException();
+                }
             }
             
             return result;
@@ -416,7 +416,7 @@ namespace ArangoDriver.Client.Query
         /// <summary>
         /// Analyzes specified AQL query.
         /// </summary>
-        public async Task<AResult<Dictionary<string, object>>> Parse(string query)
+        public async Task<AResult<QueryParseResponse>> Parse(string query)
         {
             var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Query, "");
             var document = new Dictionary<string, object>();
@@ -426,30 +426,17 @@ namespace ArangoDriver.Client.Query
             
             request.SetBody(document);
             
-            var response = await _connection.Send(request);
-            var result = new AResult<Dictionary<string, object>>(response);
-            
-            switch (response.StatusCode)
+            var result = await _connection.RequestQuery<QueryParseResponse>(request);
+
+            if (!result.Success)
             {
-                case 200:
-                    var body = response.ParseBody<QueryParseResponse>();
-                    
-                    result.Success = (body != null);
-                    
-                    if (result.Success)
-                    {
-                        result.Value = new Dictionary<string, object>()
-                        {
-                            {"collections", body.Collections},
-                            {"bindVars", body.BindVars},
-                            {"ast", body.Ast}
-                        };
-                    }
-                    break;
-                case 400:
-                    throw new QueryInvalidException(response.Body);
-                default:
-                    throw new ArangoException(response.Body);
+                switch (result.StatusCode)
+                {
+                    case 400:
+                        throw new QueryInvalidException();
+                    default:
+                        throw new ArangoException();
+                }
             }
             
             return result;

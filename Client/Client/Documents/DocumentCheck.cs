@@ -35,24 +35,29 @@ namespace ArangoDriver.Client
             // optional: If revision is different -> HTTP 200. If revision is identical -> HTTP 304.
             //request.TrySetHeaderParameter(ParameterName.IfNoneMatch, _parameters);
             
-            var response = await _collection.Send(request);
-            var result = new AResult<string>(response);
+            using var response = await _collection.Request(request);
             
-            switch (response.StatusCode)
+            var result = new AResult<string>()
+            {
+                StatusCode = (int) response.StatusCode,
+                Success = response.IsSuccessStatusCode
+            };
+            
+            switch (result.StatusCode)
             {
                 case 200:
                 case 304:
                 case 404:
-                    if ((response.Headers?.ETag?.Tag ?? "").Trim().Length > 0)
+                    if ((response.Headers.ETag?.Tag ?? "").Trim().Length > 0)
                     {
                         result.Value = response.Headers?.ETag?.Tag?.Replace("\"", "");
                         result.Success = (result.Value != null);
                     }
                     break;
                 case 412:
-                    throw new VersionCheckViolationException(response.Headers.ETag.Tag?.Replace("\"", ""));
+                    throw new VersionCheckViolationException(response.Headers.ETag?.Tag.Replace("\"", ""));
                 default:
-                    throw new ArangoException(response.Body);
+                    throw new ArangoException();
             }
             
             return result;

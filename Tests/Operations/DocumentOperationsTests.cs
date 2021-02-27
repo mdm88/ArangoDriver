@@ -39,6 +39,7 @@ namespace Tests.Operations
 
             var createResult = await collection
                 .Insert()
+                .ReturnNew()
                 .Document(document);
             
             Assert.AreEqual(202, createResult.StatusCode);
@@ -84,6 +85,7 @@ namespace Tests.Operations
 
             var createResult = await collection
                 .Insert()
+                .ReturnNew()
                 .WaitForSync(true)
                 .Document(document);
             
@@ -106,6 +108,7 @@ namespace Tests.Operations
          
             var createResult = await collection
                 .Insert()
+                .ReturnNew()
                 .Document(dummy);
             
             Assert.AreEqual(202, createResult.StatusCode);
@@ -170,6 +173,7 @@ namespace Tests.Operations
 
             var createResult = await collection
                 .Insert()
+                .ReturnNew()
                 .Document(document);
             
             Assert.AreEqual(202, createResult.StatusCode);
@@ -195,6 +199,7 @@ namespace Tests.Operations
 
             var createResult = await collection
                 .Insert()
+                .ReturnNew()
                 .Documents(new List<Dictionary<string, object>>() {document1, document2});
             
             Assert.AreEqual(202, createResult.StatusCode);

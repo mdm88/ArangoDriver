@@ -7,6 +7,7 @@ using ArangoDriver.Exceptions;
 using ArangoDriver.Protocol;
 using ArangoDriver.Protocol.Requests;
 using ArangoDriver.Protocol.Responses;
+using ArangoDriver.Serialization;
 
 namespace ArangoDriver.Client
 {
@@ -14,6 +15,7 @@ namespace ArangoDriver.Client
     {
         private readonly RequestFactory _requestFactory;
         private readonly ACollection<T> _collection;
+        private readonly IJsonSerializer _jsonSerializer;
 
         private bool? _waitForSync;
         private bool? _returnNew;
@@ -62,10 +64,11 @@ namespace ArangoDriver.Client
         
         #endregion
 
-        internal DocumentCreate(RequestFactory requestFactory, ACollection<T> collection)
+        internal DocumentCreate(RequestFactory requestFactory, ACollection<T> collection, IJsonSerializer jsonSerializer)
         {
             _requestFactory = requestFactory;
             _collection = collection;
+            _jsonSerializer = jsonSerializer;
         }
 
         #region Document
@@ -91,33 +94,33 @@ namespace ArangoDriver.Client
 
             request.SetBody(document);
             
-            var response = await _collection.Send(request);
-            var result = new AResult<T>(response);
-            
-            switch (response.StatusCode)
-            {
-                case 201:
-                case 202:
-                    T body;
-                    if (_returnNew.HasValue && _returnNew.Value)
-                        body = response.ParseBody<DocumentCreateResponse<T>>()?.New;
-                    else if (_returnOld.HasValue && _returnOld.Value)
-                        body = response.ParseBody<DocumentCreateResponse<T>>()?.Old;
-                    else
-                        body = response.ParseBody<T>();
+            var result = await _collection.RequestQuery<DocumentCreateResponse<T>>(request);
 
-                    result.Success = (body != null);
-                    result.Value = body;
-                    break;
-                case 409:
-                    throw new UniqueConstraintViolationException();
-                case 404:
-                    throw new CollectionNotFoundException();
-                default:
-                    throw new ArangoException(response.Body);
+            if (!result.Success)
+            {
+                switch (result.StatusCode)
+                {
+                    case 409:
+                        throw new UniqueConstraintViolationException();
+                    case 404:
+                        throw new CollectionNotFoundException();
+                    default:
+                        throw new ArangoException();
+                }
             }
             
-            return result;
+            T body = default;
+            if (_returnNew.HasValue && _returnNew.Value)
+                body = result.Value.New;
+            else if (_returnOld.HasValue && _returnOld.Value)
+                body = result.Value.Old;
+
+            return new AResult<T>()
+            {
+                StatusCode = result.StatusCode,
+                Success = result.Success,
+                Value = body
+            };
         }
         
         /// <summary>
@@ -166,34 +169,35 @@ namespace ArangoDriver.Client
 
             request.SetBody(documents);
             
-            var response = await _collection.Send(request);
-            var result = new AResult<List<T>>(response);
+            using var response = await _collection.Request(request);
             
-            switch (response.StatusCode)
+            var result = new AResult<List<T>>()
+            {
+                StatusCode = (int) response.StatusCode,
+                Success = response.IsSuccessStatusCode
+            };
+
+            switch (result.StatusCode)
             {
                 case 201:
                 case 202:
-                    response.Headers.TryGetValues("X-Arango-Error-Codes", out var values);
-                    if (values != null && values.Any())
+                    response.Headers.TryGetValues("X-Arango-Error-Codes", out var errors);
+                    if (errors != null && errors.Any())
                         throw new MultipleException();
-                    
-                    List<T> body;
+
+                    var values = _jsonSerializer.Deserialize<List<DocumentCreateResponse<T>>>(await response.Content.ReadAsStreamAsync());
+
                     if (_returnNew.HasValue && _returnNew.Value)
-                        body = response.ParseBody<List<DocumentCreateResponse<T>>>().Select(e => e.New).ToList();
+                        result.Value = values.Select(e => e.New).ToList();
                     else if (_returnOld.HasValue && _returnOld.Value)
-                        body = response.ParseBody<List<DocumentCreateResponse<T>>>().Select(e => e.Old).ToList();
-                    else
-                        body = response.ParseBody<List<T>>();
-                    
-                    result.Success = (body != null);
-                    result.Value = body;
+                        result.Value = values.Select(e => e.Old).ToList();
                     break;
                 case 404:
                     throw new CollectionNotFoundException();
                 default:
-                    throw new ArangoException(response.Body);
+                    throw new ArangoException();
             }
-            
+
             return result;
         }
         

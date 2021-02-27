@@ -5,6 +5,7 @@ using ArangoDriver.Client.Query;
 using ArangoDriver.Exceptions;
 using ArangoDriver.Protocol;
 using ArangoDriver.Protocol.Responses;
+using ArangoDriver.Serialization;
 
 namespace ArangoDriver.Client
 {
@@ -13,6 +14,7 @@ namespace ArangoDriver.Client
         private readonly RequestFactory _requestFactory;
         private readonly AConnection _connection;
         private readonly string _databaseName;
+        private readonly IJsonSerializer _jsonSerializer;
 
         /// <summary>
         /// Provides access to AQL user function management operations in current database context.
@@ -37,11 +39,12 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Initializes new database context to perform operations on remote database identified by specified alias.
         /// </summary>
-        internal ADatabase(RequestFactory requestFactory, AConnection connection, string database)
+        internal ADatabase(RequestFactory requestFactory, AConnection connection, string database, IJsonSerializer jsonSerializer)
         {
             _requestFactory = requestFactory;
             _connection = connection;
             _databaseName = database;
+            _jsonSerializer = jsonSerializer;
         }
         
         #region Database
@@ -84,7 +87,7 @@ namespace ArangoDriver.Client
 
         public ACollection<T> GetCollection<T>(string name) where T : class
         {
-            return new ACollection<T>(_requestFactory, this, name);
+            return new ACollection<T>(_requestFactory, this, name, _jsonSerializer);
         }
         
         /// <summary>
@@ -147,6 +150,19 @@ namespace ArangoDriver.Client
         internal Task<Response> Send(Request request)
         {
             return _connection.Send(_databaseName, request);
+        }
+        
+        internal Task<HttpResponseMessage> Request(Request request)
+        {
+            return _connection.Request(request, _databaseName);
+        }
+        internal Task<AResult<T>> RequestQuery<T>(Request request)
+        {
+            return _connection.RequestQuery<T>(request, _databaseName);
+        }
+        internal Task<AResult<object>> RequestExecute(Request request)
+        {
+            return _connection.RequestExecute(request, _databaseName);
         }
     }
 }
