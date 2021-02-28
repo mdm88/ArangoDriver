@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -209,20 +210,12 @@ namespace ArangoDriver.Client
             var request = _requestFactory.Create(HttpMethod.Post, ApiBaseUri.Collection, "");
             
             request.SetBody(_parameters);
+
+            var result = await _connection.RequestQuery<Dictionary<string, Object>>(request);
             
-            var response = await _connection.Send(request);
-            var result = new AResult<Dictionary<string, object>>(response);
-            
-            switch (response.StatusCode)
+            if (!result.Success)
             {
-                case 200:
-                    var body = response.ParseBody<Dictionary<string, object>>();
-                    
-                    result.Success = (body != null);
-                    result.Value = body;
-                    break;
-                default:
-                    throw new ArangoException(response.Body);
+			    throw new ArangoException();
             }
             
             return result;

@@ -154,15 +154,15 @@ namespace ArangoDriver.Client
         
         internal Task<HttpResponseMessage> Request(Request request)
         {
-            return _connection.Request(request, _databaseName);
+            return _connection.Request(request, "_db/" + _databaseName + "/");
         }
         internal Task<AResult<T>> RequestQuery<T>(Request request)
         {
-            return _connection.RequestQuery<T>(request, _databaseName);
+            return _connection.RequestQuery<T>(request, "_db/" + _databaseName + "/");
         }
         internal Task<AResult<object>> RequestExecute(Request request)
         {
-            return _connection.RequestExecute(request, _databaseName);
+            return _connection.RequestExecute(request, "_db/" + _databaseName + "/");
         }
     }
 }

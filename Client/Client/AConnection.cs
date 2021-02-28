@@ -238,13 +238,9 @@ namespace ArangoDriver.Client
         
         
         
-        internal Task<HttpResponseMessage> Request(Request request, string databaseName)
+        internal Task<HttpResponseMessage> Request(Request request, string uri = "")
         {
-            return Request(request, new Uri(_baseUri + "_db/" + databaseName + "/"));
-        }
-        internal async Task<HttpResponseMessage> Request(Request request, Uri uri = null)
-        {
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(request.HttpMethod, (uri ?? _baseUri) + request.GetRelativeUri());
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(request.HttpMethod, _baseUri + uri + request.GetRelativeUri());
             httpRequestMessage.Version = HttpVersion.Version11;
             
             foreach (KeyValuePair<string, string> header in request.Headers)
@@ -274,14 +270,10 @@ namespace ArangoDriver.Client
                 httpRequestMessage.Headers.Add(HttpRequestHeader.ContentLength.ToString(), "0");
             }
 
-            return await _httpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead);
+            return _httpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead);
         }
         
-        internal Task<AResult<T>> RequestQuery<T>(Request request, string databaseName)
-        {
-            return RequestQuery<T>(request, new Uri(_baseUri + "_db/" + databaseName + "/"));
-        }
-        internal async Task<AResult<T>> RequestQuery<T>(Request request, Uri uri = null)
+        internal async Task<AResult<T>> RequestQuery<T>(Request request, string uri = "")
         {
             using var response = await Request(request, uri);
             
@@ -298,11 +290,7 @@ namespace ArangoDriver.Client
             return result;
         }
         
-        internal Task<AResult<object>> RequestExecute(Request request, string databaseName)
-        {
-            return RequestExecute(request, new Uri(_baseUri + "_db/" + databaseName + "/"));
-        }
-        internal async Task<AResult<object>> RequestExecute(Request request, Uri uri = null)
+        internal async Task<AResult<object>> RequestExecute(Request request, string uri = "")
         {
             using var response = await Request(request, uri);
             

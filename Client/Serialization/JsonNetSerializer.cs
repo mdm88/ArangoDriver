@@ -4,6 +4,7 @@ using System.IO;
 using ArangoDriver.Exceptions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
 
 namespace ArangoDriver.Serialization
 {
@@ -17,21 +18,15 @@ namespace ArangoDriver.Serialization
             {
                 TypeNameHandling = TypeNameHandling.Auto,
                 MetadataPropertyHandling = MetadataPropertyHandling.ReadAhead,
+                ContractResolver = JsonNetContractResolver.Instance
             };
-            _serializer.Converters.Add(new DictionaryConverter());
-            _serializer.Converters.Add(new StringEnumConverter());
         }
 
-        public void RegisterSerializer(JsonConverter converter)
-        {
-            _serializer.Converters.Add(converter);
-        }
-        
         public string Serialize<T>(T obj)
         {
             using StringWriter writer = new StringWriter();
             using JsonTextWriter jsonWriter = new JsonTextWriter(writer);
-            
+
             _serializer.Serialize(jsonWriter, obj, typeof(T));
             jsonWriter.Flush();
 
@@ -44,7 +39,7 @@ namespace ArangoDriver.Serialization
             {
                 using StringReader sr = new StringReader(json);
                 using JsonReader reader = new JsonTextReader(sr);
-                
+
                 return _serializer.Deserialize<T>(reader);
             }
             catch (Exception e)
@@ -59,7 +54,7 @@ namespace ArangoDriver.Serialization
             {
                 using StreamReader sr = new StreamReader(stream);
                 using JsonReader reader = new JsonTextReader(sr);
-                
+
                 return _serializer.Deserialize<T>(reader);
             }
             catch (Exception e)
@@ -67,8 +62,35 @@ namespace ArangoDriver.Serialization
                 throw new ArangoException(e.Message);
             }
         }
-        
-        private class DictionaryConverter : CustomCreationConverter<IDictionary<string, object>>
+    }
+
+    public class JsonNetContractResolver : DefaultContractResolver
+    {
+        public static readonly JsonNetContractResolver Instance = new JsonNetContractResolver();
+
+        protected override JsonContract CreateContract(Type objectType)
+        {
+            JsonContract contract = base.CreateContract(objectType);
+
+            
+            Type t = objectType.IsGenericType && objectType.GetGenericTypeDefinition() == typeof(Nullable<>)
+                ? Nullable.GetUnderlyingType(objectType)
+                : objectType;
+
+            if (t?.IsEnum ?? false)
+            {
+                contract.Converter = new StringEnumConverter();
+            }
+            
+            if (objectType == typeof(object) || objectType == typeof(IDictionary<string, object>))
+            {
+                contract.Converter = new DictionaryConverter();
+            }
+
+            return contract;
+        }
+
+        public class DictionaryConverter : CustomCreationConverter<IDictionary<string, object>>
         {
             public override IDictionary<string, object> Create(Type objectType)
             {
