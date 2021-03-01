@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Arango.Tests;
 using ArangoDriver.Client;
@@ -113,6 +112,58 @@ namespace Tests.QueryBuilder
             Assert.AreEqual("LET x = MINUS(@var0,@var1)", query.GetExpression());
             Assert.AreEqual(typeof(List<int>), query.GetBindedVars()[0].GetType());
             Assert.AreEqual(typeof(List<int>), query.GetBindedVars()[1].GetType());
+        }
+        
+        [Test]
+        public void ObjectTest()
+        {
+            AQuery query = _db.Query
+                .Let( "x", AValue<Dummy>.Object(
+                    (
+                        x => x.Id,
+                        AValue.Bind("asdf")
+                    ),
+                    (
+                        x => x.Foo,
+                        AValue<Dummy>.Field(z => z.Foo)
+                    ),
+                    (
+                        x => x.Bar,
+                        AValue.Bind(10)
+                    ),
+                    (
+                        x => x.Baz,
+                        AValue<Dummy>.Field(x => x.Bar)
+                    )
+                ));
+            
+            Assert.AreEqual("LET x = {_id:@var0,Foo:z.Foo,Bar:@var1,Baz:x.Bar}", query.GetExpression());
+            Assert.AreEqual(typeof(string), query.GetBindedVars()[0].GetType());
+            Assert.AreEqual(typeof(int), query.GetBindedVars()[1].GetType());
+        }
+        
+        [Test]
+        public void ObjectDynamicTest()
+        {
+            AQuery query = _db.Query
+                .Let( "x", AValue.Object(
+                    (
+                        "_id",
+                        AValue.Bind("asdf")
+                    ),
+                    (
+                        "Foo",
+                        AValue<Dummy>.Field(z => z.Foo)
+                    ),
+                    (
+                        "lalalal",
+                        AValue.Bind(10)
+                    )
+                ));
+            
+            Assert.AreEqual("LET x = {_id:@var0,Foo:z.Foo,lalalal:@var1}", query.GetExpression());
+            Assert.AreEqual(typeof(string), query.GetBindedVars()[0].GetType());
+            Assert.AreEqual(typeof(int), query.GetBindedVars()[1].GetType());
         }
     }
 }

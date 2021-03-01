@@ -117,6 +117,16 @@ namespace ArangoDriver.Client.Query.Value
         {
             return new AqlBindValueType(v);
         }
+
+        /// <summary>
+        /// {field:value,field:value}
+        /// </summary>
+        /// <param name="d">Dictionary with object properties and values</param>
+        /// <returns>AqlValue</returns>
+        public static AqlObject<object> Object(params (string, IAqlValue)[] d)
+        {
+            return new AqlObject<object>(d);
+        }
     }
     
     public static class AValue<TO>
@@ -153,6 +163,16 @@ namespace ArangoDriver.Client.Query.Value
         public static AqlFieldValue<object> Field(Expression<Func<TO, object>> e, string suffix)
         {
             return new AqlFieldValue<object>(new FilterFieldExpression<TO, object>(e).Field + suffix);
+        }
+
+        /// <summary>
+        /// {field:value,field:value}
+        /// </summary>
+        /// <param name="d">Dictionary with object properties and values</param>
+        /// <returns>AqlValue</returns>
+        public static AqlObject<TO> Object(params (Expression<Func<TO, object>>, IAqlValue)[] d)
+        {
+            return new AqlObject<TO>(d);
         }
     }
 }
