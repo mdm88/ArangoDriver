@@ -64,6 +64,17 @@ namespace ArangoDriver.Client.Query.Value
         }
 
         /// <summary>
+        /// start..end
+        /// </summary>
+        /// <param name="start">Range start</param>
+        /// <param name="end">Range end</param>
+        /// <returns>AqlValue</returns>
+        public static AqlRange Range(int start, int end)
+        {
+            return new AqlRange(start, end);
+        }
+
+        /// <summary>
         /// value1 op value2
         /// </summary>
         /// <param name="v1">Value</param>

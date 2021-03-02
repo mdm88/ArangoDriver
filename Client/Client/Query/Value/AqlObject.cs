@@ -32,8 +32,9 @@ namespace ArangoDriver.Client.Query.Value
             
             foreach (var kvp in _dictionary)
             {
+                expression.Append('"');
                 expression.Append(kvp.Key);
-                expression.Append(':');
+                expression.Append("\":");
                 expression.Append(kvp.Value.GetExpression(ref bindCount));
                 expression.Append(',');
             }

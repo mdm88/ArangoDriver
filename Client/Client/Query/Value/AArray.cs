@@ -36,5 +36,28 @@ namespace ArangoDriver.Client.Query.Value
         {
             return new AqlFunctionValue<int>("COUNT", v);
         }
+
+        /// <summary>
+        /// RANGE(start, end, step)
+        /// </summary>
+        /// <param name="start">AqlValue</param>
+        /// <param name="end">AqlValue</param>
+        /// <returns>AqlValue</returns>
+        public static AqlFunctionValue<int> Range(IAqlValue<int> start, IAqlValue<int> end)
+        {
+            return new AqlFunctionValue<int>("RANGE", start, end);
+        }
+
+        /// <summary>
+        /// RANGE(start, end, step)
+        /// </summary>
+        /// <param name="start">AqlValue</param>
+        /// <param name="end">AqlValue</param>
+        /// <param name="step">AqlValue</param>
+        /// <returns>AqlValue</returns>
+        public static AqlFunctionValue<int> Range(IAqlValue<int> start, IAqlValue<int> end, IAqlValue<int> step)
+        {
+            return new AqlFunctionValue<int>("RANGE", start, end, step);
+        }
     }
 }

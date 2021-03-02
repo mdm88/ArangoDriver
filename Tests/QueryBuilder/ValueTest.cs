@@ -115,6 +115,15 @@ namespace Tests.QueryBuilder
         }
         
         [Test]
+        public void RangeTest()
+        {
+            AQuery query = _db.Query
+                .For("x", AValue.Range(0, 200));
+            
+            Assert.AreEqual("FOR x IN 0..200", query.GetExpression());
+        }
+        
+        [Test]
         public void ObjectTest()
         {
             AQuery query = _db.Query
