@@ -97,9 +97,9 @@ namespace ArangoDriver.Client.Query
             return this;
         }
 
-        public AQuery Insert(string collectionName, IAqlValue definition)
+        public AQuery Insert(string collectionName, IAqlValue definition, AqlInsert.Options options = null)
         {
-            _queries.Add(new AqlInsert(collectionName, definition));
+            _queries.Add(new AqlInsert(collectionName, definition, options));
                     
             return this;
         }

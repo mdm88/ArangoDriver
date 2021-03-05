@@ -53,6 +53,7 @@ namespace ArangoDriver.Protocol
         internal const string Type = "type";
         internal const string Unique = "unique";
         internal const string Vertex = "vertex";
+        internal const string IgnoreErrors = "ignoreErrors";
         internal const string WaitForSync = "waitForSync";
         internal const string WithRevisions = "withRevisions";
         internal const string WithData = "withData";
