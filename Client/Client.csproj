@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
         <PackageId>ArangoDriver</PackageId>
-        <Version>0.13.17</Version>
+        <Version>0.13.19</Version>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <RootNamespace>ArangoDriver</RootNamespace>
     </PropertyGroup>

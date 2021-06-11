@@ -76,13 +76,6 @@ namespace ArangoDriver.Client.Query
         
         private readonly List<IAqlQuery> _queries = new List<IAqlQuery>();
 
-        /*public AQuery For(string collectionName, string alias)
-        {
-            Aql("FOR " + alias + " IN " + collectionName);
-
-            return this;
-        }*/
-
         public AQuery For(string alias, IAqlValue collection)
         {
             _queries.Add(new AqlFor(alias, collection));
@@ -106,7 +99,7 @@ namespace ArangoDriver.Client.Query
 
         public AQuery Update<T>(string alias, string collectionName, Action<UpdateBuilder<T>> build, bool mergeObjects = true)
         {
-            var definition = new UpdateBuilder<T>();
+            var definition = new UpdateBuilder<T>(alias);
             
             build.Invoke(definition);
             
@@ -119,6 +112,24 @@ namespace ArangoDriver.Client.Query
         {
             _queries.Add(new AqlUpdate<T>(alias, collectionName, definition, mergeObjects));
             
+            return this;
+        }
+
+        public AQuery Upsert<T>(string collectionName, IAqlValue search, IAqlValue insert, Action<UpdateBuilder<T>> build)
+        {
+            var update = new UpdateBuilder<T>();
+            
+            build.Invoke(update);
+            
+            _queries.Add(new AqlUpsert<T>(collectionName, search, insert, update));
+
+            return this;
+        }
+
+        public AQuery Upsert<T>(string collectionName, IAqlValue search, IAqlValue insert, UpdateBuilder<T> update)
+        {
+            _queries.Add(new AqlUpsert<T>(collectionName, search, insert, update));
+
             return this;
         }
 

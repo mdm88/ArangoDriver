@@ -78,7 +78,67 @@ namespace Tests.QueryBuilder
 
             Assert.AreEqual("LET x = (FOR y IN " + TestDocumentCollectionName + " COLLECT AGGREGATE max = MAX(y.value) RETURN max)", query.GetExpression());
         }
-        
+
+        [Test]
+        public void InsertTest()
+        {
+            var insert = new Dummy()
+            {
+                Foo = "asd",
+                Bar = 10
+            };
+
+            AQuery query = _db.Query
+                .Insert("collection", AValue.Bind(insert));
+
+            Assert.AreEqual("INSERT @var0 INTO collection", query.GetExpression());
+            Assert.AreEqual(insert, query.GetBindedVars()[0]);
+        }
+
+        [Test]
+        public void InsertWithOptionsTest()
+        {
+            var insert = new Dummy()
+            {
+                Foo = "asd",
+                Bar = 10
+            };
+
+            var options = new AqlInsert.Options()
+            {
+                IgnoreErrors = true,
+                Overwrite = OverwriteMode.Replace
+            };
+
+            AQuery query = _db.Query
+                .Insert("collection", AValue.Bind(insert), options);
+
+            Assert.AreEqual("INSERT @var0 INTO collection OPTIONS {ignoreErrors:true, overwrite:true, overwriteMode:\"replace\"}", query.GetExpression());
+            Assert.AreEqual(insert, query.GetBindedVars()[0]);
+        }
+
+        [Test]
+        public void UpsertTest()
+        {
+            var search = new Dummy()
+            {
+                Foo = "asd"
+            };
+            var insert = new Dummy()
+            {
+                Foo = "asd",
+                Bar = 10
+            };
+
+            AQuery query = _db.Query
+                .Upsert<Dummy>("collection", AValue.Bind(search), AValue.Bind(insert), builder => builder.Inc(x => x.Bar, AValue.Bind(1)));
+
+            Assert.AreEqual("UPSERT @var0 INSERT @var1 UPDATE { Bar:x.Bar+@var2 } IN collection", query.GetExpression());
+            Assert.AreEqual(search, query.GetBindedVars()[0]);
+            Assert.AreEqual(insert, query.GetBindedVars()[1]);
+            Assert.AreEqual(1, query.GetBindedVars()[2]);
+        }
+
         [Test]
         public void ReturnTest()
         {

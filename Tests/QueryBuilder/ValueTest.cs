@@ -146,7 +146,7 @@ namespace Tests.QueryBuilder
                     )
                 ));
             
-            Assert.AreEqual("LET x = {_id:@var0,Foo:z.Foo,Bar:@var1,Baz:x.Bar}", query.GetExpression());
+            Assert.AreEqual("LET x = {\"_id\":@var0,\"Foo\":z.Foo,\"Bar\":@var1,\"Baz\":x.Bar}", query.GetExpression());
             Assert.AreEqual(typeof(string), query.GetBindedVars()[0].GetType());
             Assert.AreEqual(typeof(int), query.GetBindedVars()[1].GetType());
         }
@@ -170,7 +170,7 @@ namespace Tests.QueryBuilder
                     )
                 ));
             
-            Assert.AreEqual("LET x = {_id:@var0,Foo:z.Foo,lalalal:@var1}", query.GetExpression());
+            Assert.AreEqual("LET x = {\"_id\":@var0,\"Foo\":z.Foo,\"lalalal\":@var1}", query.GetExpression());
             Assert.AreEqual(typeof(string), query.GetBindedVars()[0].GetType());
             Assert.AreEqual(typeof(int), query.GetBindedVars()[1].GetType());
         }
