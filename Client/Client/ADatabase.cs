@@ -35,6 +35,11 @@ namespace ArangoDriver.Client
         /// Provides access to foxx services in current database context.
         /// </summary>
         public AFoxx Foxx => new AFoxx(_requestFactory, this);
+        
+        /// <summary>
+        /// Provides access to foxx administration in current database context.
+        /// </summary>
+        public AFoxxAdmin FoxxAdmin => new AFoxxAdmin(_requestFactory, this);
 
         /// <summary>
         /// Initializes new database context to perform operations on remote database identified by specified alias.

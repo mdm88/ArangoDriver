@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -202,28 +203,23 @@ namespace ArangoDriver.Client
                 );
             }
 
-            if (request.Body != null)
+            
+            if (request.Body is Stream bodyStream)
             {
-                httpRequestMessage.Content = new StringContent(request.Body, Encoding.UTF8, "application/json");
-                //httpRequestMessage.Headers.Add(HttpRequestHeader.ContentLength.ToString(), "0");
+                var content = new MultipartFormDataContent();
+                content.Add(new StreamContent(bodyStream), "source", "source.zip");
+                
+                httpRequestMessage.Content = content;
+            }
+            else if (request.Body is string bodyString)
+            {
+                httpRequestMessage.Content = new StringContent(bodyString, Encoding.UTF8, "application/json");
             }
             else
             {
                 httpRequestMessage.Headers.Add(HttpRequestHeader.ContentLength.ToString(), "0");
             }
             
-            
-            /*using var response = await _httpClient.GetAsync("http://localhost:58815/books", HttpCompletionOption.ResponseHeadersRead);
-
-            response.EnsureSuccessStatusCode();
-
-            if (response.Content is object)
-            {
-                var stream = await response.Content.ReadAsStreamAsync();
-                var data = await JsonSerializer.DeserializeAsync<List<Book>>(stream);
-                // do something with the data or return it
-            }*/
-
             HttpResponseMessage httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage);
 
             var response = new Response(_jsonSerializer)
@@ -260,10 +256,16 @@ namespace ArangoDriver.Client
                 );
             }
 
-            if (request.Body != null)
+            if (request.Body is Stream bodyStream)
             {
-                httpRequestMessage.Content = new StringContent(request.Body, Encoding.UTF8, "application/json");
-                //httpRequestMessage.Headers.Add(HttpRequestHeader.ContentLength.ToString(), "0");
+                var content = new MultipartFormDataContent();
+                content.Add(new StreamContent(bodyStream), "source", "source.zip");
+                
+                httpRequestMessage.Content = content;
+            }
+            else if (request.Body is string bodyString)
+            {
+                httpRequestMessage.Content = new StringContent(bodyString, Encoding.UTF8, "application/json");
             }
             else
             {

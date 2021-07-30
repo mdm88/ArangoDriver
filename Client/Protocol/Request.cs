@@ -34,7 +34,7 @@ namespace ArangoDriver.Protocol
         //internal WebHeaderCollection Headers = new WebHeaderCollection();
         internal Dictionary<string, string> Headers = new Dictionary<string, string>();
         internal Dictionary<string, string> QueryString = new Dictionary<string, string>();
-        internal string Body { get; set; }
+        internal object Body { get; set; }
 
         internal Request(IJsonSerializer jsonSerializer, HttpMethod httpMethod, string apiUri) : this(jsonSerializer, httpMethod, apiUri, "")
         {
