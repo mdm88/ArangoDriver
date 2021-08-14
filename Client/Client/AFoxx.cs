@@ -9,7 +9,7 @@ namespace ArangoDriver.Client
         private readonly RequestFactory _requestFactory;
         readonly ADatabase _connection;
 
-        private object _body;
+        private dynamic _body;
 
         internal AFoxx(RequestFactory requestFactory, ADatabase connection)
         {
@@ -22,7 +22,7 @@ namespace ArangoDriver.Client
         /// <summary>
         /// Serializes specified value as JSON object into request body.
         /// </summary>
-        public AFoxx Body(object value)
+        public AFoxx Body<T>(T value)
         {
             _body = value;
 
